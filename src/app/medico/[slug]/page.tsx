@@ -110,7 +110,11 @@ export default async function PaginaProfesional({ params }: Props) {
                   {especialidades.map((e) => e.nombre).join(" · ")}
                 </p>
                 <span className="sello">
-                  {cedulaVerificada(p) ? "Cédula verificada" : "En verificación"}
+                  {p.ejemplo
+                    ? "Perfil de muestra"
+                    : cedulaVerificada(p)
+                      ? "Cédula verificada"
+                      : "En verificación"}
                 </span>
               </div>
             </div>

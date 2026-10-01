@@ -13,6 +13,7 @@
  */
 
 import { sitio } from "@/config/sitio";
+import { EJEMPLOS } from "@/datos/ejemplos";
 import {
   CIUDADES,
   ESPECIALIDADES,
@@ -23,6 +24,18 @@ import {
 } from "@/datos/semilla";
 
 export type { Ciudad, Especialidad, Profesional };
+
+/**
+ * El padrón con el que trabaja el sitio.
+ *
+ * Mientras se carga el real, se completa con perfiles de muestra, que van
+ * marcados y se pueden apagar con una variable de entorno el día de la
+ * publicación sin tocar el código.
+ */
+function padron(): Profesional[] {
+  const conMuestra = process.env.MOSTRAR_EJEMPLOS !== "no";
+  return conMuestra ? [...PROFESIONALES, ...EJEMPLOS] : PROFESIONALES;
+}
 
 export function ciudades(): Ciudad[] {
   return CIUDADES;
@@ -41,7 +54,7 @@ export function especialidad(slug: string): Especialidad | undefined {
 }
 
 export function profesional(slug: string): Profesional | undefined {
-  return PROFESIONALES.find((p) => p.slug === slug);
+  return padron().find((p) => p.slug === slug);
 }
 
 /** Profesionales publicados que atienden esa especialidad en esa ciudad. */
@@ -49,7 +62,7 @@ export function profesionalesEn(
   ciudadSlug: string,
   especialidadSlug?: string,
 ): Profesional[] {
-  return PROFESIONALES.filter((p) => {
+  return padron().filter((p) => {
     const atiendeAhi = p.consultorios.some((c) => c.ciudad === ciudadSlug);
     const esDeLaEspecialidad =
       !especialidadSlug || p.especialidades.includes(especialidadSlug);
@@ -121,5 +134,32 @@ export function paginasPublicadas(): { ciudad: string; especialidad: string }[] 
 }
 
 export function profesionalesPublicados(): Profesional[] {
-  return PROFESIONALES;
+  return padron();
+}
+
+/** Quienes atienden ese padecimiento en esa ciudad. */
+export function profesionalesPorPadecimiento(
+  ciudadSlug: string,
+  padecimientoSlug: string,
+): Profesional[] {
+  return padron().filter(
+    (p) =>
+      p.padecimientos.includes(padecimientoSlug) &&
+      p.consultorios.some((c) => c.ciudad === ciudadSlug),
+  );
+}
+
+/** Todos los padecimientos del catálogo, con su especialidad. */
+export function padecimientos(): {
+  slug: string;
+  nombre: string;
+  especialidad: Especialidad;
+}[] {
+  return ESPECIALIDADES.flatMap((e) =>
+    e.padecimientos.map((p) => ({ ...p, especialidad: e })),
+  );
+}
+
+export function padecimiento(slug: string) {
+  return padecimientos().find((p) => p.slug === slug);
 }

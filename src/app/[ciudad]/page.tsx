@@ -2,12 +2,13 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
-import { TarjetaProfesional } from "@/componentes/TarjetaProfesional";
+import { Buscador } from "@/componentes/Buscador";
 import { sitio } from "@/config/sitio";
 import {
   ciudad,
   ciudades,
   especialidades,
+  padecimientos,
   profesionalesEn,
   publicable,
 } from "@/lib/catalogo";
@@ -42,6 +43,12 @@ export default async function PaginaCiudad({ params }: Props) {
 
   const profesionales = profesionalesEn(c.slug);
   const estado = publicable(c.slug);
+
+  // El buscador del navegador necesita los nombres legibles para poder
+  // encontrar por padecimiento, no por su identificador.
+  const etiquetas = Object.fromEntries(
+    padecimientos().map((p) => [p.slug, p.nombre]),
+  );
 
   return (
     <main>
@@ -79,11 +86,11 @@ export default async function PaginaCiudad({ params }: Props) {
         </div>
 
         {profesionales.length > 0 ? (
-          <div className="rejilla">
-            {profesionales.map((p) => (
-              <TarjetaProfesional key={p.slug} profesional={p} />
-            ))}
-          </div>
+          <Buscador
+            profesionales={profesionales}
+            etiquetas={etiquetas}
+            ciudad={c.nombre}
+          />
         ) : (
           <div className="nota-umbral">
             Todavía no hay profesionales publicados en {c.nombre}. Si usted
@@ -97,6 +104,23 @@ export default async function PaginaCiudad({ params }: Props) {
             profesionales en {c.nombre}. Faltan {estado.faltan}.
           </div>
         ) : null}
+      </section>
+
+      <section className="envoltura seccion">
+        <div className="seccion-cabeza">
+          <h2>Busque por padecimiento</h2>
+        </div>
+        <div className="chips">
+          {padecimientos().map((p) => (
+            <Link
+              key={p.slug}
+              href={`/${c.slug}/padecimiento/${p.slug}`}
+              className="chip"
+            >
+              {p.nombre}
+            </Link>
+          ))}
+        </div>
       </section>
 
       <section className="envoltura seccion">

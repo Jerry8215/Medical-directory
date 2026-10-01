@@ -423,3 +423,39 @@ img {
     transition: none !important;
   }
 }
+
+/* ---------- buscador ---------- */
+
+.buscador {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--papel);
+  border: 1px solid var(--borde);
+  border-radius: var(--radio);
+  padding: 6px 16px;
+  box-shadow: var(--sombra);
+}
+
+.buscador input {
+  border: 0;
+  background: transparent;
+  color: var(--tinta);
+  font: inherit;
+  width: 100%;
+  padding-block: 12px;
+  min-width: 0;
+}
+
+.buscador input:focus {
+  outline: none;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}

@@ -37,7 +37,11 @@ export function TarjetaProfesional({ profesional }: { profesional: Profesional }
             </p>
           ) : null}
           <span className="sello">
-            {cedulaVerificada(profesional) ? "Cédula verificada" : "En verificación"}
+            {profesional.ejemplo
+              ? "Perfil de muestra"
+              : cedulaVerificada(profesional)
+                ? "Cédula verificada"
+                : "En verificación"}
           </span>
           <div className="estrellas">
             <span aria-hidden="true">{estrellas(profesional.calificacion)}</span>
