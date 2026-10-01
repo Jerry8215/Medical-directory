@@ -330,6 +330,38 @@ model Ajuste {
   valor String
 }
 
+enum EstadoSolicitud {
+  RECIBIDA
+  EN_VERIFICACION
+  PUBLICADA
+  RECHAZADA
+}
+
+/// Lo que llena un profesional que quiere aparecer en el directorio.
+///
+/// Se guarda aparte del perfil a propósito: hasta que alguien verifica la
+/// cédula no hay perfil, solo una solicitud. Así el padrón publicado nunca
+/// contiene nada sin revisar.
+model SolicitudAlta {
+  id            String          @id @default(cuid())
+  nombre        String
+  correo        String
+  telefono      String
+  profesionSlug String
+  especialidad  String
+  ciudadSlug    String
+  cedula        String
+  consejo       String?
+  consultorio   String?
+  mensaje       String?
+  estado        EstadoSolicitud @default(RECIBIDA)
+  revisadaPor   String?
+  revisadaEn    DateTime?
+  creadaEn      DateTime        @default(now())
+
+  @@index([estado, creadaEn])
+}
+
 model RegistroAuditoria {
   id        String   @id @default(cuid())
   actor     String

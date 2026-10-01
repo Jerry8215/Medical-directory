@@ -568,3 +568,70 @@ img {
   font-size: 0.9rem;
   font-weight: 600;
 }
+
+/* ---------- formulario ---------- */
+
+.enlace-acento {
+  color: var(--acento);
+  font-weight: 600;
+}
+
+.formulario {
+  display: grid;
+  gap: 16px;
+}
+
+.campos-dos {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.campo {
+  display: grid;
+  gap: 5px;
+  min-width: 0;
+}
+
+.campo label {
+  font-size: 0.86rem;
+  font-weight: 600;
+  color: var(--tinta);
+}
+
+.campo input,
+.campo select,
+.campo textarea {
+  width: 100%;
+  border: 1px solid var(--borde);
+  background: var(--papel-2);
+  color: var(--tinta);
+  border-radius: 10px;
+  padding: 11px 13px;
+  font: inherit;
+  font-size: 0.95rem;
+}
+
+.campo textarea {
+  resize: vertical;
+}
+
+.campo input:focus,
+.campo select:focus,
+.campo textarea:focus {
+  outline: none;
+  border-color: var(--primario);
+  box-shadow: 0 0 0 3px var(--primario-tenue);
+}
+
+.error {
+  color: var(--acento);
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+
+@media (max-width: 620px) {
+  .campos-dos {
+    grid-template-columns: 1fr;
+  }
+}

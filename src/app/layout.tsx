@@ -53,6 +53,9 @@ export default function RootLayout({
                   {c.nombre}
                 </Link>
               ))}
+              <Link href="/alta" className="enlace-acento">
+                Soy médico
+              </Link>
             </nav>
           </div>
         </header>
