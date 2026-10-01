@@ -13,8 +13,18 @@ import { ciudades, paginasPublicadas, profesionalesPublicados, publicable } from
  * Cada alta nueva aparece acá automáticamente, sin que nadie recuerde
  * actualizar una lista.
  */
-export default function sitemap(): MetadataRoute.Sitemap {
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const ahora = new Date();
+  const [listaCiudades, publicadas, perfiles] = await Promise.all([
+    ciudades(),
+    paginasPublicadas(),
+    profesionalesPublicados(),
+  ]);
+  const ciudadesPublicadas = (
+    await Promise.all(
+      listaCiudades.map(async (c) => ((await publicable(c.slug)).publicada ? c : null)),
+    )
+  ).filter((c) => c !== null);
 
   const inicio = {
     url: urlAbsoluta("/"),
@@ -23,28 +33,26 @@ export default function sitemap(): MetadataRoute.Sitemap {
     priority: 1,
   };
 
-  const porCiudad = ciudades()
-    .filter((c) => publicable(c.slug).publicada)
-    .map((c) => ({
-      url: urlAbsoluta(`/${c.slug}`),
-      lastModified: ahora,
-      changeFrequency: "weekly" as const,
-      priority: 0.8,
-    }));
+  const porCiudad = ciudadesPublicadas.map((c) => ({
+    url: urlAbsoluta(`/${c.slug}`),
+    lastModified: ahora,
+    changeFrequency: "weekly" as const,
+    priority: 0.8,
+  }));
 
-  const porEspecialidad = paginasPublicadas().map(({ ciudad, especialidad }) => ({
+  const porEspecialidad = publicadas.map(({ ciudad, especialidad }) => ({
     url: urlAbsoluta(`/${ciudad}/${especialidad}`),
     lastModified: ahora,
     changeFrequency: "weekly" as const,
     priority: 0.9,
   }));
 
-  const perfiles = profesionalesPublicados().map((p) => ({
+  const paginasDePerfil = perfiles.map((p) => ({
     url: urlAbsoluta(`/medico/${p.slug}`),
     lastModified: ahora,
     changeFrequency: "monthly" as const,
     priority: 0.7,
   }));
 
-  return [inicio, ...porCiudad, ...porEspecialidad, ...perfiles];
+  return [inicio, ...porCiudad, ...porEspecialidad, ...paginasDePerfil];
 }

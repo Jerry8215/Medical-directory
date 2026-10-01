@@ -9,10 +9,23 @@ import {
   publicable,
 } from "@/lib/catalogo";
 
-export default function Inicio() {
-  const listaCiudades = ciudades();
-  const listaEspecialidades = especialidades();
-  const profesionales = profesionalesPublicados();
+export default async function Inicio() {
+  const [listaCiudades, listaEspecialidades, profesionales] = await Promise.all([
+    ciudades(),
+    especialidades(),
+    profesionalesPublicados(),
+  ]);
+
+  const conteos = new Map(
+    await Promise.all(
+      listaCiudades.map(
+        async (c) => [c.slug, (await publicable(c.slug)).cuantos] as const,
+      ),
+    ),
+  );
+  const nombreDeEspecialidad = new Map(
+    listaEspecialidades.map((e) => [e.slug, e.nombre]),
+  );
 
   return (
     <main>
@@ -36,15 +49,13 @@ export default function Inicio() {
         </div>
         <div className="rejilla">
           {listaCiudades.map((ciudad) => {
-            const estado = publicable(ciudad.slug);
+            const cuantos = conteos.get(ciudad.slug) ?? 0;
             return (
               <Link key={ciudad.slug} href={`/${ciudad.slug}`} className="tarjeta">
                 <h3>{ciudad.nombre}</h3>
                 <p className="meta">{ciudad.estado}</p>
                 <p className="meta">
-                  {estado.cuantos === 1
-                    ? "1 profesional"
-                    : `${estado.cuantos} profesionales`}
+                  {cuantos === 1 ? "1 profesional" : `${cuantos} profesionales`}
                 </p>
               </Link>
             );
@@ -73,7 +84,11 @@ export default function Inicio() {
           </div>
           <div className="rejilla">
             {profesionales.map((p) => (
-              <TarjetaProfesional key={p.slug} profesional={p} />
+              <TarjetaProfesional
+                key={p.slug}
+                profesional={p}
+                especialidad={nombreDeEspecialidad.get(p.especialidades[0])}
+              />
             ))}
           </div>
         </section>

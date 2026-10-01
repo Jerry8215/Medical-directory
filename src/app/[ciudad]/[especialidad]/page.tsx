@@ -15,19 +15,22 @@ import {
 
 type Props = { params: Promise<{ ciudad: string; especialidad: string }> };
 
-export function generateStaticParams() {
-  return ciudades().flatMap((c) =>
-    especialidades().map((e) => ({ ciudad: c.slug, especialidad: e.slug })),
+export async function generateStaticParams() {
+  const [listaCiudades, listaEspecialidades] = await Promise.all([
+    ciudades(),
+    especialidades(),
+  ]);
+  return listaCiudades.flatMap((c) =>
+    listaEspecialidades.map((e) => ({ ciudad: c.slug, especialidad: e.slug })),
   );
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { ciudad: ciudadSlug, especialidad: espSlug } = await params;
-  const c = ciudad(ciudadSlug);
-  const e = especialidad(espSlug);
+  const [c, e] = await Promise.all([ciudad(ciudadSlug), especialidad(espSlug)]);
   if (!c || !e) return {};
 
-  const estado = publicable(c.slug, e.slug);
+  const estado = await publicable(c.slug, e.slug);
   const cuantos = estado.cuantos === 1 ? "1 especialista" : `${estado.cuantos} especialistas`;
 
   return {
@@ -42,12 +45,14 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function PaginaEspecialidad({ params }: Props) {
   const { ciudad: ciudadSlug, especialidad: espSlug } = await params;
-  const c = ciudad(ciudadSlug);
-  const e = especialidad(espSlug);
+  const [c, e] = await Promise.all([ciudad(ciudadSlug), especialidad(espSlug)]);
   if (!c || !e) notFound();
 
-  const profesionales = profesionalesEn(c.slug, e.slug);
-  const estado = publicable(c.slug, e.slug);
+  const [profesionales, estado, listaCiudades] = await Promise.all([
+    profesionalesEn(c.slug, e.slug),
+    publicable(c.slug, e.slug),
+    ciudades(),
+  ]);
 
   // Lo que Google necesita para mostrar la ficha con los especialistas.
   const datosEstructurados = {
@@ -103,7 +108,7 @@ export default async function PaginaEspecialidad({ params }: Props) {
         {profesionales.length > 0 ? (
           <div className="rejilla">
             {profesionales.map((p) => (
-              <TarjetaProfesional key={p.slug} profesional={p} />
+              <TarjetaProfesional key={p.slug} profesional={p} especialidad={e.nombre} />
             ))}
           </div>
         ) : (
@@ -140,7 +145,7 @@ export default async function PaginaEspecialidad({ params }: Props) {
           <h2>{e.nombre} en otras ciudades</h2>
         </div>
         <div className="chips">
-          {ciudades()
+          {listaCiudades
             .filter((otra) => otra.slug !== c.slug)
             .map((otra) => (
               <Link key={otra.slug} href={`/${otra.slug}/${e.slug}`} className="chip">

@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 
 import { TarjetaProfesional } from "@/componentes/TarjetaProfesional";
-import type { Profesional } from "@/datos/semilla";
+import type { Profesional } from "@/lib/tipos";
 
 /**
  * Búsqueda dentro de una ciudad.
@@ -16,11 +16,14 @@ import type { Profesional } from "@/datos/semilla";
 export function Buscador({
   profesionales,
   etiquetas,
+  especialidades,
   ciudad,
 }: {
   profesionales: Profesional[];
-  /** slug de padecimiento → nombre legible, para poder buscar por texto */
+  /** slug de padecimiento -> nombre legible, para poder buscar por texto */
   etiquetas: Record<string, string>;
+  /** slug de especialidad -> nombre legible */
+  especialidades: Record<string, string>;
   ciudad: string;
 }) {
   const [consulta, setConsulta] = useState("");
@@ -32,10 +35,14 @@ export function Buscador({
       const padecimientos = p.padecimientos
         .map((slug) => etiquetas[slug] ?? slug)
         .join(" ");
-      const texto = `${p.nombre} ${p.semblanza} ${padecimientos}`.toLowerCase();
+      const especialidad = p.especialidades
+        .map((slug) => especialidades[slug] ?? slug)
+        .join(" ");
+      const texto =
+        `${p.nombre} ${p.semblanza} ${especialidad} ${padecimientos}`.toLowerCase();
       return texto.includes(q);
     });
-  }, [consulta, profesionales, etiquetas]);
+  }, [consulta, profesionales, etiquetas, especialidades]);
 
   return (
     <div>
@@ -54,7 +61,11 @@ export function Buscador({
       {encontrados.length > 0 ? (
         <div className="rejilla" style={{ marginTop: 18 }}>
           {encontrados.map((p) => (
-            <TarjetaProfesional key={p.slug} profesional={p} />
+            <TarjetaProfesional
+              key={p.slug}
+              profesional={p}
+              especialidad={especialidades[p.especialidades[0]]}
+            />
           ))}
         </div>
       ) : (

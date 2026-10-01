@@ -14,19 +14,22 @@ import {
 
 type Props = { params: Promise<{ ciudad: string; padecimiento: string }> };
 
-export function generateStaticParams() {
-  return ciudades().flatMap((c) =>
-    padecimientos().map((p) => ({ ciudad: c.slug, padecimiento: p.slug })),
+export async function generateStaticParams() {
+  const [listaCiudades, listaPadecimientos] = await Promise.all([
+    ciudades(),
+    padecimientos(),
+  ]);
+  return listaCiudades.flatMap((c) =>
+    listaPadecimientos.map((p) => ({ ciudad: c.slug, padecimiento: p.slug })),
   );
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { ciudad: ciudadSlug, padecimiento: padSlug } = await params;
-  const c = ciudad(ciudadSlug);
-  const p = padecimiento(padSlug);
+  const [c, p] = await Promise.all([ciudad(ciudadSlug), padecimiento(padSlug)]);
   if (!c || !p) return {};
 
-  const cuantos = profesionalesPorPadecimiento(c.slug, p.slug).length;
+  const cuantos = (await profesionalesPorPadecimiento(c.slug, p.slug)).length;
 
   return {
     // Así es como lo busca el paciente: por lo que le pasa, no por el
@@ -34,17 +37,17 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     title: `${p.nombre} en ${c.nombre}`,
     description: `Especialistas que atienden ${p.nombre.toLowerCase()} en ${c.nombre}, ${c.estado}, con cédula verificada. Consulte precios y horarios, y agende en línea.`,
     alternates: { canonical: `/${c.slug}/padecimiento/${p.slug}` },
-    robots: cuantos >= umbral(c.slug) ? undefined : { index: false, follow: true },
+    robots:
+      cuantos >= (await umbral(c.slug)) ? undefined : { index: false, follow: true },
   };
 }
 
 export default async function PaginaPadecimiento({ params }: Props) {
   const { ciudad: ciudadSlug, padecimiento: padSlug } = await params;
-  const c = ciudad(ciudadSlug);
-  const p = padecimiento(padSlug);
+  const [c, p] = await Promise.all([ciudad(ciudadSlug), padecimiento(padSlug)]);
   if (!c || !p) notFound();
 
-  const profesionales = profesionalesPorPadecimiento(c.slug, p.slug);
+  const profesionales = await profesionalesPorPadecimiento(c.slug, p.slug);
 
   return (
     <main>
@@ -75,7 +78,11 @@ export default async function PaginaPadecimiento({ params }: Props) {
         {profesionales.length > 0 ? (
           <div className="rejilla">
             {profesionales.map((profesional) => (
-              <TarjetaProfesional key={profesional.slug} profesional={profesional} />
+              <TarjetaProfesional
+                key={profesional.slug}
+                profesional={profesional}
+                especialidad={p.especialidad.nombre}
+              />
             ))}
           </div>
         ) : (

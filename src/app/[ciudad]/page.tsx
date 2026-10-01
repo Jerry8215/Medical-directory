@@ -15,16 +15,16 @@ import {
 
 type Props = { params: Promise<{ ciudad: string }> };
 
-export function generateStaticParams() {
-  return ciudades().map((c) => ({ ciudad: c.slug }));
+export async function generateStaticParams() {
+  return (await ciudades()).map((c) => ({ ciudad: c.slug }));
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { ciudad: slug } = await params;
-  const c = ciudad(slug);
+  const c = await ciudad(slug);
   if (!c) return {};
 
-  const estado = publicable(slug);
+  const estado = await publicable(slug);
   return {
     title: `Médicos en ${c.nombre}, ${c.estado}`,
     description: `Especialistas con cédula verificada en ${c.nombre}. Consulte horarios, precios de consulta y agende su cita en línea.`,
@@ -38,16 +38,24 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function PaginaCiudad({ params }: Props) {
   const { ciudad: slug } = await params;
-  const c = ciudad(slug);
+  const c = await ciudad(slug);
   if (!c) notFound();
 
-  const profesionales = profesionalesEn(c.slug);
-  const estado = publicable(c.slug);
+  const [profesionales, estado, listaEspecialidades, listaPadecimientos] =
+    await Promise.all([
+      profesionalesEn(c.slug),
+      publicable(c.slug),
+      especialidades(),
+      padecimientos(),
+    ]);
 
   // El buscador del navegador necesita los nombres legibles para poder
   // encontrar por padecimiento, no por su identificador.
   const etiquetas = Object.fromEntries(
-    padecimientos().map((p) => [p.slug, p.nombre]),
+    listaPadecimientos.map((p) => [p.slug, p.nombre]),
+  );
+  const nombreDeEspecialidad = Object.fromEntries(
+    listaEspecialidades.map((e) => [e.slug, e.nombre]),
   );
 
   return (
@@ -69,7 +77,7 @@ export default async function PaginaCiudad({ params }: Props) {
           <h2>Especialidades en {c.nombre}</h2>
         </div>
         <div className="chips">
-          {especialidades().map((e) => (
+          {listaEspecialidades.map((e) => (
             <Link key={e.slug} href={`/${c.slug}/${e.slug}`} className="chip">
               {e.nombre}
             </Link>
@@ -89,6 +97,7 @@ export default async function PaginaCiudad({ params }: Props) {
           <Buscador
             profesionales={profesionales}
             etiquetas={etiquetas}
+            especialidades={nombreDeEspecialidad}
             ciudad={c.nombre}
           />
         ) : (
@@ -111,7 +120,7 @@ export default async function PaginaCiudad({ params }: Props) {
           <h2>Busque por padecimiento</h2>
         </div>
         <div className="chips">
-          {padecimientos().map((p) => (
+          {listaPadecimientos.map((p) => (
             <Link
               key={p.slug}
               href={`/${c.slug}/padecimiento/${p.slug}`}

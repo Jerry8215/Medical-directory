@@ -1,6 +1,6 @@
 import Link from "next/link";
 
-import { cedulaVerificada, especialidadesDe, type Profesional } from "@/lib/catalogo";
+import { cedulaVerificada, type Profesional } from "@/lib/tipos";
 
 function iniciales(nombre: string): string {
   const palabras = nombre
@@ -15,9 +15,15 @@ function estrellas(calificacion: number): string {
   return "★".repeat(llenas) + "☆".repeat(5 - llenas);
 }
 
-export function TarjetaProfesional({ profesional }: { profesional: Profesional }) {
+export function TarjetaProfesional({
+  profesional,
+  especialidad,
+}: {
+  profesional: Profesional;
+  /** Nombre legible de la especialidad, ya resuelto por la página. */
+  especialidad?: string;
+}) {
   const consultorio = profesional.consultorios[0];
-  const especialidad = especialidadesDe(profesional)[0];
 
   return (
     <Link href={`/medico/${profesional.slug}`} className="tarjeta">
@@ -27,7 +33,7 @@ export function TarjetaProfesional({ profesional }: { profesional: Profesional }
         </div>
         <div>
           <h3>{profesional.nombre}</h3>
-          <p className="especialidad-texto">{especialidad?.nombre}</p>
+          {especialidad ? <p className="especialidad-texto">{especialidad}</p> : null}
           {consultorio ? (
             <p className="meta">
               {consultorio.nombre}
@@ -43,12 +49,16 @@ export function TarjetaProfesional({ profesional }: { profesional: Profesional }
                 ? "Cédula verificada"
                 : "En verificación"}
           </span>
-          <div className="estrellas">
-            <span aria-hidden="true">{estrellas(profesional.calificacion)}</span>
-            <small className="num">
-              {profesional.calificacion.toFixed(1)} · {profesional.opiniones} opiniones
-            </small>
-          </div>
+          {profesional.calificacion ? (
+            <div className="estrellas">
+              <span aria-hidden="true">{estrellas(profesional.calificacion)}</span>
+              <small className="num">
+                {profesional.calificacion.toFixed(1)} · {profesional.opiniones} opiniones
+              </small>
+            </div>
+          ) : (
+            <p className="meta">Sin opiniones todavía</p>
+          )}
         </div>
       </div>
     </Link>

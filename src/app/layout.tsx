@@ -31,9 +31,10 @@ export const metadata: Metadata = {
     "Directorio de médicos con cédula verificada en Delicias, Meoqui, Saucillo, Rosales y Camargo. Consulte horarios y precios reales, y agende su cita en línea.",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
+  const listaCiudades = await ciudades();
   return (
     <html lang="es" className={`${titulo.variable} ${texto.variable}`}>
       <body>
@@ -48,7 +49,7 @@ export default function RootLayout({
               <span>Directorio verificado</span>
             </Link>
             <nav>
-              {ciudades().map((c) => (
+              {listaCiudades.map((c) => (
                 <Link key={c.slug} href={`/${c.slug}`}>
                   {c.nombre}
                 </Link>

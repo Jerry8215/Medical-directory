@@ -7,10 +7,12 @@ import { urlAbsoluta } from "@/config/sitio";
 import { huecos, porDia } from "@/lib/agenda";
 import {
   cedulaVerificada,
-  ciudad,
+  ciudades,
   especialidadesDe,
   profesional,
   profesionalesPublicados,
+  type Ciudad,
+  type Especialidad,
 } from "@/lib/catalogo";
 
 type Props = { params: Promise<{ slug: string }> };
@@ -22,47 +24,58 @@ type Props = { params: Promise<{ slug: string }> };
  */
 export const revalidate = 3600;
 
-export function generateStaticParams() {
-  return profesionalesPublicados().map((p) => ({ slug: p.slug }));
+export async function generateStaticParams() {
+  return (await profesionalesPublicados()).map((p) => ({ slug: p.slug }));
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
-  const p = profesional(slug);
+  const p = await profesional(slug);
   if (!p) return {};
 
-  const especialidad = especialidadesDe(p)[0];
-  const ciudades = p.consultorios
-    .map((c) => ciudad(c.ciudad)?.nombre)
+  const [listaEspecialidades, listaCiudades] = await Promise.all([
+    especialidadesDe(p),
+    ciudades(),
+  ]);
+  const especialidad = listaEspecialidades[0];
+  const nombresDeCiudad = p.consultorios
+    .map((c) => listaCiudades.find((x: Ciudad) => x.slug === c.ciudad)?.nombre)
     .filter(Boolean)
     .join(" y ");
 
   return {
-    title: `${p.nombre} · ${especialidad?.nombre} en ${ciudades}`,
-    description: `${p.nombre}, ${especialidad?.nombre.toLowerCase()} con cédula verificada en ${ciudades}. Consulte horarios, precio de consulta y agende su cita en línea.`,
+    title: `${p.nombre} · ${especialidad?.nombre} en ${nombresDeCiudad}`,
+    description: `${p.nombre}, ${especialidad?.nombre.toLowerCase()} con cédula verificada en ${nombresDeCiudad}. Consulte horarios, precio de consulta y agende su cita en línea.`,
     alternates: { canonical: `/medico/${p.slug}` },
   };
 }
 
 export default async function PaginaProfesional({ params }: Props) {
   const { slug } = await params;
-  const p = profesional(slug);
+  const p = await profesional(slug);
   if (!p) notFound();
 
-  const especialidades = especialidadesDe(p);
-  const principal = especialidades[0];
+  const [listaEspecialidades, listaCiudades] = await Promise.all([
+    especialidadesDe(p),
+    ciudades(),
+  ]);
+  const principal = listaEspecialidades[0];
   const primera = p.consultorios[0];
-  const ciudadPrincipal = primera ? ciudad(primera.ciudad) : undefined;
+  const ciudadPrincipal = primera
+    ? listaCiudades.find((c: Ciudad) => c.slug === primera.ciudad)
+    : undefined;
+  const nombreDeCiudad = (slugCiudad: string) =>
+    listaCiudades.find((c: Ciudad) => c.slug === slugCiudad)?.nombre ?? "";
 
   // La disponibilidad se calcula en el servidor, con las franjas del
   // consultorio. Cuando la base esté montada se le restan además las citas
   // ya tomadas, que es el único cambio que falta en esta pantalla.
   const hoy = new Date().toISOString().slice(0, 10);
-  const dias = primera?.franjas
+  const dias = primera?.franjas?.length
     ? porDia(
         huecos({
           franjas: primera.franjas,
-          duracionMin: primera.duracionCitaMin ?? 30,
+          duracionMin: primera.duracionCitaMin,
           desde: hoy,
           dias: 21,
           maximo: 24,
@@ -75,7 +88,7 @@ export default async function PaginaProfesional({ params }: Props) {
     "@type": "Physician",
     name: p.nombre,
     description: p.semblanza,
-    medicalSpecialty: especialidades.map((e) => e.nombre),
+    medicalSpecialty: listaEspecialidades.map((e: Especialidad) => e.nombre),
     url: urlAbsoluta(`/medico/${p.slug}`),
     aggregateRating: {
       "@type": "AggregateRating",
@@ -86,8 +99,8 @@ export default async function PaginaProfesional({ params }: Props) {
       "@type": "PostalAddress",
       name: c.nombre,
       streetAddress: c.direccion,
-      addressLocality: ciudad(c.ciudad)?.nombre,
-      addressRegion: ciudad(c.ciudad)?.estado,
+      addressLocality: nombreDeCiudad(c.ciudad),
+      addressRegion: listaCiudades.find((x: Ciudad) => x.slug === c.ciudad)?.estado,
       addressCountry: "MX",
     })),
   };
@@ -132,7 +145,7 @@ export default async function PaginaProfesional({ params }: Props) {
               <div style={{ flex: "1 1 240px", minWidth: 0 }}>
                 <h1>{p.nombre}</h1>
                 <p className="especialidad-texto">
-                  {especialidades.map((e) => e.nombre).join(" · ")}
+                  {listaEspecialidades.map((e: Especialidad) => e.nombre).join(" · ")}
                 </p>
                 <span className="sello">
                   {p.ejemplo
@@ -166,10 +179,10 @@ export default async function PaginaProfesional({ params }: Props) {
           <div className="ficha">
             <h2>Padecimientos que atiende</h2>
             <ul className="lista-limpia">
-              {especialidades.flatMap((e) =>
+              {listaEspecialidades.flatMap((e: Especialidad) =>
                 e.padecimientos
-                  .filter((pad) => p.padecimientos.includes(pad.slug))
-                  .map((pad) => <li key={pad.slug}>{pad.nombre}</li>),
+                  .filter((pad: { slug: string }) => p.padecimientos.includes(pad.slug))
+                  .map((pad: { slug: string; nombre: string }) => <li key={pad.slug}>{pad.nombre}</li>),
               )}
             </ul>
           </div>
@@ -180,7 +193,7 @@ export default async function PaginaProfesional({ params }: Props) {
               <div className="sede" key={`${c.ciudad}-${c.nombre}`}>
                 <b>{c.nombre}</b>
                 <p>
-                  {c.direccion} · {ciudad(c.ciudad)?.nombre}
+                  {c.direccion} · {nombreDeCiudad(c.ciudad)}
                 </p>
                 <p>{c.horario}</p>
                 {c.precioValoracion ? (

@@ -18,7 +18,8 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
+  // Las direcciones de conexion viven en prisma.config.ts: desde Prisma 7
+  // ya no se declaran acá.
 }
 
 // ----------------------------------------------------------------------
@@ -106,10 +107,17 @@ model Profesional {
   profesionId String
   profesion   Profesion    @relation(fields: [profesionId], references: [id])
   semblanza   String?
+  /// Aseguradoras y convenios, tal como los enuncia el consultorio.
+  convenios   String?
   fotografia  String?
   telefono    String?
   correo      String?
   estado      EstadoPerfil @default(BORRADOR)
+
+  /// Promedio y número de opiniones, ya calculados. Se guardan para no
+  /// recorrer todas las opiniones en cada listado del directorio.
+  calificacion     Float?
+  numeroOpiniones  Int    @default(0)
 
   /// Cómo quiere enterarse de que alguien solicita consulta con él.
   avisoCorreo   Boolean @default(true)

@@ -11,7 +11,11 @@ export const metadata: Metadata = {
   alternates: { canonical: "/alta" },
 };
 
-export default function Alta() {
+export default async function Alta() {
+  const [listaEspecialidades, listaCiudades] = await Promise.all([
+    especialidades(),
+    ciudades(),
+  ]);
   return (
     <main>
       <section className="envoltura" style={{ paddingBlock: "40px 8px" }}>
@@ -54,8 +58,11 @@ export default function Alta() {
 
       <section className="envoltura seccion" style={{ maxWidth: 760 }}>
         <FormularioAlta
-          especialidades={especialidades().map((e) => ({ slug: e.slug, nombre: e.nombre }))}
-          ciudades={ciudades().map((c) => ({ slug: c.slug, nombre: c.nombre }))}
+          especialidades={listaEspecialidades.map((e) => ({
+            slug: e.slug,
+            nombre: e.nombre,
+          }))}
+          ciudades={listaCiudades.map((c) => ({ slug: c.slug, nombre: c.nombre }))}
         />
       </section>
     </main>

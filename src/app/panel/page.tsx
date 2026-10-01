@@ -6,7 +6,6 @@ import {
   ciudades,
   especialidades,
   padecimientos,
-  profesionalesEn,
   profesionalesPublicados,
   publicable,
 } from "@/lib/catalogo";
@@ -16,27 +15,41 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 };
 
+/** El panel refleja la base, así que no conviene servirlo de una caché vieja. */
+export const dynamic = "force-dynamic";
+
 /**
  * Panel de administración.
  *
- * Esta primera versión muestra el estado real del directorio: qué páginas
- * se publican, cuáles esperan profesionales y cuántos faltan en cada una.
- * Las acciones de alta y edición se habilitan al conectar la base de datos;
- * lo que se ve acá ya sale de los mismos datos que alimentan el sitio, no
- * de un maquetado.
+ * Muestra el estado real del directorio: qué páginas se publican, cuáles
+ * esperan profesionales y cuántos faltan en cada una. Las acciones de alta
+ * y edición llegan sobre esta misma base.
  */
-export default function Panel() {
-  const listaCiudades = ciudades();
-  const listaEspecialidades = especialidades();
-  const profesionales = profesionalesPublicados();
+export default async function Panel() {
+  const [listaCiudades, listaEspecialidades, profesionales, listaPadecimientos] =
+    await Promise.all([
+      ciudades(),
+      especialidades(),
+      profesionalesPublicados(),
+      padecimientos(),
+    ]);
 
-  const combinaciones = listaCiudades.flatMap((c) =>
-    listaEspecialidades.map((e) => ({
-      ciudad: c,
-      especialidad: e,
-      estado: publicable(c.slug, e.slug),
-    })),
+  const estadoPorCiudad = new Map(
+    await Promise.all(
+      listaCiudades.map(async (c) => [c.slug, await publicable(c.slug)] as const),
+    ),
   );
+
+  const combinaciones = await Promise.all(
+    listaCiudades.flatMap((c) =>
+      listaEspecialidades.map(async (e) => ({
+        ciudad: c,
+        especialidad: e,
+        estado: await publicable(c.slug, e.slug),
+      })),
+    ),
+  );
+
   const publicadas = combinaciones.filter((x) => x.estado.publicada);
   const enEspera = combinaciones
     .filter((x) => !x.estado.publicada && x.estado.cuantos > 0)
@@ -46,7 +59,7 @@ export default function Panel() {
     { valor: profesionales.length, etiqueta: "profesionales en el padrón" },
     { valor: publicadas.length, etiqueta: "páginas publicadas" },
     { valor: enEspera.length, etiqueta: "páginas por abrir" },
-    { valor: padecimientos().length, etiqueta: "padecimientos en catálogo" },
+    { valor: listaPadecimientos.length, etiqueta: "padecimientos en catálogo" },
   ];
 
   return (
@@ -57,9 +70,9 @@ export default function Panel() {
           Panel de {sitio.nombre}
         </h1>
         <p className="intro">
-          Estado del directorio en este momento. Las altas, ediciones y
-          aprobaciones se habilitan al conectar la base de datos, en los
-          próximos días.
+          Estado del directorio en este momento, leído de la base de datos. Las
+          altas, ediciones y aprobaciones se incorporan sobre esta misma
+          pantalla.
         </p>
       </section>
 
@@ -87,7 +100,8 @@ export default function Panel() {
             <span>Estado</span>
           </div>
           {listaCiudades.map((c) => {
-            const estado = publicable(c.slug);
+            const estado = estadoPorCiudad.get(c.slug);
+            if (!estado) return null;
             return (
               <div className="tabla-fila" key={c.slug}>
                 <span>
@@ -99,9 +113,7 @@ export default function Panel() {
                   {estado.publicada ? (
                     <em className="pastilla pastilla-bien">Publicada</em>
                   ) : (
-                    <em className="pastilla pastilla-espera">
-                      Faltan {estado.faltan}
-                    </em>
+                    <em className="pastilla pastilla-espera">Faltan {estado.faltan}</em>
                   )}
                 </span>
               </div>
@@ -163,9 +175,7 @@ export default function Panel() {
             <span>Verificación</span>
           </div>
           {profesionales.map((p) => {
-            const ciudadesDelPerfil = [
-              ...new Set(p.consultorios.map((c) => c.ciudad)),
-            ]
+            const ciudadesDelPerfil = [...new Set(p.consultorios.map((c) => c.ciudad))]
               .map((slug) => listaCiudades.find((c) => c.slug === slug)?.nombre)
               .filter(Boolean)
               .join(", ");
@@ -197,10 +207,8 @@ export default function Panel() {
           <h2>Solicitudes de alta</h2>
         </div>
         <div className="nota-umbral">
-          Las solicitudes que llegan por{" "}
-          <Link href="/alta">la página de alta</Link> aparecerán acá para
-          verificar la cédula y publicar el perfil, en cuanto se conecte la base
-          de datos.
+          Las solicitudes que llegan por <Link href="/alta">la página de alta</Link>{" "}
+          aparecerán acá para verificar la cédula y publicar el perfil.
         </div>
       </section>
     </main>
