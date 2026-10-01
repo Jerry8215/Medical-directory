@@ -1,0 +1,343 @@
+// Modelo de datos del directorio.
+//
+// Dos decisiones de diseño que vienen de los requisitos del consultorio y
+// conviene no perder de vista al leer el esquema:
+//
+//   1. Todo lo que define la estructura del sitio —ciudades, profesiones,
+//      especialidades y padecimientos— es un catálogo administrable. Abrir
+//      una especialidad nueva, o más adelante odontología, es dar de alta un
+//      registro, nunca programar.
+//
+//   2. Una página de catálogo solo se publica cuando reúne un mínimo de
+//      profesionales. Ese mínimo se guarda, no se codifica, porque el
+//      criterio puede cambiar por ciudad y por especialidad.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ----------------------------------------------------------------------
+//  Catálogos
+// ----------------------------------------------------------------------
+
+model Ciudad {
+  id           Int           @id @default(autoincrement())
+  nombre       String
+  slug         String        @unique
+  estado       String        @default("Chihuahua")
+  descripcion  String?
+  /// Mínimo de profesionales para publicar las páginas de esta ciudad.
+  /// Si es nulo, manda el valor general guardado en Ajuste.
+  umbralMinimo Int?
+  activa       Boolean       @default(true)
+  orden        Int           @default(0)
+  consultorios Consultorio[]
+
+  @@index([activa, orden])
+}
+
+/// Tipo de profesional de la salud: médico, odontólogo, psicólogo…
+/// Separar esto de la especialidad permite abrir otra profesión sin tocar
+/// el código, con sus propias reglas de verificación.
+model Profesion {
+  id     String @id @default(cuid())
+  nombre String
+  slug   String @unique
+  /// Toda profesión exige cédula profesional; solo algunas exigen además
+  /// la certificación de un consejo de especialidad vigente.
+  exigeConsejo   Boolean        @default(false)
+  activa         Boolean        @default(true)
+  especialidades Especialidad[]
+  profesionales  Profesional[]
+}
+
+model Especialidad {
+  id            String         @id @default(cuid())
+  nombre        String
+  slug          String         @unique
+  /// Texto propio de la especialidad. Sin él la página sería contenido
+  /// delgado y el buscador la ignora.
+  descripcion   String?
+  profesionId   String
+  profesion     Profesion      @relation(fields: [profesionId], references: [id])
+  umbralMinimo  Int?
+  activa        Boolean        @default(true)
+  orden         Int            @default(0)
+  padecimientos Padecimiento[]
+  profesionales ProfesionalEspecialidad[]
+
+  @@index([activa, orden])
+}
+
+model Padecimiento {
+  id             String       @id @default(cuid())
+  nombre         String
+  slug           String
+  descripcion    String?
+  especialidadId String
+  especialidad   Especialidad @relation(fields: [especialidadId], references: [id])
+  activo         Boolean      @default(true)
+
+  @@unique([especialidadId, slug])
+}
+
+// ----------------------------------------------------------------------
+//  Profesionales
+// ----------------------------------------------------------------------
+
+enum EstadoPerfil {
+  BORRADOR
+  EN_REVISION
+  PUBLICADO
+  SUSPENDIDO
+}
+
+model Profesional {
+  id          String       @id @default(cuid())
+  nombre      String
+  /// La dirección del perfil no lleva ciudad: un mismo profesional puede
+  /// atender en Delicias y en Camargo, y su perfil es uno solo.
+  slug        String       @unique
+  profesionId String
+  profesion   Profesion    @relation(fields: [profesionId], references: [id])
+  semblanza   String?
+  fotografia  String?
+  telefono    String?
+  correo      String?
+  estado      EstadoPerfil @default(BORRADOR)
+
+  /// Cómo quiere enterarse de que alguien solicita consulta con él.
+  avisoCorreo   Boolean @default(true)
+  avisoWhatsapp Boolean @default(false)
+
+  especialidades ProfesionalEspecialidad[]
+  consultorios   Consultorio[]
+  verificaciones Verificacion[]
+  citas          Cita[]
+  opiniones      Opinion[]
+  usuarios       Usuario[]
+  creadoEn       DateTime @default(now())
+
+  @@index([estado])
+}
+
+model ProfesionalEspecialidad {
+  profesionalId  String
+  especialidadId String
+  principal      Boolean      @default(false)
+  profesional    Profesional  @relation(fields: [profesionalId], references: [id], onDelete: Cascade)
+  especialidad   Especialidad @relation(fields: [especialidadId], references: [id], onDelete: Cascade)
+
+  @@id([profesionalId, especialidadId])
+}
+
+// ----------------------------------------------------------------------
+//  Verificación
+// ----------------------------------------------------------------------
+
+enum TipoCredencial {
+  CEDULA_PROFESIONAL
+  CEDULA_ESPECIALIDAD
+  CONSEJO_ESPECIALIDAD
+}
+
+enum EstadoVerificacion {
+  PENDIENTE
+  APROBADA
+  RECHAZADA
+  VENCIDA
+}
+
+/// Una credencial comprobada. Guarda la evidencia porque la promesa al
+/// paciente —«perfil verificado»— tiene que poder sostenerse después.
+model Verificacion {
+  id            String             @id @default(cuid())
+  profesionalId String
+  profesional   Profesional        @relation(fields: [profesionalId], references: [id], onDelete: Cascade)
+  tipo          TipoCredencial
+  numero        String?
+  institucion   String?
+  /// Las certificaciones de consejo caducan; la cédula no.
+  vigenteHasta  DateTime?
+  estado        EstadoVerificacion @default(PENDIENTE)
+  /// Qué devolvió el registro consultado, o el documento que entregó el
+  /// profesional. Es la evidencia archivada.
+  evidencia     String?
+  revisadaPor   String?
+  revisadaEn    DateTime?
+  creadaEn      DateTime           @default(now())
+
+  @@index([profesionalId, tipo])
+  @@index([estado, vigenteHasta])
+}
+
+// ----------------------------------------------------------------------
+//  Consultorios y agenda
+// ----------------------------------------------------------------------
+
+model Consultorio {
+  id                String      @id @default(cuid())
+  profesionalId     String
+  profesional       Profesional @relation(fields: [profesionalId], references: [id], onDelete: Cascade)
+  ciudadId          Int
+  ciudad            Ciudad      @relation(fields: [ciudadId], references: [id])
+  nombre            String
+  direccion         String
+  referencias       String?
+  latitud           Float?
+  longitud          Float?
+  precioValoracion  Int?
+  duracionCitaMin   Int         @default(30)
+  activo            Boolean     @default(true)
+  franjas           Franja[]
+  citas             Cita[]
+
+  @@index([ciudadId, activo])
+}
+
+/// Un tramo de atención semanal. De aquí salen los huecos que ve el
+/// paciente, menos lo que ya está ocupado.
+model Franja {
+  id            String      @id @default(cuid())
+  consultorioId String
+  consultorio   Consultorio @relation(fields: [consultorioId], references: [id], onDelete: Cascade)
+  /// 0 = lunes … 6 = domingo
+  dia           Int
+  desde         String
+  hasta         String
+
+  @@index([consultorioId, dia])
+}
+
+enum EstadoCita {
+  SOLICITADA
+  AGENDADA
+  CONFIRMADA
+  CANCELADA
+  ATENDIDA
+  NO_ASISTIO
+}
+
+model Cita {
+  id            String        @id @default(cuid())
+  profesionalId String
+  profesional   Profesional   @relation(fields: [profesionalId], references: [id])
+  consultorioId String
+  consultorio   Consultorio   @relation(fields: [consultorioId], references: [id])
+  pacienteId    String
+  paciente      Paciente      @relation(fields: [pacienteId], references: [id])
+  inicio        DateTime
+  fin           DateTime
+  estado        EstadoCita    @default(AGENDADA)
+  /// web, whatsapp, facebook, instagram o panel
+  origen        String        @default("web")
+  motivo        String?
+  creadaEn      DateTime      @default(now())
+  avisos        Aviso[]
+
+  @@index([profesionalId, inicio])
+  @@index([consultorioId, inicio])
+}
+
+model Paciente {
+  id             String   @id @default(cuid())
+  nombre         String?
+  telefono       String   @unique
+  correo         String?
+  consentimiento DateTime?
+  bajaEn         DateTime?
+  citas          Cita[]
+  creadoEn       DateTime @default(now())
+}
+
+// ----------------------------------------------------------------------
+//  Avisos al profesional
+// ----------------------------------------------------------------------
+
+enum CanalAviso {
+  CORREO
+  WHATSAPP
+  PANEL
+}
+
+enum EstadoAviso {
+  PENDIENTE
+  ENVIADO
+  FALLIDO
+}
+
+/// «Alguien está buscando consulta con usted». Se guarda cada intento
+/// para poder responder si un profesional dice que no le llegó.
+model Aviso {
+  id        String      @id @default(cuid())
+  citaId    String
+  cita      Cita        @relation(fields: [citaId], references: [id], onDelete: Cascade)
+  canal     CanalAviso
+  destino   String
+  estado    EstadoAviso @default(PENDIENTE)
+  detalle   String?
+  enviadoEn DateTime?
+  creadoEn  DateTime    @default(now())
+
+  @@index([estado, creadoEn])
+}
+
+// ----------------------------------------------------------------------
+//  Opiniones, usuarios y operación
+// ----------------------------------------------------------------------
+
+model Opinion {
+  id            String      @id @default(cuid())
+  profesionalId String
+  profesional   Profesional @relation(fields: [profesionalId], references: [id], onDelete: Cascade)
+  autor         String
+  calificacion  Int
+  texto         String
+  publicada     Boolean     @default(false)
+  fecha         DateTime    @default(now())
+
+  @@index([profesionalId, publicada])
+}
+
+enum Rol {
+  ADMINISTRADOR
+  RECEPCION
+  PROFESIONAL
+}
+
+model Usuario {
+  id            String       @id @default(cuid())
+  nombre        String
+  correo        String       @unique
+  hashClave     String
+  rol           Rol          @default(RECEPCION)
+  /// Solo para el rol PROFESIONAL: a qué perfil da acceso.
+  profesionalId String?
+  profesional   Profesional? @relation(fields: [profesionalId], references: [id])
+  activo        Boolean      @default(true)
+  creadoEn      DateTime     @default(now())
+}
+
+/// Configuración que el panel puede cambiar sin un despliegue: nombre del
+/// sitio, umbral general de publicación, textos legales.
+model Ajuste {
+  clave String @id
+  valor String
+}
+
+model RegistroAuditoria {
+  id        String   @id @default(cuid())
+  actor     String
+  accion    String
+  entidad   String?
+  entidadId String?
+  detalle   String?
+  cuando    DateTime @default(now())
+
+  @@index([cuando])
+}

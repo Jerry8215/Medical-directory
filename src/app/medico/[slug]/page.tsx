@@ -1,0 +1,189 @@
+import type { Metadata } from "next";
+import Link from "next/link";
+import { notFound } from "next/navigation";
+
+import { urlAbsoluta } from "@/config/sitio";
+import {
+  cedulaVerificada,
+  ciudad,
+  especialidadesDe,
+  profesional,
+  profesionalesPublicados,
+} from "@/lib/catalogo";
+
+type Props = { params: Promise<{ slug: string }> };
+
+export function generateStaticParams() {
+  return profesionalesPublicados().map((p) => ({ slug: p.slug }));
+}
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { slug } = await params;
+  const p = profesional(slug);
+  if (!p) return {};
+
+  const especialidad = especialidadesDe(p)[0];
+  const ciudades = p.consultorios
+    .map((c) => ciudad(c.ciudad)?.nombre)
+    .filter(Boolean)
+    .join(" y ");
+
+  return {
+    title: `${p.nombre} · ${especialidad?.nombre} en ${ciudades}`,
+    description: `${p.nombre}, ${especialidad?.nombre.toLowerCase()} con cédula verificada en ${ciudades}. Consulte horarios, precio de consulta y agende su cita en línea.`,
+    alternates: { canonical: `/medico/${p.slug}` },
+  };
+}
+
+export default async function PaginaProfesional({ params }: Props) {
+  const { slug } = await params;
+  const p = profesional(slug);
+  if (!p) notFound();
+
+  const especialidades = especialidadesDe(p);
+  const principal = especialidades[0];
+  const primera = p.consultorios[0];
+  const ciudadPrincipal = primera ? ciudad(primera.ciudad) : undefined;
+
+  const datosEstructurados = {
+    "@context": "https://schema.org",
+    "@type": "Physician",
+    name: p.nombre,
+    description: p.semblanza,
+    medicalSpecialty: especialidades.map((e) => e.nombre),
+    url: urlAbsoluta(`/medico/${p.slug}`),
+    aggregateRating: {
+      "@type": "AggregateRating",
+      ratingValue: p.calificacion,
+      reviewCount: p.opiniones,
+    },
+    address: p.consultorios.map((c) => ({
+      "@type": "PostalAddress",
+      name: c.nombre,
+      streetAddress: c.direccion,
+      addressLocality: ciudad(c.ciudad)?.nombre,
+      addressRegion: ciudad(c.ciudad)?.estado,
+      addressCountry: "MX",
+    })),
+  };
+
+  return (
+    <main>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(datosEstructurados) }}
+      />
+
+      <div className="envoltura migas">
+        <Link href="/">Inicio</Link>
+        {ciudadPrincipal ? (
+          <>
+            {" / "}
+            <Link href={`/${ciudadPrincipal.slug}`}>{ciudadPrincipal.nombre}</Link>
+          </>
+        ) : null}
+        {ciudadPrincipal && principal ? (
+          <>
+            {" / "}
+            <Link href={`/${ciudadPrincipal.slug}/${principal.slug}`}>
+              {principal.nombre}
+            </Link>
+          </>
+        ) : null}
+      </div>
+
+      <div className="envoltura perfil">
+        <div>
+          <div className="ficha">
+            <div className="perfil-cabeza">
+              <div className="retrato retrato-grande" aria-hidden="true">
+                {p.nombre
+                  .replace(/^(Dr\.|Dra\.)\s*/i, "")
+                  .split(/\s+/)
+                  .slice(0, 2)
+                  .map((x) => x[0])
+                  .join("")}
+              </div>
+              <div style={{ flex: "1 1 240px", minWidth: 0 }}>
+                <h1>{p.nombre}</h1>
+                <p className="especialidad-texto">
+                  {especialidades.map((e) => e.nombre).join(" · ")}
+                </p>
+                <span className="sello">
+                  {cedulaVerificada(p) ? "Cédula verificada" : "En verificación"}
+                </span>
+              </div>
+            </div>
+
+            <div className="cedulas">
+              {p.credenciales.map((c) => (
+                <div key={`${c.tipo}-${c.numero ?? ""}`}>
+                  {c.tipo === "CEDULA_PROFESIONAL"
+                    ? "Cédula profesional"
+                    : c.tipo === "CEDULA_ESPECIALIDAD"
+                      ? "Cédula de especialidad"
+                      : "Consejo de especialidad"}
+                  <b className="num">{c.numero ?? "En revisión"}</b>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="ficha">
+            <h2>Sobre el especialista</h2>
+            <p style={{ color: "var(--suave)" }}>{p.semblanza}</p>
+          </div>
+
+          <div className="ficha">
+            <h2>Padecimientos que atiende</h2>
+            <ul className="lista-limpia">
+              {especialidades.flatMap((e) =>
+                e.padecimientos
+                  .filter((pad) => p.padecimientos.includes(pad.slug))
+                  .map((pad) => <li key={pad.slug}>{pad.nombre}</li>),
+              )}
+            </ul>
+          </div>
+
+          <div className="ficha">
+            <h2>Consultorios y precios</h2>
+            {p.consultorios.map((c) => (
+              <div className="sede" key={`${c.ciudad}-${c.nombre}`}>
+                <b>{c.nombre}</b>
+                <p>
+                  {c.direccion} · {ciudad(c.ciudad)?.nombre}
+                </p>
+                <p>{c.horario}</p>
+                {c.precioValoracion ? (
+                  <p className="num" style={{ color: "var(--tinta)", fontWeight: 600 }}>
+                    Valoración ${c.precioValoracion}
+                  </p>
+                ) : null}
+              </div>
+            ))}
+          </div>
+
+          {p.convenios ? (
+            <div className="ficha">
+              <h2>Aseguradoras y convenios</h2>
+              <p style={{ color: "var(--suave)" }}>{p.convenios}</p>
+            </div>
+          ) : null}
+        </div>
+
+        <aside>
+          <div className="ficha">
+            <h2>Agende su cita</h2>
+            <p style={{ color: "var(--suave)", fontSize: "0.9rem" }}>
+              {primera ? `${primera.nombre} · ${primera.horario}` : ""}
+            </p>
+            <div className="nota-umbral" style={{ marginTop: 14 }}>
+              La reserva con disponibilidad real se incorpora en el segundo
+              hito del proyecto.
+            </div>
+          </div>
+        </aside>
+      </div>
+    </main>
+  );
+}
