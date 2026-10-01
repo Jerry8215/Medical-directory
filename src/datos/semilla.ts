@@ -31,7 +31,11 @@ export type Consultorio = {
   ciudad: string;
   nombre: string;
   direccion: string;
+  /** Cómo se le dice al paciente. */
   horario: string;
+  /** Lo mismo, en la forma que entiende el motor de agenda. */
+  franjas?: { dia: number; desde: string; hasta: string }[];
+  duracionCitaMin?: number;
   precioValoracion?: number;
 };
 
@@ -181,6 +185,7 @@ export const PROFESIONALES: Profesional[] = [
         nombre: "Hospital Vistas del Sol",
         direccion: "Consultorio 125",
         horario: "Lunes, miércoles y viernes de 9:00 a 14:00",
+        franjas: [{ dia: 0, desde: "09:00", hasta: "14:00" }, { dia: 2, desde: "09:00", hasta: "14:00" }, { dia: 4, desde: "09:00", hasta: "14:00" }],
         precioValoracion: 800,
       },
     ],

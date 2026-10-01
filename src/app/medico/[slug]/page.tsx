@@ -2,7 +2,9 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
+import { Reserva } from "@/componentes/Reserva";
 import { urlAbsoluta } from "@/config/sitio";
+import { huecos, porDia } from "@/lib/agenda";
 import {
   cedulaVerificada,
   ciudad,
@@ -12,6 +14,13 @@ import {
 } from "@/lib/catalogo";
 
 type Props = { params: Promise<{ slug: string }> };
+
+/**
+ * La página se vuelve a generar cada hora. Sin esto, los días disponibles
+ * quedarían congelados en la fecha de la compilación y el paciente vería
+ * horarios de la semana pasada.
+ */
+export const revalidate = 3600;
 
 export function generateStaticParams() {
   return profesionalesPublicados().map((p) => ({ slug: p.slug }));
@@ -44,6 +53,22 @@ export default async function PaginaProfesional({ params }: Props) {
   const principal = especialidades[0];
   const primera = p.consultorios[0];
   const ciudadPrincipal = primera ? ciudad(primera.ciudad) : undefined;
+
+  // La disponibilidad se calcula en el servidor, con las franjas del
+  // consultorio. Cuando la base esté montada se le restan además las citas
+  // ya tomadas, que es el único cambio que falta en esta pantalla.
+  const hoy = new Date().toISOString().slice(0, 10);
+  const dias = primera?.franjas
+    ? porDia(
+        huecos({
+          franjas: primera.franjas,
+          duracionMin: primera.duracionCitaMin ?? 30,
+          desde: hoy,
+          dias: 21,
+          maximo: 24,
+        }),
+      )
+    : [];
 
   const datosEstructurados = {
     "@context": "https://schema.org",
@@ -181,9 +206,12 @@ export default async function PaginaProfesional({ params }: Props) {
             <p style={{ color: "var(--suave)", fontSize: "0.9rem" }}>
               {primera ? `${primera.nombre} · ${primera.horario}` : ""}
             </p>
-            <div className="nota-umbral" style={{ marginTop: 14 }}>
-              La reserva con disponibilidad real se incorpora en el segundo
-              hito del proyecto.
+            <div style={{ marginTop: 12 }}>
+              <Reserva
+                dias={dias}
+                consultorio={primera?.nombre ?? ""}
+                profesional={p.nombre}
+              />
             </div>
           </div>
         </aside>
