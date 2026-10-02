@@ -88,7 +88,10 @@ export default async function Panel() {
           Estado del directorio en este momento, leído de la base de datos.
         </p>
         <p className="meta" style={{ marginTop: 10 }}>
-          Sesión de {sesion?.nombre ?? "invitado"} · {sesion?.rol.toLowerCase()}{" "}
+          Sesión de {sesion?.nombre ?? "invitado"} · {sesion?.rol.toLowerCase()} ·{" "}
+          <Link href="/panel/catalogos" className="enlace-acento">
+            Administrar catálogos
+          </Link>{" "}
           <BotonSalir />
         </p>
       </section>
