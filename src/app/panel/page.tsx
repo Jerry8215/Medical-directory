@@ -3,6 +3,7 @@ import Link from "next/link";
 
 import { sitio } from "@/config/sitio";
 import { BotonSalir } from "@/componentes/BotonSalir";
+import { FilaSolicitud } from "@/componentes/FilaSolicitud";
 import { enHoraLocal, proximasCitas, solicitudesPendientes } from "@/lib/panel-datos";
 import { sesionActual } from "@/lib/sesion-actual";
 import {
@@ -267,30 +268,27 @@ export default async function Panel() {
           <span>{solicitudes.length} por revisar</span>
         </div>
         {solicitudes.length > 0 ? (
-          <div className="tabla">
-            <div className="tabla-fila tabla-cabeza">
-              <span>Profesional</span>
-              <span>Especialidad</span>
-              <span>Ciudad</span>
-              <span>Cédula</span>
-            </div>
+          <div style={{ display: "grid", gap: 14 }}>
             {solicitudes.map((s) => (
-              <div className="tabla-fila" key={s.id}>
-                <span>
-                  {s.nombre}
-                  <br />
-                  <small className="meta">{s.correo}</small>
-                </span>
-                <span>
-                  {listaEspecialidades.find((e) => e.slug === s.especialidad)?.nombre ??
-                    s.especialidad}
-                </span>
-                <span>
-                  {listaCiudades.find((c) => c.slug === s.ciudadSlug)?.nombre ??
-                    s.ciudadSlug}
-                </span>
-                <span className="num">{s.cedula}</span>
-              </div>
+              <FilaSolicitud
+                key={s.id}
+                id={s.id}
+                nombre={s.nombre}
+                correo={s.correo}
+                telefono={s.telefono}
+                especialidad={
+                  listaEspecialidades.find((e) => e.slug === s.especialidad)?.nombre ??
+                  s.especialidad
+                }
+                ciudad={
+                  listaCiudades.find((c) => c.slug === s.ciudadSlug)?.nombre ??
+                  s.ciudadSlug
+                }
+                cedula={s.cedula}
+                consejo={s.consejo}
+                consultorio={s.consultorio}
+                estado={s.estado}
+              />
             ))}
           </div>
         ) : (
