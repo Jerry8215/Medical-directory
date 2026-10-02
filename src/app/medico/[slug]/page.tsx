@@ -5,6 +5,7 @@ import { notFound } from "next/navigation";
 import { Reserva } from "@/componentes/Reserva";
 import { urlAbsoluta } from "@/config/sitio";
 import { huecos, porDia } from "@/lib/agenda";
+import { ocupadosDe } from "@/lib/citas-lectura";
 import {
   cedulaVerificada,
   ciudades,
@@ -71,11 +72,13 @@ export default async function PaginaProfesional({ params }: Props) {
   // consultorio. Cuando la base esté montada se le restan además las citas
   // ya tomadas, que es el único cambio que falta en esta pantalla.
   const hoy = new Date().toISOString().slice(0, 10);
+  const ocupados = primera ? await ocupadosDe(primera.id) : [];
   const dias = primera?.franjas?.length
     ? porDia(
         huecos({
           franjas: primera.franjas,
           duracionMin: primera.duracionCitaMin,
+          ocupados,
           desde: hoy,
           dias: 21,
           maximo: 24,
@@ -222,6 +225,7 @@ export default async function PaginaProfesional({ params }: Props) {
             <div style={{ marginTop: 12 }}>
               <Reserva
                 dias={dias}
+                consultorioId={primera?.id ?? ""}
                 consultorio={primera?.nombre ?? ""}
                 profesional={p.nombre}
               />

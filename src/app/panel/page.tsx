@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 import { sitio } from "@/config/sitio";
+import { enHoraLocal, proximasCitas, solicitudesPendientes } from "@/lib/panel-datos";
 import {
   ciudades,
   especialidades,
@@ -26,13 +27,21 @@ export const dynamic = "force-dynamic";
  * y edición llegan sobre esta misma base.
  */
 export default async function Panel() {
-  const [listaCiudades, listaEspecialidades, profesionales, listaPadecimientos] =
-    await Promise.all([
-      ciudades(),
-      especialidades(),
-      profesionalesPublicados(),
-      padecimientos(),
-    ]);
+  const [
+    listaCiudades,
+    listaEspecialidades,
+    profesionales,
+    listaPadecimientos,
+    solicitudes,
+    citas,
+  ] = await Promise.all([
+    ciudades(),
+    especialidades(),
+    profesionalesPublicados(),
+    padecimientos(),
+    solicitudesPendientes(),
+    proximasCitas(),
+  ]);
 
   const estadoPorCiudad = new Map(
     await Promise.all(
@@ -59,6 +68,8 @@ export default async function Panel() {
     { valor: profesionales.length, etiqueta: "profesionales en el padrón" },
     { valor: publicadas.length, etiqueta: "páginas publicadas" },
     { valor: enEspera.length, etiqueta: "páginas por abrir" },
+    { valor: citas.length, etiqueta: "citas próximas" },
+    { valor: solicitudes.length, etiqueta: "solicitudes por revisar" },
     { valor: listaPadecimientos.length, etiqueta: "padecimientos en catálogo" },
   ];
 
@@ -204,12 +215,85 @@ export default async function Panel() {
 
       <section className="envoltura seccion">
         <div className="seccion-cabeza">
+          <h2>Próximas citas</h2>
+          <span>{citas.length} agendadas</span>
+        </div>
+        {citas.length > 0 ? (
+          <div className="tabla">
+            <div className="tabla-fila tabla-cabeza">
+              <span>Cuándo</span>
+              <span>Paciente</span>
+              <span>Profesional</span>
+              <span>Aviso</span>
+            </div>
+            {citas.map((c) => (
+              <div className="tabla-fila" key={c.id}>
+                <span className="num">{enHoraLocal(c.inicio)}</span>
+                <span>
+                  {c.paciente.nombre ?? "Sin nombre"}
+                  <br />
+                  <small className="meta num">{c.paciente.telefono}</small>
+                </span>
+                <span>
+                  {c.profesional.nombre}
+                  <br />
+                  <small className="meta">{c.consultorio.nombre}</small>
+                </span>
+                <span>
+                  {c.avisos.every((a) => a.estado === "ENVIADO") ? (
+                    <em className="pastilla pastilla-bien">Avisado</em>
+                  ) : (
+                    <em className="pastilla pastilla-espera">Por enviar</em>
+                  )}
+                </span>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="nota-umbral">
+            Todavía no hay citas agendadas desde el sitio.
+          </div>
+        )}
+      </section>
+
+      <section className="envoltura seccion">
+        <div className="seccion-cabeza">
           <h2>Solicitudes de alta</h2>
+          <span>{solicitudes.length} por revisar</span>
         </div>
-        <div className="nota-umbral">
-          Las solicitudes que llegan por <Link href="/alta">la página de alta</Link>{" "}
-          aparecerán acá para verificar la cédula y publicar el perfil.
-        </div>
+        {solicitudes.length > 0 ? (
+          <div className="tabla">
+            <div className="tabla-fila tabla-cabeza">
+              <span>Profesional</span>
+              <span>Especialidad</span>
+              <span>Ciudad</span>
+              <span>Cédula</span>
+            </div>
+            {solicitudes.map((s) => (
+              <div className="tabla-fila" key={s.id}>
+                <span>
+                  {s.nombre}
+                  <br />
+                  <small className="meta">{s.correo}</small>
+                </span>
+                <span>
+                  {listaEspecialidades.find((e) => e.slug === s.especialidad)?.nombre ??
+                    s.especialidad}
+                </span>
+                <span>
+                  {listaCiudades.find((c) => c.slug === s.ciudadSlug)?.nombre ??
+                    s.ciudadSlug}
+                </span>
+                <span className="num">{s.cedula}</span>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="nota-umbral">
+            Las solicitudes que llegan por <Link href="/alta">la página de alta</Link>{" "}
+            aparecerán acá para verificar la cédula y publicar el perfil.
+          </div>
+        )}
       </section>
     </main>
   );

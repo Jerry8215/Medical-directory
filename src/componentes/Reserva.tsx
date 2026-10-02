@@ -1,29 +1,38 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useTransition } from "react";
+
+import { agendarCita } from "@/lib/citas";
 
 type Dia = { fecha: string; etiqueta: string; horas: string[] };
 
 /**
- * Elegir día y hora.
+ * Elegir día, hora y dejar la cita puesta.
  *
- * Los huecos llegan calculados del servidor, de modo que el paciente nunca
- * ve un horario inventado por el navegador. Confirmar todavía no guarda
- * nada: la cita se escribe en la agenda en el segundo hito, y hasta
- * entonces conviene que se vea exactamente así para poder revisarlo.
+ * Los huecos llegan calculados del servidor, así que el paciente nunca ve
+ * un horario inventado por el navegador, y al confirmar se vuelve a
+ * verificar contra la agenda: entre que lo eligió y lo confirmó, alguien
+ * más pudo haberlo tomado.
  */
 export function Reserva({
   dias,
+  consultorioId,
   consultorio,
   profesional,
 }: {
   dias: Dia[];
+  consultorioId: string;
   consultorio: string;
   profesional: string;
 }) {
   const [diaElegido, setDiaElegido] = useState(dias[0]?.fecha ?? "");
   const [hora, setHora] = useState("");
-  const [confirmada, setConfirmada] = useState(false);
+  const [nombre, setNombre] = useState("");
+  const [telefono, setTelefono] = useState("");
+  const [resultado, setResultado] = useState<{ ok: boolean; mensaje: string } | null>(
+    null,
+  );
+  const [guardando, iniciar] = useTransition();
 
   if (dias.length === 0) {
     return (
@@ -36,12 +45,16 @@ export function Reserva({
 
   const dia = dias.find((d) => d.fecha === diaElegido) ?? dias[0];
 
+  if (resultado?.ok) {
+    return <div className="confirmada">{resultado.mensaje}</div>;
+  }
+
   return (
     <div>
       <div className="dias" role="group" aria-label="Días disponibles">
         {dias.map((d) => {
           const [, , numero] = d.fecha.split("-");
-          const nombre = d.etiqueta.split(" ")[0].slice(0, 3);
+          const nombreDia = d.etiqueta.split(" ")[0].slice(0, 3);
           return (
             <button
               key={d.fecha}
@@ -51,10 +64,10 @@ export function Reserva({
               onClick={() => {
                 setDiaElegido(d.fecha);
                 setHora("");
-                setConfirmada(false);
+                setResultado(null);
               }}
             >
-              <small>{nombre}</small>
+              <small>{nombreDia}</small>
               <b className="num">{Number(numero)}</b>
             </button>
           );
@@ -70,7 +83,7 @@ export function Reserva({
             aria-pressed={h === hora}
             onClick={() => {
               setHora(h);
-              setConfirmada(false);
+              setResultado(null);
             }}
           >
             {h}
@@ -78,22 +91,69 @@ export function Reserva({
         ))}
       </div>
 
-      <button
-        type="button"
-        className="boton-lleno"
-        disabled={!hora}
-        onClick={() => setConfirmada(true)}
-      >
-        {hora ? `Agendar ${dia.etiqueta} a las ${hora}` : "Elija un horario"}
-      </button>
+      {hora ? (
+        <form
+          className="formulario"
+          style={{ marginTop: 14 }}
+          onSubmit={(e) => {
+            e.preventDefault();
+            iniciar(async () => {
+              const r = await agendarCita({
+                consultorioId,
+                fecha: dia.fecha,
+                hora,
+                nombre,
+                telefono,
+              });
+              setResultado({ ok: r.ok, mensaje: r.mensaje });
+              if (!r.ok && r.motivo === "ocupado") setHora("");
+            });
+          }}
+          noValidate
+        >
+          <div className="campo">
+            <label htmlFor="nombre-paciente">Su nombre</label>
+            <input
+              id="nombre-paciente"
+              value={nombre}
+              onChange={(e) => setNombre(e.target.value)}
+              autoComplete="name"
+            />
+          </div>
+          <div className="campo">
+            <label htmlFor="telefono-paciente">Su WhatsApp</label>
+            <input
+              id="telefono-paciente"
+              inputMode="tel"
+              value={telefono}
+              onChange={(e) => setTelefono(e.target.value)}
+              placeholder="10 dígitos"
+              autoComplete="tel"
+            />
+          </div>
 
-      {confirmada ? (
-        <div className="confirmada">
-          Cita apartada con {profesional}, {dia.etiqueta} a las {hora}, en{" "}
-          {consultorio}. En la versión final, acá se confirma al instante y le
-          llega el recordatorio por WhatsApp un día antes.
-        </div>
+          <button className="boton-lleno" type="submit" disabled={guardando}>
+            {guardando
+              ? "Agendando…"
+              : `Agendar ${dia.etiqueta} a las ${hora}`}
+          </button>
+        </form>
+      ) : (
+        <button className="boton-lleno" type="button" disabled>
+          Elija un horario
+        </button>
+      )}
+
+      {resultado && !resultado.ok ? (
+        <p className="error" style={{ marginTop: 10 }}>
+          {resultado.mensaje}
+        </p>
       ) : null}
+
+      <p className="meta" style={{ marginTop: 10, textAlign: "center" }}>
+        Con {profesional} en {consultorio}. Recibirá la confirmación y el
+        recordatorio por WhatsApp.
+      </p>
     </div>
   );
 }

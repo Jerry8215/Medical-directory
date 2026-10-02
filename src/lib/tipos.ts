@@ -23,6 +23,7 @@ export type Especialidad = {
 };
 
 export type Consultorio = {
+  id: string;
   ciudad: string;
   nombre: string;
   direccion: string;

@@ -72,6 +72,7 @@ type ProfesionalConTodo = {
   numeroOpiniones: number;
   especialidades: { especialidad: { slug: string } }[];
   consultorios: {
+    id: string;
     nombre: string;
     direccion: string;
     precioValoracion: number | null;
@@ -101,6 +102,7 @@ function aProfesional(p: ProfesionalConTodo, padecimientosPorEspecialidad: Map<s
       (slug) => padecimientosPorEspecialidad.get(slug) ?? [],
     ),
     consultorios: p.consultorios.map((c) => ({
+      id: c.id,
       ciudad: c.ciudad.slug,
       nombre: c.nombre,
       direccion: c.direccion,
