@@ -948,3 +948,45 @@ img {
   opacity: 0.5;
   cursor: default;
 }
+
+/* ---------- editor de perfiles ---------- */
+
+.casilla {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.92rem;
+  margin-top: 6px;
+}
+
+.casilla input {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--primario);
+}
+
+.franja {
+  display: grid;
+  grid-template-columns: 1.4fr 1fr 1fr auto;
+  gap: 8px;
+  align-items: center;
+  margin-top: 8px;
+}
+
+.franja select,
+.franja input {
+  border: 1px solid var(--borde);
+  background: var(--papel-2);
+  color: var(--tinta);
+  border-radius: 10px;
+  padding: 9px 11px;
+  font: inherit;
+  font-size: 0.92rem;
+  min-width: 0;
+}
+
+@media (max-width: 560px) {
+  .franja {
+    grid-template-columns: 1fr 1fr;
+  }
+}

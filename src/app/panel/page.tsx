@@ -205,7 +205,7 @@ export default async function Panel() {
             return (
               <div className="tabla-fila" key={p.slug}>
                 <span>
-                  <Link href={`/medico/${p.slug}`}>{p.nombre}</Link>
+                  <Link href={`/panel/profesionales/${p.slug}`}>{p.nombre}</Link>
                 </span>
                 <span>{especialidad?.nombre}</span>
                 <span>{ciudadesDelPerfil}</span>
