@@ -96,6 +96,10 @@ export default async function Panel() {
           <Link href="/panel/catalogos" className="enlace-acento">
             Catálogos
           </Link>{" "}
+          ·{" "}
+          <Link href="/panel/mi-clave" className="enlace-acento">
+            Mi contraseña
+          </Link>{" "}
           <BotonSalir />
         </p>
       </section>
