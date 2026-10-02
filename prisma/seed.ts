@@ -10,11 +10,14 @@
 
 // Node ejecuta este archivo directamente y el cliente de Prisma se publica
 // como módulo CommonJS, así que se importa por su exportación por defecto.
+import { randomBytes } from "node:crypto";
+
 import { PrismaPg } from "@prisma/adapter-pg";
 import prismaClient from "@prisma/client";
 
 const { PrismaClient } = prismaClient;
 
+import { cifrarClave } from "../src/lib/auth.ts";
 import { EJEMPLOS } from "../src/datos/ejemplos.ts";
 import {
   CIUDADES,
@@ -180,7 +183,40 @@ async function cargarProfesional(p: Profesional) {
   }
 }
 
+/**
+ * Usuario administrador.
+ *
+ * La contraseña sale del entorno; si no está, se genera una al azar y se
+ * imprime una sola vez. Nunca queda una clave conocida escrita en el
+ * código, que es como terminan abiertos los paneles.
+ */
+async function crearAdministrador() {
+  const correo = (process.env.ADMIN_CORREO ?? "admin@medicosdedelicias.com").toLowerCase();
+  const existente = await prisma.usuario.findUnique({ where: { correo } });
+  if (existente) {
+    console.log(`Administrador ya existente: ${correo}`);
+    return;
+  }
+
+  const clave = process.env.ADMIN_CLAVE ?? randomBytes(9).toString("base64url");
+  await prisma.usuario.create({
+    data: {
+      nombre: process.env.ADMIN_NOMBRE ?? "Administrador",
+      correo,
+      hashClave: cifrarClave(clave),
+      rol: "ADMINISTRADOR",
+    },
+  });
+
+  console.log(`Administrador creado: ${correo}`);
+  if (!process.env.ADMIN_CLAVE) {
+    console.log(`Contraseña generada (anótela, no se vuelve a mostrar): ${clave}`);
+  }
+}
+
 async function principal() {
+  await crearAdministrador();
+
   console.log("Cargando catálogos…");
   await cargarCatalogos();
 

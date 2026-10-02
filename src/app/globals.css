@@ -722,3 +722,14 @@ img {
     padding: 10px 12px;
   }
 }
+
+.enlace-boton {
+  border: 0;
+  background: none;
+  color: var(--primario);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0;
+  text-decoration: underline;
+}

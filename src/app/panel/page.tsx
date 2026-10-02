@@ -2,7 +2,9 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 import { sitio } from "@/config/sitio";
+import { BotonSalir } from "@/componentes/BotonSalir";
 import { enHoraLocal, proximasCitas, solicitudesPendientes } from "@/lib/panel-datos";
+import { sesionActual } from "@/lib/sesion-actual";
 import {
   ciudades,
   especialidades,
@@ -27,6 +29,7 @@ export const dynamic = "force-dynamic";
  * y edición llegan sobre esta misma base.
  */
 export default async function Panel() {
+  const sesion = await sesionActual();
   const [
     listaCiudades,
     listaEspecialidades,
@@ -81,9 +84,11 @@ export default async function Panel() {
           Panel de {sitio.nombre}
         </h1>
         <p className="intro">
-          Estado del directorio en este momento, leído de la base de datos. Las
-          altas, ediciones y aprobaciones se incorporan sobre esta misma
-          pantalla.
+          Estado del directorio en este momento, leído de la base de datos.
+        </p>
+        <p className="meta" style={{ marginTop: 10 }}>
+          Sesión de {sesion?.nombre ?? "invitado"} · {sesion?.rol.toLowerCase()}{" "}
+          <BotonSalir />
         </p>
       </section>
 
