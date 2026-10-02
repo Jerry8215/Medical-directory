@@ -12,7 +12,7 @@
  */
 
 import { prisma } from "@/lib/prisma";
-import { sitio } from "@/config/sitio";
+import { sitio, urlAbsoluta } from "@/config/sitio";
 
 const ZONA = 6 * 60 * 60_000; // Chihuahua, UTC−6 todo el año
 
@@ -128,6 +128,7 @@ export async function procesarAvisos(limite = 50): Promise<{
           cita.motivo ? `Motivo: ${cita.motivo}` : "",
           "",
           `Puede ver y confirmar sus citas en ${sitio.nombre}.`,
+          `La cita: ${urlAbsoluta(`/cita/${cita.token}`)}`,
         ]
           .filter(Boolean)
           .join("\n"),

@@ -33,7 +33,7 @@ export type Peticion = {
 };
 
 export type Resultado =
-  | { ok: true; mensaje: string }
+  | { ok: true; mensaje: string; enlace?: string }
   | { ok: false; motivo: "datos" | "ocupado" | "error"; mensaje: string };
 
 function soloDigitos(telefono: string): string {
@@ -196,6 +196,9 @@ export async function agendarCita(peticion: Peticion): Promise<Resultado> {
     return {
       ok: true,
       mensaje: `Cita agendada con ${consultorio.profesional.nombre} en ${consultorio.nombre}. Le confirmamos al ${telefono} y le enviamos un recordatorio un día antes.`,
+      // Con este enlace el paciente cancela o cambia su hora sin llamar al
+      // consultorio, que es lo que de verdad reduce las ausencias.
+      enlace: `/cita/${cita.token}`,
     };
   } catch (error) {
     console.error("[cita] no se pudo guardar", error);

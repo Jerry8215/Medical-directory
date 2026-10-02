@@ -83,6 +83,11 @@ export default async function RootLayout({
               Cada perfil publicado tiene su cédula profesional cotejada contra
               el Registro Nacional de Profesionistas.
             </p>
+            <p style={{ marginTop: 10 }}>
+              <Link href="/privacidad">Aviso de privacidad</Link> ·{" "}
+              <Link href="/terminos">Términos de uso</Link> ·{" "}
+              <Link href="/alta">Soy médico</Link>
+            </p>
           </div>
         </footer>
       </body>

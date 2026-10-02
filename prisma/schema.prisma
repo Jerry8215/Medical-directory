@@ -233,6 +233,10 @@ enum EstadoCita {
 
 model Cita {
   id            String        @id @default(cuid())
+  /// Lo que lleva el enlace que recibe el paciente para ver, cancelar o
+  /// reprogramar su cita sin tener que crear una cuenta. Va aparte del
+  /// identificador para poder invalidarlo sin tocar la cita.
+  token         String        @unique @default(cuid())
   profesionalId String
   profesional   Profesional   @relation(fields: [profesionalId], references: [id])
   consultorioId String

@@ -29,9 +29,11 @@ export function Reserva({
   const [hora, setHora] = useState("");
   const [nombre, setNombre] = useState("");
   const [telefono, setTelefono] = useState("");
-  const [resultado, setResultado] = useState<{ ok: boolean; mensaje: string } | null>(
-    null,
-  );
+  const [resultado, setResultado] = useState<{
+    ok: boolean;
+    mensaje: string;
+    enlace?: string;
+  } | null>(null);
   const [guardando, iniciar] = useTransition();
 
   if (dias.length === 0) {
@@ -46,7 +48,19 @@ export function Reserva({
   const dia = dias.find((d) => d.fecha === diaElegido) ?? dias[0];
 
   if (resultado?.ok) {
-    return <div className="confirmada">{resultado.mensaje}</div>;
+    return (
+      <div className="confirmada">
+        {resultado.mensaje}
+        {resultado.enlace ? (
+          <>
+            {" "}
+            <a href={resultado.enlace}>
+              Guarde este enlace para cambiar o cancelar su cita.
+            </a>
+          </>
+        ) : null}
+      </div>
+    );
   }
 
   return (
@@ -105,7 +119,11 @@ export function Reserva({
                 nombre,
                 telefono,
               });
-              setResultado({ ok: r.ok, mensaje: r.mensaje });
+              setResultado({
+                ok: r.ok,
+                mensaje: r.mensaje,
+                enlace: r.ok ? r.enlace : undefined,
+              });
               if (!r.ok && r.motivo === "ocupado") setHora("");
             });
           }}
