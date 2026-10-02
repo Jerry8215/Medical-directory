@@ -3,6 +3,7 @@ import { Fraunces, Public_Sans } from "next/font/google";
 import Image from "next/image";
 import Link from "next/link";
 
+import { Asistente } from "@/componentes/Asistente";
 import { sitio, urlAbsoluta } from "@/config/sitio";
 import { ciudades } from "@/lib/catalogo";
 
@@ -70,6 +71,8 @@ export default async function RootLayout({
         </header>
 
         {children}
+
+        <Asistente />
 
         <footer className="pie">
           <div className="envoltura">
