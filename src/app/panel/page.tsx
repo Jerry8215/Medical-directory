@@ -89,8 +89,12 @@ export default async function Panel() {
         </p>
         <p className="meta" style={{ marginTop: 10 }}>
           Sesión de {sesion?.nombre ?? "invitado"} · {sesion?.rol.toLowerCase()} ·{" "}
+          <Link href="/panel/mi-agenda" className="enlace-acento">
+            Agenda
+          </Link>{" "}
+          ·{" "}
           <Link href="/panel/catalogos" className="enlace-acento">
-            Administrar catálogos
+            Catálogos
           </Link>{" "}
           <BotonSalir />
         </p>

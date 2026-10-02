@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from "react";
 
+import { crearAccesoProfesional } from "@/lib/usuarios-admin";
 import {
   eliminarConsultorio,
   guardarConsultorio,
@@ -30,6 +31,8 @@ export function EditorProfesional({ slug, perfil, consultorios, ciudades }: Prop
   const [datos, setDatos] = useState<DatosPerfil>(perfil);
   const [locales, setLocales] = useState<DatosConsultorio[]>(consultorios);
   const [aviso, setAviso] = useState("");
+  const [claveNueva, setClaveNueva] = useState("");
+  const [correoAcceso, setCorreoAcceso] = useState(perfil.correo);
   const [trabajando, iniciar] = useTransition();
 
   function cambiar<K extends keyof DatosPerfil>(campo: K, valor: DatosPerfil[K]) {
@@ -317,6 +320,49 @@ export function EditorProfesional({ slug, perfil, consultorios, ciudades }: Prop
           </div>
         </section>
       ))}
+
+      <section className="ficha formulario">
+        <h2>Acceso del profesional</h2>
+        <p className="meta">
+          Con este acceso el profesional entra al panel, ve su agenda y
+          confirma o cancela sus citas. No ve los pacientes de nadie más.
+        </p>
+        <div className="campos-dos">
+          <div className="campo">
+            <label htmlFor="correo-acceso">Correo con el que entrará</label>
+            <input
+              id="correo-acceso"
+              type="email"
+              value={correoAcceso}
+              onChange={(e) => setCorreoAcceso(e.target.value)}
+            />
+          </div>
+          <div className="campo" style={{ alignSelf: "end" }}>
+            <button
+              type="button"
+              className="boton-lleno boton-corto"
+              disabled={trabajando}
+              onClick={() =>
+                iniciar(async () => {
+                  const r = await crearAccesoProfesional(slug, correoAcceso);
+                  setAviso(r.mensaje);
+                  setClaveNueva(r.ok && r.clave ? r.clave : "");
+                })
+              }
+            >
+              Crear o reemitir acceso
+            </button>
+          </div>
+        </div>
+        {claveNueva ? (
+          <p className="clave-nueva">
+            Contraseña: <b className="num">{claveNueva}</b>
+            <br />
+            Entréguesela al profesional y pídale cambiarla. No se vuelve a
+            mostrar.
+          </p>
+        ) : null}
+      </section>
 
       <button
         type="button"
