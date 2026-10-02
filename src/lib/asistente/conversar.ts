@@ -36,6 +36,32 @@ const SALUDO =
   ". Puedo ayudarle a encontrar al especialista que necesita y a dejar su " +
   "cita agendada. ¿Qué le ocurre o a qué especialista busca?";
 
+/**
+ * ¿El paciente está buscando a alguien, o preguntando algo?
+ *
+ * Distinguirlo es lo que evita el error que ya costó caro en el asistente
+ * del consultorio: contestar «esto es lo que encontré» a quien preguntó en
+ * qué consiste una cirugía. Buscar se responde con el directorio; preguntar
+ * se responde conversando.
+ */
+export function esBusqueda(t: string): boolean {
+  const pide =
+    /\b(busco|buscando|necesito|quiero|quisiera|recomiend|hay (?:algun|alguna|algún)|donde hay|quien (?:atiende|ve|opera)|me urge|conocen a|tienen)\b/.test(
+      t,
+    );
+  const sobreCita =
+    /\b(cita|agendar|agenda|consulta|horario|horarios|disponib|cuanto cuesta|precio|costo)\b/.test(
+      t,
+    );
+  const pregunta =
+    /\b(que diferencia|cual es la diferencia|en que consiste|como es|como se|por que|para que|es peligroso|es necesario|cuanto dura|que tan|opera por|se hace con)\b/.test(
+      t,
+    );
+
+  if (pregunta) return false;
+  return pide || sobreCita || t.split(" ").length <= 4;
+}
+
 function esSaludo(t: string): boolean {
   return /^(hola|buenas|buen dia|buenos dias|buenas tardes|buenas noches|que tal|saludos)[\s!.,¿?]*$/.test(
     t,
@@ -257,14 +283,24 @@ export async function conversar(
     return { texto: veredicto.respuesta, sugerencias: [], origen: "barrera" };
   }
 
-  // 2. Lo que el directorio puede contestar con sus propios datos sale
-  //    gratis y sin esperar a un proveedor.
-  const delCatalogo = await conCatalogo(mensaje);
-  if (delCatalogo) return delCatalogo;
+  const t = normalizar(mensaje);
 
-  // 3. Y lo que nadie previó, al modelo, si está configurado.
+  // 2. Si está buscando a alguien, el directorio contesta mejor que
+  //    cualquier modelo, y gratis.
+  if (esBusqueda(t)) {
+    const delCatalogo = await conCatalogo(mensaje);
+    if (delCatalogo) return delCatalogo;
+  }
+
+  // 3. Si está preguntando algo, contesta el modelo, que para eso se
+  //    conectó. Nunca ve lo que la barrera clínica bloqueó.
   const delModelo = await conModelo(mensaje, historial);
   if (delModelo) return delModelo;
+
+  // 4. Sin modelo disponible, el directorio responde con lo que tiene antes
+  //    que dejar al paciente sin nada.
+  const respaldo = await conCatalogo(mensaje);
+  if (respaldo) return respaldo;
 
   return {
     texto:
