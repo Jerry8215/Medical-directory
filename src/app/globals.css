@@ -1,9 +1,9 @@
 /*
  * Sistema de diseño del directorio.
  *
- * Verde profundo como color principal —clínico, sin caer en el azul de
- * hospital que usan todos— sobre neutros con una pizca de verde para que no
- * se vean grises de plantilla. El cobre marca lo que pide atención.
+ * Los colores salen del logotipo del consultorio: el verde azulado de las
+ * dos figuras como color principal y su ámbar como acento, sobre neutros
+ * con una pizca de verde para que no se vean grises de plantilla.
  *
  * Todo se declara en `:root` y se redefine por tema, de modo que ningún
  * componente escriba un color literal.
@@ -12,17 +12,17 @@
 :root {
   color-scheme: light;
 
-  --fondo: #f4f6f3;
+  --fondo: #f3f7f7;
   --papel: #ffffff;
-  --papel-2: #fafbf9;
-  --tinta: #13201c;
-  --suave: #54645d;
-  --borde: #dce3de;
-  --primario: #0d6b5a;
-  --primario-fuerte: #0a5648;
-  --primario-tenue: #e2f0eb;
-  --acento: #a8551c;
-  --estrella: #b8860b;
+  --papel-2: #f9fcfc;
+  --tinta: #10211f;
+  --suave: #50635f;
+  --borde: #d8e4e2;
+  --primario: #049490;
+  --primario-fuerte: #037a77;
+  --primario-tenue: #e0f3f2;
+  --acento: #c9821a;
+  --estrella: #d9a21f;
 
   --sombra: 0 1px 2px rgba(19, 32, 28, 0.06), 0 8px 24px rgba(19, 32, 28, 0.06);
   --radio: 14px;
@@ -33,17 +33,17 @@
   :root {
     color-scheme: dark;
 
-    --fondo: #0e1512;
-    --papel: #161f1b;
-    --papel-2: #1a241f;
-    --tinta: #e7eeea;
-    --suave: #9dafa7;
-    --borde: #26322c;
-    --primario: #4ec0a5;
-    --primario-fuerte: #6fd3bb;
-    --primario-tenue: #13302a;
-    --acento: #db8a4f;
-    --estrella: #d6a52a;
+    --fondo: #0c1616;
+    --papel: #13201f;
+    --papel-2: #182726;
+    --tinta: #e5eeed;
+    --suave: #9ab0ae;
+    --borde: #223433;
+    --primario: #2fc0b8;
+    --primario-fuerte: #52d6cd;
+    --primario-tenue: #113230;
+    --acento: #f0b020;
+    --estrella: #f0b020;
 
     --sombra: 0 1px 2px rgba(0, 0, 0, 0.4), 0 10px 30px rgba(0, 0, 0, 0.35);
   }
@@ -128,21 +128,20 @@ img {
   flex-wrap: wrap;
 }
 
-.marca b {
-  display: block;
-  font-family: var(--fuente-titulo), Georgia, serif;
-  font-size: 1.12rem;
-  font-weight: 700;
-  line-height: 1.2;
+.marca {
+  display: inline-flex;
+  align-items: center;
 }
 
-.marca span {
-  display: block;
-  font-size: 0.68rem;
-  color: var(--suave);
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  line-height: 1.3;
+.marca img {
+  height: 42px;
+  width: auto;
+}
+
+@media (max-width: 520px) {
+  .marca img {
+    height: 34px;
+  }
 }
 
 .barra nav {

@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Fraunces, Public_Sans } from "next/font/google";
+import Image from "next/image";
 import Link from "next/link";
 
 import { sitio, urlAbsoluta } from "@/config/sitio";
@@ -44,9 +45,16 @@ export default async function RootLayout({
 
         <header className="barra">
           <div className="envoltura">
-            <Link href="/" className="marca">
-              <b>{sitio.nombre}</b>
-              <span>Directorio verificado</span>
+            <Link href="/" className="marca" aria-label={`${sitio.nombre}, inicio`}>
+              {/* El logotipo ya dice «directorio médico», así que la barra no
+                  repite la bajada. */}
+              <Image
+                src="/logotipo.png"
+                alt={sitio.nombre}
+                width={960}
+                height={349}
+                priority
+              />
             </Link>
             <nav>
               {listaCiudades.map((c) => (
