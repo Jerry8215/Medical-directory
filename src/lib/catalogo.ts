@@ -134,6 +134,27 @@ function aProfesional(p: ProfesionalConTodo, padecimientosPorEspecialidad: Map<s
   };
 }
 
+/**
+ * El orden en que se muestran los profesionales.
+ *
+ * Primero el plan, que es lo que el médico contrató; después la
+ * calificación obtenida de sus opiniones publicadas, y a igualdad de todo,
+ * por nombre, para que el listado no cambie de orden entre una visita y
+ * otra sin motivo.
+ */
+function ordenar(lista: Profesional[]): Profesional[] {
+  return [...lista].sort((a, b) => {
+    if (a.puede.prioridad !== b.puede.prioridad) {
+      return b.puede.prioridad - a.puede.prioridad;
+    }
+    const califA = a.calificacion ?? 0;
+    const califB = b.calificacion ?? 0;
+    if (califA !== califB) return califB - califA;
+    if (a.opiniones !== b.opiniones) return b.opiniones - a.opiniones;
+    return a.nombre.localeCompare(b.nombre, "es");
+  });
+}
+
 async function mapaDePadecimientos(): Promise<Map<string, string[]>> {
   const especialidades = await prisma.especialidad.findMany({
     include: { padecimientos: true },
@@ -223,7 +244,7 @@ export async function profesionalesEn(
     orderBy: { nombre: "asc" },
   });
   const mapa = await mapaDePadecimientos();
-  return filas.map((f) => aProfesional(f as ProfesionalConTodo, mapa));
+  return ordenar(filas.map((f) => aProfesional(f as ProfesionalConTodo, mapa)));
 }
 
 export async function profesionalesPublicados(): Promise<Profesional[]> {
@@ -233,7 +254,7 @@ export async function profesionalesPublicados(): Promise<Profesional[]> {
     orderBy: { nombre: "asc" },
   });
   const mapa = await mapaDePadecimientos();
-  return filas.map((f) => aProfesional(f as ProfesionalConTodo, mapa));
+  return ordenar(filas.map((f) => aProfesional(f as ProfesionalConTodo, mapa)));
 }
 
 export async function profesionalesPorPadecimiento(
