@@ -1,9 +1,8 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
-
-import { Asistente as IconoAsistente } from "@/componentes/Iconos";
 
 type Sugerencia = { slug: string; nombre: string; especialidad: string };
 type Turno = { quien: "paciente" | "asistente"; texto: string; sugerencias?: Sugerencia[] };
@@ -95,8 +94,8 @@ export function Asistente() {
       >
         {abierto ? (
           <svg
-            width="22"
-            height="22"
+            width="24"
+            height="24"
             viewBox="0 0 24 24"
             fill="none"
             stroke="currentColor"
@@ -107,7 +106,7 @@ export function Asistente() {
             <path d="m6 6 12 12M18 6 6 18" />
           </svg>
         ) : (
-          <IconoAsistente size={22} />
+          <Image src="/asistente.png" alt="" width={44} height={44} priority={false} />
         )}
       </button>
 

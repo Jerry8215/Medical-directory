@@ -1352,27 +1352,38 @@ a.chip:hover {
 
 /* ----------------------------------------------------------- asistente */
 
+/* El ícono del asistente es a color, así que el botón va en blanco: sobre
+   el verde de marca los azules del dibujo se perderían. */
 .burbuja {
   position: fixed;
   right: 18px;
   bottom: calc(18px + env(safe-area-inset-bottom, 0px));
   z-index: 40;
-  width: 54px;
-  height: 54px;
+  width: 70px;
+  height: 70px;
   display: grid;
   place-items: center;
-  border: 0;
+  border: 1px solid var(--borde);
   border-radius: 50%;
-  background: var(--verde);
-  color: #fff;
+  background: var(--papel);
+  color: var(--navy);
   cursor: pointer;
-  box-shadow: 0 10px 26px rgba(32, 190, 112, 0.35);
-  transition: background 0.15s ease, transform 0.15s ease;
+  box-shadow: 0 10px 26px rgba(18, 59, 89, 0.22);
+  transition: box-shadow 0.15s ease, transform 0.15s ease;
 }
 
 .burbuja:hover {
-  background: var(--verde-fuerte);
-  transform: translateY(-1px);
+  box-shadow: 0 14px 32px rgba(18, 59, 89, 0.28);
+  transform: translateY(-2px);
+}
+
+.burbuja img {
+  width: 44px;
+  height: 44px;
+}
+
+.chat {
+  bottom: calc(96px + env(safe-area-inset-bottom, 0px));
 }
 
 .chat {
