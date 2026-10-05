@@ -14,6 +14,7 @@
 import { revalidatePath } from "next/cache";
 
 import { disponible } from "@/lib/agenda";
+import { anotar } from "@/lib/novedades";
 import { prisma } from "@/lib/prisma";
 
 export type Resultado = { ok: true; mensaje: string } | { ok: false; mensaje: string };
@@ -64,6 +65,14 @@ export async function cancelarPorToken(
       destino: cita.profesional.correo ?? "panel",
       detalle: "Cancelación del paciente",
     },
+  });
+
+  await anotar({
+    tipo: "CITA_CANCELADA",
+    titulo: `Un paciente canceló su cita con ${cita.profesional.nombre}`,
+    detalle: motivo.trim() || "Sin motivo indicado. El horario vuelve a estar libre.",
+    enlace: "/panel/mi-agenda",
+    profesionalId: cita.profesionalId,
   });
 
   await prisma.registroAuditoria.create({

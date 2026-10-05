@@ -1,6 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 
-import { procesarAvisos, recordarCitasDeManana } from "@/lib/avisos";
+import { avisarNovedades, procesarAvisos, recordarCitasDeManana } from "@/lib/avisos";
 
 /**
  * Tareas programadas.
@@ -19,6 +19,13 @@ export async function GET(peticion: NextRequest) {
 
   const recordatorios = await recordarCitasDeManana();
   const avisos = await procesarAvisos();
+  const novedades = await avisarNovedades();
 
-  return NextResponse.json({ ...recordatorios, ...avisos, cuando: new Date().toISOString() });
+  return NextResponse.json({
+    ...recordatorios,
+    ...avisos,
+    novedadesAvisadas: novedades.avisadas,
+    novedadesPendientes: novedades.pendientes,
+    cuando: new Date().toISOString(),
+  });
 }

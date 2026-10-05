@@ -19,7 +19,9 @@ import { revalidatePath } from "next/cache";
 
 import { aMinutos, disponible } from "@/lib/agenda";
 import { crearEvento } from "@/lib/google-calendar";
+import { anotar } from "@/lib/novedades";
 import { prisma } from "@/lib/prisma";
+import { nombreDePersona, telefonoMexicano } from "@/lib/validacion";
 
 export type Peticion = {
   consultorioId: string;
@@ -49,18 +51,18 @@ function aUtc(fecha: string, hora: string): Date {
 }
 
 export async function agendarCita(peticion: Peticion): Promise<Resultado> {
-  const telefono = soloDigitos(peticion.telefono);
+  // Al paciente se le pide un nombre reconocible: es lo que va a ver el
+  // médico en su agenda cuando lo llame.
+  const nombre = nombreDePersona(peticion.nombre, { minimoPalabras: 1 });
+  if (!nombre.ok) {
+    return { ok: false, motivo: "datos", mensaje: nombre.motivo };
+  }
 
-  if (peticion.nombre.trim().length < 3) {
-    return { ok: false, motivo: "datos", mensaje: "Escriba su nombre, por favor." };
+  const revision = telefonoMexicano(peticion.telefono);
+  if (!revision.ok) {
+    return { ok: false, motivo: "datos", mensaje: revision.motivo };
   }
-  if (telefono.length !== 10) {
-    return {
-      ok: false,
-      motivo: "datos",
-      mensaje: "El teléfono debe tener diez dígitos, así podemos confirmarle.",
-    };
-  }
+  const telefono = revision.valor;
 
   const consultorio = await prisma.consultorio.findUnique({
     where: { id: peticion.consultorioId },
@@ -132,12 +134,12 @@ export async function agendarCita(peticion: Peticion): Promise<Resultado> {
       const paciente = await tx.paciente.upsert({
         where: { telefono },
         update: {
-          nombre: peticion.nombre.trim(),
+          nombre: nombre.valor,
           correo: peticion.correo?.trim() || undefined,
         },
         create: {
           telefono,
-          nombre: peticion.nombre.trim(),
+          nombre: nombre.valor,
           correo: peticion.correo?.trim() || undefined,
           consentimiento: new Date(),
         },
@@ -220,6 +222,14 @@ export async function agendarCita(peticion: Peticion): Promise<Resultado> {
         });
       }
     }
+
+    await anotar({
+      tipo: "CITA_NUEVA",
+      titulo: `${nombre.valor} agendó con ${consultorio.profesional.nombre}`,
+      detalle: `${peticion.fecha} a las ${peticion.hora} · ${consultorio.nombre} · tel. ${telefono}`,
+      enlace: "/panel/mi-agenda",
+      profesionalId: consultorio.profesionalId,
+    });
 
     revalidatePath(`/medico/${consultorio.profesional.slug}`);
     revalidatePath("/panel");

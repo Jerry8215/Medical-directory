@@ -407,6 +407,37 @@ model SolicitudAlta {
   @@index([estado, creadaEn])
 }
 
+enum TipoNovedad {
+  SOLICITUD_ALTA
+  CITA_NUEVA
+  CITA_CANCELADA
+  OPINION_NUEVA
+}
+
+/// Lo que ocurrió y alguien del consultorio tiene que ver.
+///
+/// Existe aparte de la auditoría porque son cosas distintas: la auditoría
+/// registra todo para poder explicarlo después; esto es una bandeja de
+/// pendientes que se vacía. Vive en la base y no en el correo para que el
+/// consultorio se entere aunque el envío falle o todavía no haya proveedor.
+model Novedad {
+  id            String      @id @default(cuid())
+  tipo          TipoNovedad
+  titulo        String
+  detalle       String?
+  /// A dónde lleva en el panel.
+  enlace        String?
+  /// Si corresponde a un médico en particular, para que vea las suyas.
+  profesionalId String?
+  leidaEn       DateTime?
+  /// Para no reintentar el correo al administrador en cada pasada.
+  avisadaEn     DateTime?
+  creadaEn      DateTime    @default(now())
+
+  @@index([leidaEn, creadaEn])
+  @@index([profesionalId, creadaEn])
+}
+
 model RegistroAuditoria {
   id        String   @id @default(cuid())
   actor     String

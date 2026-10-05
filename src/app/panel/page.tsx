@@ -3,7 +3,9 @@ import Link from "next/link";
 
 import { sitio } from "@/config/sitio";
 import { BotonSalir } from "@/componentes/BotonSalir";
+import { Novedades } from "@/componentes/Novedades";
 import { FilaSolicitud } from "@/componentes/FilaSolicitud";
+import { sinLeer } from "@/lib/novedades";
 import { enHoraLocal, proximasCitas, solicitudesPendientes } from "@/lib/panel-datos";
 import { sesionActual } from "@/lib/sesion-actual";
 import {
@@ -46,6 +48,8 @@ export default async function Panel() {
     solicitudesPendientes(),
     proximasCitas(),
   ]);
+
+  const novedades = await sinLeer();
 
   const estadoPorCiudad = new Map(
     await Promise.all(
@@ -106,6 +110,22 @@ export default async function Panel() {
           </Link>{" "}
           <BotonSalir />
         </p>
+      </section>
+
+      <section className="envoltura seccion">
+        <div className="seccion-cabeza">
+          <h2>Novedades</h2>
+        </div>
+        <Novedades
+          novedades={novedades.map((n) => ({
+            id: n.id,
+            tipo: n.tipo,
+            titulo: n.titulo,
+            detalle: n.detalle,
+            enlace: n.enlace,
+            cuando: enHoraLocal(n.creadaEn),
+          }))}
+        />
       </section>
 
       <section className="envoltura seccion">

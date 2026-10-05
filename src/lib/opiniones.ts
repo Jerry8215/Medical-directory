@@ -15,8 +15,10 @@
 
 import { revalidatePath } from "next/cache";
 
+import { anotar } from "@/lib/novedades";
 import { prisma } from "@/lib/prisma";
 import { sesionActual } from "@/lib/sesion-actual";
+import { nombreDePersona } from "@/lib/validacion";
 
 export type Resultado = { ok: true; mensaje: string } | { ok: false; mensaje: string };
 
@@ -28,12 +30,13 @@ export async function dejarOpinion(datos: {
   /** Si viene del enlace de su cita, la opinión queda ligada a ella. */
   token?: string;
 }): Promise<Resultado> {
-  const autor = datos.autor.trim();
+  const revision = nombreDePersona(datos.autor, { minimoPalabras: 1 });
   const texto = datos.texto.trim();
 
-  if (autor.length < 3) {
-    return { ok: false, mensaje: "Escriba su nombre o cómo quiere aparecer." };
+  if (!revision.ok) {
+    return { ok: false, mensaje: revision.motivo };
   }
+  const autor = revision.valor;
   if (texto.length < 15) {
     return {
       ok: false,
@@ -72,6 +75,14 @@ export async function dejarOpinion(datos: {
       calificacion: datos.calificacion,
       citaId,
     },
+  });
+
+  await anotar({
+    tipo: "OPINION_NUEVA",
+    titulo: `${autor} dejó una opinión de ${profesional.nombre}`,
+    detalle: `${datos.calificacion} de 5 estrellas · por revisar antes de publicarse`,
+    enlace: "/panel/opiniones",
+    profesionalId: profesional.id,
   });
 
   revalidatePath("/panel/opiniones");

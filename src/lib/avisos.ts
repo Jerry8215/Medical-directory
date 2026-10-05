@@ -157,6 +157,65 @@ export async function procesarAvisos(limite = 50): Promise<{
 }
 
 /**
+ * Las novedades del consultorio, por correo.
+ *
+ * Lo que se ve en el panel se manda también al correo del consultorio, para
+ * quien no lo abre todos los días. Si no hay proveedor configurado no se
+ * marcan como avisadas: se reintentan después en lugar de perderse, que es
+ * justamente lo que el consultorio reportó que pasaba.
+ */
+export async function avisarNovedades(limite = 30): Promise<{
+  avisadas: number;
+  pendientes: number;
+}> {
+  const destino = process.env.CORREO_CONSULTORIO;
+  const novedades = await prisma.novedad.findMany({
+    where: { avisadaEn: null },
+    orderBy: { creadaEn: "asc" },
+    take: limite,
+  });
+
+  if (novedades.length === 0) return { avisadas: 0, pendientes: 0 };
+  if (!destino) return { avisadas: 0, pendientes: novedades.length };
+
+  const lineas = novedades.map(
+    (n) => `· ${n.titulo}${n.detalle ? `
+  ${n.detalle}` : ""}`,
+  );
+
+  try {
+    const salio = await enviarCorreo({
+      para: destino,
+      asunto:
+        novedades.length === 1
+          ? novedades[0].titulo
+          : `${novedades.length} novedades en ${sitio.nombre}`,
+      cuerpo: [
+        novedades.length === 1
+          ? "Esto acaba de ocurrir en el directorio:"
+          : "Esto ocurrió en el directorio:",
+        "",
+        ...lineas,
+        "",
+        `Puede revisarlas en ${urlAbsoluta("/panel")}`,
+      ].join("
+"),
+    });
+
+    if (!salio) return { avisadas: 0, pendientes: novedades.length };
+
+    await prisma.novedad.updateMany({
+      where: { id: { in: novedades.map((n) => n.id) } },
+      data: { avisadaEn: new Date() },
+    });
+    return { avisadas: novedades.length, pendientes: 0 };
+  } catch (error) {
+    console.error("[novedades] no se pudieron avisar", error);
+    return { avisadas: 0, pendientes: novedades.length };
+  }
+}
+
+/**
  * Recordatorios de las citas de mañana.
  *
  * Es lo que más ausencias evita, y por eso corre todos los días aunque no

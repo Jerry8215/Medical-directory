@@ -11,7 +11,14 @@
 
 import { revalidatePath } from "next/cache";
 
+import { anotar } from "@/lib/novedades";
 import { prisma } from "@/lib/prisma";
+import {
+  cedulaProfesional,
+  correoElectronico,
+  nombreDePersona,
+  telefonoMexicano,
+} from "@/lib/validacion";
 
 export type Solicitud = {
   nombre: string;
@@ -29,29 +36,23 @@ export type Resultado =
   | { ok: true }
   | { ok: false; errores: Partial<Record<keyof Solicitud, string>> };
 
-const CEDULA = /^\d{6,9}$/;
-const CORREO = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
-
-/** Diez dígitos, con o sin espacios, guiones o lada del país. */
-function telefonoValido(valor: string): boolean {
-  return /^\d{10}$/.test(valor.replace(/\D/g, "").replace(/^52/, ""));
-}
-
 export async function registrarSolicitud(datos: Solicitud): Promise<Resultado> {
   const errores: Partial<Record<keyof Solicitud, string>> = {};
 
-  if (datos.nombre.trim().length < 5) {
-    errores.nombre = "Escriba su nombre completo, como aparece en su cédula.";
-  }
-  if (!CORREO.test(datos.correo.trim())) {
-    errores.correo = "Revise el correo: ahí le avisamos del resultado.";
-  }
-  if (!telefonoValido(datos.telefono)) {
-    errores.telefono = "El teléfono debe tener diez dígitos.";
-  }
-  if (!CEDULA.test(datos.cedula.trim())) {
-    errores.cedula = "La cédula profesional son de seis a nueve dígitos.";
-  }
+  // El nombre se publica en el perfil y en la agenda, así que se revisa de
+  // verdad: sin números, sin símbolos y con nombre y apellido.
+  const nombre = nombreDePersona(datos.nombre);
+  if (!nombre.ok) errores.nombre = nombre.motivo;
+
+  const correo = correoElectronico(datos.correo);
+  if (!correo.ok) errores.correo = "Revise el correo: ahí le avisamos del resultado.";
+
+  const telefono = telefonoMexicano(datos.telefono);
+  if (!telefono.ok) errores.telefono = telefono.motivo;
+
+  const cedula = cedulaProfesional(datos.cedula);
+  if (!cedula.ok) errores.cedula = cedula.motivo;
+
   if (!datos.especialidad) {
     errores.especialidad = "Elija su especialidad.";
   }
@@ -77,13 +78,13 @@ export async function registrarSolicitud(datos: Solicitud): Promise<Resultado> {
 
   await prisma.solicitudAlta.create({
     data: {
-      nombre: datos.nombre.trim(),
-      correo: datos.correo.trim(),
-      telefono: datos.telefono.replace(/\D/g, ""),
+      nombre: nombre.ok ? nombre.valor : datos.nombre.trim(),
+      correo: correo.ok ? correo.valor : datos.correo.trim(),
+      telefono: telefono.ok ? telefono.valor : datos.telefono.replace(/\D/g, ""),
       profesionSlug: especialidad.profesion.slug,
       especialidad: datos.especialidad,
       ciudadSlug: datos.ciudad,
-      cedula: datos.cedula.trim(),
+      cedula: cedula.ok ? cedula.valor : datos.cedula.trim(),
       consejo: datos.consejo?.trim() || null,
       consultorio: datos.consultorio?.trim() || null,
       mensaje: datos.mensaje?.trim() || null,
@@ -94,8 +95,17 @@ export async function registrarSolicitud(datos: Solicitud): Promise<Resultado> {
     data: {
       actor: "sitio",
       accion: "solicitud.recibida",
-      detalle: `${datos.nombre.trim()} · ${datos.especialidad} · ${datos.ciudad}`,
+      detalle: `${nombre.ok ? nombre.valor : ""} · ${datos.especialidad} · ${datos.ciudad}`,
     },
+  });
+
+  await anotar({
+    tipo: "SOLICITUD_ALTA",
+    titulo: `${nombre.ok ? nombre.valor : datos.nombre} quiere aparecer en el directorio`,
+    detalle: `${especialidad.nombre} · ${datos.ciudad} · cédula ${
+      cedula.ok ? cedula.valor : ""
+    }`,
+    enlace: "/panel/solicitudes",
   });
 
   revalidatePath("/panel");
