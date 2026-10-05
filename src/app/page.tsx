@@ -22,6 +22,15 @@ import {
   profesionalesPublicados,
 } from "@/lib/catalogo";
 
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  // Sin esto, la portada es la única página sin dirección canónica, y es
+  // justo la que más versiones distintas tiene: con www, sin www, con el
+  // dominio .mx y con la dirección temporal.
+  alternates: { canonical: "/" },
+};
+
 export const revalidate = 1800;
 
 /**
