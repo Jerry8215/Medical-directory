@@ -303,3 +303,125 @@ export async function cambiarPlan(
         : `Plan ${plan === "GOLD" ? "Gold" : "Premium"} activo${hasta ? ` hasta el ${hasta}` : ""}.`,
   };
 }
+
+/**
+ * Eliminar un perfil.
+ *
+ * Se niega si el profesional tiene citas por atender: borrarlo dejaría a
+ * esos pacientes con una cita que ya no existe y sin nadie a quién
+ * reclamarle. Para sacarlo del directorio sin perder su historial está la
+ * suspensión, que es lo que conviene en casi todos los casos.
+ *
+ * Lo que sí se borra, se borra entero: perfil, consultorios, horarios,
+ * verificaciones, opiniones y su acceso al panel. Las citas pasadas se
+ * conservan, porque son el registro de lo que ocurrió.
+ */
+export async function eliminarProfesional(slug: string): Promise<Resultado> {
+  const sesion = await sesionActual();
+  if (!sesion || sesion.rol !== "ADMINISTRADOR") {
+    return { ok: false, mensaje: "Solo el administrador puede eliminar un perfil." };
+  }
+
+  const profesional = await prisma.profesional.findUnique({
+    where: { slug },
+    include: {
+      _count: {
+        select: { citas: true },
+      },
+    },
+  });
+  if (!profesional) return { ok: false, mensaje: "Ese perfil ya no existe." };
+
+  const porAtender = await prisma.cita.count({
+    where: {
+      profesionalId: profesional.id,
+      estado: { in: ["SOLICITADA", "AGENDADA", "CONFIRMADA"] },
+      inicio: { gte: new Date() },
+    },
+  });
+
+  if (porAtender > 0) {
+    return {
+      ok: false,
+      mensaje: `${profesional.nombre} tiene ${porAtender} cita(s) por atender. Atiéndalas o cancélelas antes de eliminar el perfil; si solo quiere quitarlo del directorio, suspéndalo.`,
+    };
+  }
+
+  if (profesional._count.citas > 0) {
+    return {
+      ok: false,
+      mensaje: `${profesional.nombre} tiene citas registradas en su historial. Para conservar ese registro, el perfil se suspende en lugar de eliminarse.`,
+    };
+  }
+
+  try {
+    await prisma.$transaction([
+      prisma.usuario.updateMany({
+        where: { profesionalId: profesional.id },
+        data: { activo: false, profesionalId: null },
+      }),
+      prisma.opinion.deleteMany({ where: { profesionalId: profesional.id } }),
+      prisma.verificacion.deleteMany({ where: { profesionalId: profesional.id } }),
+      prisma.profesionalEspecialidad.deleteMany({
+        where: { profesionalId: profesional.id },
+      }),
+      prisma.consultorio.deleteMany({ where: { profesionalId: profesional.id } }),
+      prisma.profesional.delete({ where: { id: profesional.id } }),
+    ]);
+  } catch (error) {
+    console.error("[perfil] no se pudo eliminar", error);
+    return {
+      ok: false,
+      mensaje: "No se pudo eliminar el perfil. Intente suspenderlo y avíseme.",
+    };
+  }
+
+  await prisma.registroAuditoria.create({
+    data: {
+      actor: sesion.nombre,
+      accion: "perfil.eliminado",
+      entidad: "profesional",
+      entidadId: slug,
+      detalle: profesional.nombre,
+    },
+  });
+
+  revalidatePath("/panel");
+  revalidatePath("/");
+  return { ok: true, mensaje: `${profesional.nombre} quedó fuera del directorio.` };
+}
+
+/** Quitar del directorio sin borrar: conserva historial y se puede revertir. */
+export async function suspenderProfesional(
+  slug: string,
+  suspender: boolean,
+): Promise<Resultado> {
+  const sesion = await sesionActual();
+  if (!sesion || sesion.rol !== "ADMINISTRADOR") {
+    return { ok: false, mensaje: "Solo el administrador puede suspender un perfil." };
+  }
+
+  const p = await prisma.profesional.update({
+    where: { slug },
+    data: { estado: suspender ? "SUSPENDIDO" : "PUBLICADO" },
+  });
+
+  await prisma.registroAuditoria.create({
+    data: {
+      actor: sesion.nombre,
+      accion: suspender ? "perfil.suspendido" : "perfil.publicado",
+      entidad: "profesional",
+      entidadId: slug,
+    },
+  });
+
+  revalidatePath("/panel");
+  revalidatePath(`/medico/${slug}`);
+  revalidatePath("/");
+  return {
+    ok: true,
+    mensaje: suspender
+      ? `${p.nombre} ya no aparece en el directorio. Su información se conserva.`
+      : `${p.nombre} volvió al directorio.`,
+  };
+}

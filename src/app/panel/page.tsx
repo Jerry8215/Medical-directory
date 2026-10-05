@@ -3,6 +3,7 @@ import Link from "next/link";
 
 import { sitio } from "@/config/sitio";
 import { BotonSalir } from "@/componentes/BotonSalir";
+import { ListaProfesionales } from "@/componentes/ListaProfesionales";
 import { Novedades } from "@/componentes/Novedades";
 import { FilaSolicitud } from "@/componentes/FilaSolicitud";
 import { sinLeer } from "@/lib/novedades";
@@ -217,41 +218,35 @@ export default async function Panel() {
       <section className="envoltura seccion">
         <div className="seccion-cabeza">
           <h2>Profesionales</h2>
-          <span>{profesionales.length} en el padrón</span>
+          <span>Busque por nombre, especialidad o ciudad</span>
         </div>
-        <div className="tabla">
-          <div className="tabla-fila tabla-cabeza">
-            <span>Nombre</span>
-            <span>Especialidad</span>
-            <span>Ciudad</span>
-            <span>Verificación</span>
-          </div>
-          {profesionales.map((p) => {
-            const ciudadesDelPerfil = [...new Set(p.consultorios.map((c) => c.ciudad))]
-              .map((slug) => listaCiudades.find((c) => c.slug === slug)?.nombre)
-              .filter(Boolean)
-              .join(", ");
+        <ListaProfesionales
+          especialidades={listaEspecialidades.map((e) => ({
+            slug: e.slug,
+            nombre: e.nombre,
+          }))}
+          profesionales={profesionales.map((p) => {
             const especialidad = listaEspecialidades.find((e) =>
               p.especialidades.includes(e.slug),
             );
-            return (
-              <div className="tabla-fila" key={p.slug}>
-                <span>
-                  <Link href={`/panel/profesionales/${p.slug}`}>{p.nombre}</Link>
-                </span>
-                <span>{especialidad?.nombre}</span>
-                <span>{ciudadesDelPerfil}</span>
-                <span>
-                  {p.ejemplo ? (
-                    <em className="pastilla pastilla-espera">Muestra</em>
-                  ) : (
-                    <em className="pastilla pastilla-bien">Cédula verificada</em>
-                  )}
-                </span>
-              </div>
-            );
+            return {
+              slug: p.slug,
+              nombre: p.nombre,
+              especialidad: especialidad?.nombre ?? "",
+              especialidadSlug: especialidad?.slug ?? "",
+              ciudades: [...new Set(p.consultorios.map((c) => c.ciudad))]
+                .map((slug) => listaCiudades.find((c) => c.slug === slug)?.nombre)
+                .filter(Boolean)
+                .join(", "),
+              plan: p.plan,
+              publicado: !p.ejemplo,
+              verificado: p.credenciales.some(
+                (c) => c.tipo === "CEDULA_PROFESIONAL" && Boolean(c.numero),
+              ),
+              citas: 0,
+            };
           })}
-        </div>
+        />
       </section>
 
       <section className="envoltura seccion">

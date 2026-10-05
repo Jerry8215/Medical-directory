@@ -1647,3 +1647,56 @@ a.chip:hover {
   background: var(--azul);
   color: #fff;
 }
+
+/* ---------- filtros del padrón ---------- */
+
+.filtros {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.filtros .campo-busqueda {
+  flex: 1 1 260px;
+  background: var(--papel);
+  border: 1px solid var(--borde);
+  border-radius: 10px;
+  padding-inline: 14px;
+}
+
+.filtros input {
+  border: 0;
+  background: transparent;
+  color: var(--tinta);
+  font: inherit;
+  font-size: 0.95rem;
+  padding-block: 10px;
+  width: 100%;
+  min-width: 0;
+}
+
+.filtros input:focus {
+  outline: none;
+}
+
+.filtros select {
+  border: 1px solid var(--borde);
+  background: var(--papel);
+  color: var(--tinta);
+  border-radius: 10px;
+  padding: 10px 13px;
+  font: inherit;
+  font-size: 0.93rem;
+}
+
+.acciones-fila {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.enlace-peligro {
+  color: #c0392b;
+}
