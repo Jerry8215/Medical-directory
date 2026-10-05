@@ -7,6 +7,8 @@
  */
 
 import type { Ocupado } from "@/lib/agenda";
+import { ocupadoEnGoogle } from "@/lib/google-calendar";
+import { comoOcupado } from "@/lib/ocupacion";
 import { prisma } from "@/lib/prisma";
 
 const ZONA_HORARIA_MINUTOS = 6 * 60; // Chihuahua, UTC−6 todo el año
@@ -18,16 +20,31 @@ export async function ocupadosDe(
   const desde = new Date();
   const hasta = new Date(desde.getTime() + dias * 24 * 60 * 60_000);
 
-  const citas = await prisma.cita.findMany({
-    where: {
-      consultorioId,
-      estado: { in: ["SOLICITADA", "AGENDADA", "CONFIRMADA"] },
-      inicio: { gte: desde, lte: hasta },
-    },
-    select: { inicio: true, fin: true },
-  });
+  const [citas, consultorio] = await Promise.all([
+    prisma.cita.findMany({
+      where: {
+        consultorioId,
+        estado: { in: ["SOLICITADA", "AGENDADA", "CONFIRMADA"] },
+        inicio: { gte: desde, lte: hasta },
+      },
+      select: { inicio: true, fin: true },
+    }),
+    prisma.consultorio.findUnique({
+      where: { id: consultorioId },
+      select: { calendarioGoogleId: true, profesional: { select: { plan: true } } },
+    }),
+  ]);
 
-  return citas.map((c) => {
+  // El plan Premium suma lo que el médico tenga apuntado en su propio
+  // calendario. Si Google no contesta, se devuelve lo que sí sabemos y el
+  // consultorio ve la cita en el panel: preferible una cita de más que
+  // ofrecer una hora comprometida.
+  const deGoogle =
+    consultorio?.calendarioGoogleId && consultorio.profesional.plan === "PREMIUM"
+      ? await ocupadoEnGoogle(consultorio.calendarioGoogleId, desde, hasta)
+      : null;
+
+  const propios = citas.map((c) => {
     const local = new Date(c.inicio.getTime() - ZONA_HORARIA_MINUTOS * 60_000);
     return {
       fecha: local.toISOString().slice(0, 10),
@@ -35,4 +52,6 @@ export async function ocupadosDe(
       duracionMin: Math.round((c.fin.getTime() - c.inicio.getTime()) / 60_000),
     };
   });
+
+  return deGoogle ? [...propios, ...comoOcupado(deGoogle)] : propios;
 }

@@ -6,6 +6,7 @@ import { crearAccesoProfesional } from "@/lib/usuarios-admin";
 import { cambiarPlan } from "@/lib/profesionales-admin";
 import {
   eliminarConsultorio,
+  probarConexionGoogle,
   guardarConsultorio,
   guardarPerfil,
   type DatosConsultorio,
@@ -232,6 +233,45 @@ export function EditorProfesional({
               />
             </div>
           </div>
+
+          {planElegido === "PREMIUM" ? (
+            <div className="campo">
+              <label htmlFor={`calendario-${i}`}>
+                Calendario de Google de este consultorio
+              </label>
+              <input
+                id={`calendario-${i}`}
+                value={c.calendarioGoogleId ?? ""}
+                onChange={(e) =>
+                  cambiarConsultorio(i, { calendarioGoogleId: e.target.value })
+                }
+                placeholder="correo@gmail.com o el identificador del calendario"
+              />
+              <small className="meta">
+                El médico comparte su calendario con la dirección de servicio
+                del directorio, con permiso para hacer cambios, y pega acá su
+                identificador. Lo que él apunte allá bloquea el horario acá, y
+                lo que reserve un paciente aparece en su calendario.
+              </small>
+              <button
+                type="button"
+                className="boton-suave"
+                style={{ justifySelf: "start", marginTop: 8 }}
+                disabled={trabajando}
+                onClick={() =>
+                  iniciar(async () => {
+                    const r = await probarConexionGoogle(
+                      slug,
+                      c.calendarioGoogleId ?? "",
+                    );
+                    setAviso(r.mensaje);
+                  })
+                }
+              >
+                Probar la conexión
+              </button>
+            </div>
+          ) : null}
 
           <div className="campo">
             <span className="meta">

@@ -31,6 +31,8 @@ export type DatosPerfil = {
 
 export type DatosConsultorio = {
   id?: string;
+  /// Calendario de Google del médico, solo para el plan Premium.
+  calendarioGoogleId?: string;
   ciudadSlug: string;
   nombre: string;
   direccion: string;
@@ -141,6 +143,7 @@ export async function guardarConsultorio(
 
   const comun = {
     ciudadId: ciudad.id,
+    calendarioGoogleId: datos.calendarioGoogleId?.trim() || null,
     nombre: datos.nombre.trim(),
     direccion: datos.direccion.trim(),
     referencias: datos.referencias.trim() || null,
@@ -184,6 +187,39 @@ export async function guardarConsultorio(
     ok: true,
     mensaje: datos.id ? "Consultorio actualizado." : "Consultorio agregado.",
   };
+}
+
+/**
+ * Comprueba la conexión con el calendario del médico.
+ *
+ * Se prueba antes de depender de ella: descubrir que el calendario no está
+ * compartido el día que un paciente reserva significa una hora ofrecida
+ * sobre una cirugía.
+ */
+export async function probarConexionGoogle(
+  slug: string,
+  calendarioId: string,
+): Promise<Resultado> {
+  const quien = await permiso(slug);
+  if (!quien) return { ok: false, mensaje: "No tiene permiso para este perfil." };
+  if (!calendarioId.trim()) {
+    return { ok: false, mensaje: "Pegue primero el identificador del calendario." };
+  }
+
+  const { probarCalendario, direccionDeServicio } = await import("@/lib/google-calendar");
+  const resultado = await probarCalendario(calendarioId.trim());
+
+  if (!resultado.ok) {
+    const direccion = direccionDeServicio();
+    return {
+      ok: false,
+      mensaje: direccion
+        ? `${resultado.mensaje} Comparta el calendario con ${direccion}.`
+        : resultado.mensaje,
+    };
+  }
+
+  return { ok: true, mensaje: resultado.mensaje };
 }
 
 export async function eliminarConsultorio(

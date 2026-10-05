@@ -206,6 +206,11 @@ model Verificacion {
 // ----------------------------------------------------------------------
 
 model Consultorio {
+  /// Calendario de Google del médico, para el plan Premium. Lo que él
+  /// apunte allá bloquea el horario acá, y lo que reserve un paciente acá
+  /// aparece allá. Vacío: la agenda vive solo en el directorio.
+  calendarioGoogleId String?
+
   id                String      @id @default(cuid())
   profesionalId     String
   profesional       Profesional @relation(fields: [profesionalId], references: [id], onDelete: Cascade)
@@ -254,6 +259,10 @@ model Cita {
   /// reprogramar su cita sin tener que crear una cuenta. Va aparte del
   /// identificador para poder invalidarlo sin tocar la cita.
   token         String        @unique @default(cuid())
+  /// Identificador del evento en el calendario de Google del médico, para
+  /// los perfiles que lo tienen conectado: permite borrarlo allá si la cita
+  /// se cancela acá.
+  eventoGoogleId String?
   profesionalId String
   profesional   Profesional   @relation(fields: [profesionalId], references: [id])
   consultorioId String

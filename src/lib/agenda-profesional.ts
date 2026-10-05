@@ -10,6 +10,7 @@
 
 import { revalidatePath } from "next/cache";
 
+import { cancelarEvento } from "@/lib/google-calendar";
 import { prisma } from "@/lib/prisma";
 import { sesionActual } from "@/lib/sesion-actual";
 
@@ -53,6 +54,11 @@ export async function cancelarCita(id: string, motivo: string): Promise<Resultad
     data: { estado: "CANCELADA", motivo: motivo.trim() || null },
     include: { consultorio: true },
   });
+
+  // Que no quede en el calendario del médico una consulta que ya no existe.
+  if (cita.eventoGoogleId && cita.consultorio.calendarioGoogleId) {
+    await cancelarEvento(cita.consultorio.calendarioGoogleId, cita.eventoGoogleId);
+  }
 
   // El horario vuelve a ofrecerse en cuanto se regenere el perfil.
   revalidatePath("/panel/mi-agenda");

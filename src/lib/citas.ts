@@ -18,6 +18,7 @@
 import { revalidatePath } from "next/cache";
 
 import { aMinutos, disponible } from "@/lib/agenda";
+import { crearEvento } from "@/lib/google-calendar";
 import { prisma } from "@/lib/prisma";
 
 export type Peticion = {
@@ -189,6 +190,36 @@ export async function agendarCita(peticion: Peticion): Promise<Resultado> {
 
       return creada;
     });
+
+    // La cita ya está guardada. Escribirla en el calendario del médico es
+    // valioso pero no puede costar la cita: si Google falla, queda el
+    // registro en el panel y el aviso de siempre.
+    if (
+      consultorio.calendarioGoogleId &&
+      consultorio.profesional.plan === "PREMIUM"
+    ) {
+      const eventoId = await crearEvento({
+        calendarioId: consultorio.calendarioGoogleId,
+        titulo: `Consulta · ${peticion.nombre.trim()}`,
+        descripcion: [
+          `Paciente: ${peticion.nombre.trim()}`,
+          `Teléfono: ${telefono}`,
+          peticion.motivo ? `Motivo: ${peticion.motivo}` : "",
+          `Agendada desde ${consultorio.nombre}.`,
+        ]
+          .filter(Boolean)
+          .join("\n"),
+        inicio,
+        fin,
+      });
+
+      if (eventoId) {
+        await prisma.cita.update({
+          where: { id: cita.id },
+          data: { eventoGoogleId: eventoId },
+        });
+      }
+    }
 
     revalidatePath(`/medico/${consultorio.profesional.slug}`);
     revalidatePath("/panel");

@@ -76,6 +76,7 @@ export default async function EditarProfesional({ params }: Props) {
             nombre: c.nombre,
             direccion: c.direccion,
             referencias: c.referencias ?? "",
+            calendarioGoogleId: c.calendarioGoogleId ?? "",
             precioValoracion: c.precioValoracion ?? undefined,
             duracionCitaMin: c.duracionCitaMin,
             franjas: c.franjas.map((f) => ({ dia: f.dia, desde: f.desde, hasta: f.hasta })),
