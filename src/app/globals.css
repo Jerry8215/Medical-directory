@@ -148,6 +148,13 @@ img {
 /* Los enlaces de la barra son botones de ícono del mismo tamaño. El de la
    sección en la que está el paciente se marca con fondo: sin texto, el
    fondo es lo único que le dice dónde está parado. */
+.boton-cita {
+  height: 48px;
+  padding-inline: 20px;
+  margin-left: 6px;
+  font-size: 0.95rem;
+}
+
 .boton-icono-barra,
 .boton-icono {
   width: 48px;
@@ -177,6 +184,15 @@ img {
 @media (max-width: 760px) {
   .marca img {
     height: 42px;
+  }
+  /* En celular el texto del botón se come la barra; queda el ícono. */
+  .boton-cita {
+    width: 48px;
+    padding-inline: 0;
+    display: inline-grid;
+    place-items: center;
+    font-size: 0;
+    gap: 0;
   }
 }
 

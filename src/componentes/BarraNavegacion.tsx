@@ -45,13 +45,11 @@ export function BarraNavegacion({ enlaces }: { enlaces: Enlace[] }) {
         );
       })}
 
-      <Link
-        href="/delicias"
-        className="boton-lleno boton-icono"
-        aria-label="Agendar cita"
-        title="Agendar cita"
-      >
-        <Calendario size={26} grosor={2.3} />
+      {/* Con el texto, porque es la acción principal del sitio. Como ícono
+          suelto no decía nada y además repetía el enlace de «Médicos». */}
+      <Link href="/delicias" className="boton-lleno boton-cita">
+        <Calendario size={20} grosor={2} />
+        Agendar cita
       </Link>
     </nav>
   );
