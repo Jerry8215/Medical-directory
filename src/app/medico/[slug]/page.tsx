@@ -95,20 +95,32 @@ export default async function PaginaProfesional({ params }: Props) {
     listaCiudades.find((c: Ciudad) => c.slug === slugCiudad)?.nombre ?? "";
 
   const hoy = new Date().toISOString().slice(0, 10);
-  const ocupados = primera ? await ocupadosDe(primera.id) : [];
-  const dias =
-    p.puede.agenda && primera?.franjas?.length
-      ? porDia(
-          huecos({
-            franjas: primera.franjas,
-            duracionMin: primera.duracionCitaMin,
-            ocupados,
-            desde: hoy,
-            dias: 21,
-            maximo: 24,
-          }),
-        )
-      : [];
+
+  // Cada consultorio tiene su propia agenda: un médico que atiende en dos
+  // ciudades no comparte horarios entre ellas, y ofrecer solo la del
+  // primero deja sin cita al paciente de la otra.
+  const reservables = p.puede.agenda
+    ? await Promise.all(
+        p.consultorios.map(async (c) => ({
+          id: c.id,
+          nombre: c.nombre,
+          ciudad: nombreDeCiudad(c.ciudad),
+          horario: c.horario,
+          dias: c.franjas.length
+            ? porDia(
+                huecos({
+                  franjas: c.franjas,
+                  duracionMin: c.duracionCitaMin,
+                  ocupados: await ocupadosDe(c.id),
+                  desde: hoy,
+                  dias: 21,
+                  maximo: 24,
+                }),
+              )
+            : [],
+        })),
+      )
+    : [];
 
   // Cuántas opiniones hay de cada calificación, para las barras del resumen.
   const reparto = [5, 4, 3, 2, 1].map((n) => ({
@@ -116,17 +128,20 @@ export default async function PaginaProfesional({ params }: Props) {
     cuantas: opiniones.filter((o) => o.calificacion === n).length,
   }));
 
-  // El horario semanal, como lo lee un paciente.
-  const semana = DIAS.map((nombre, dia) => {
-    const tramos = (primera?.franjas ?? []).filter((f) => f.dia === dia);
-    return {
-      nombre,
-      texto:
-        tramos.length > 0
-          ? tramos.map((t) => `${t.desde} - ${t.hasta}`).join(" y ")
-          : "Cerrado",
-    };
-  });
+  // El horario semanal de cada consultorio, como lo lee un paciente.
+  const horarios = p.consultorios.map((c) => ({
+    id: c.id,
+    semana: DIAS.map((nombre, dia) => {
+      const tramos = c.franjas.filter((f) => f.dia === dia);
+      return {
+        nombre,
+        texto:
+          tramos.length > 0
+            ? tramos.map((t) => `${t.desde} - ${t.hasta}`).join(" y ")
+            : "Cerrado",
+      };
+    }),
+  }));
 
   const datosEstructurados = {
     "@context": "https://schema.org",
@@ -388,48 +403,43 @@ export default async function PaginaProfesional({ params }: Props) {
               Consultorios y horarios
             </h2>
 
-            {p.consultorios.map((c) => (
-              <div className="sede" key={`${c.ciudad}-${c.nombre}`}>
-                <b>{c.nombre}</b>
-                <p>
-                  {c.direccion} · {nombreDeCiudad(c.ciudad)}, Chihuahua
-                </p>
-                {c.precioValoracion ? (
-                  <p className="num" style={{ color: "var(--navy)", fontWeight: 600 }}>
-                    Consulta ${c.precioValoracion}
+            {p.consultorios.map((c) => {
+              const horario = horarios.find((h) => h.id === c.id);
+              const mapa = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+                `${c.nombre} ${c.direccion} ${nombreDeCiudad(c.ciudad)} Chihuahua`,
+              )}`;
+              return (
+                <div className="sede" key={c.id} style={{ marginBottom: 12 }}>
+                  <b>{c.nombre}</b>
+                  <p>
+                    {c.direccion} · {nombreDeCiudad(c.ciudad)}, Chihuahua
                   </p>
-                ) : null}
-              </div>
-            ))}
+                  {c.precioValoracion ? (
+                    <p className="num" style={{ color: "var(--navy)", fontWeight: 600 }}>
+                      Consulta ${c.precioValoracion}
+                    </p>
+                  ) : null}
 
-            {primera ? (
-              <>
-                <div className="horario-tabla" style={{ marginTop: 16 }}>
-                  {semana.map((d) => (
-                    <div className="horario-fila" key={d.nombre}>
-                      <span>{d.nombre}</span>
-                      <span className={d.texto === "Cerrado" ? "cerrado" : "num"}>
-                        {d.texto}
-                      </span>
-                    </div>
-                  ))}
-                </div>
+                  <div className="horario-tabla" style={{ marginTop: 12 }}>
+                    {horario?.semana.map((d) => (
+                      <div className="horario-fila" key={d.nombre}>
+                        <span>{d.nombre}</span>
+                        <span className={d.texto === "Cerrado" ? "cerrado" : "num"}>
+                          {d.texto}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
 
-                {comoLlegar ? (
-                  <p style={{ marginTop: 14 }}>
-                    <a
-                      className="boton-suave"
-                      href={comoLlegar}
-                      target="_blank"
-                      rel="noreferrer"
-                    >
+                  <p style={{ marginTop: 12 }}>
+                    <a className="boton-suave" href={mapa} target="_blank" rel="noreferrer">
                       <Pin size={16} />
                       Cómo llegar
                     </a>
                   </p>
-                ) : null}
-              </>
-            ) : null}
+                </div>
+              );
+            })}
           </div>
 
           {p.convenios ? (
@@ -451,15 +461,14 @@ export default async function PaginaProfesional({ params }: Props) {
                 Agenda tu consulta
               </h2>
               <p className="meta">
-                {primera ? `${primera.nombre} · ${primera.horario}` : ""}
+                {p.consultorios.length > 1
+                  ? `${p.consultorios.length} consultorios disponibles`
+                  : primera
+                    ? `${primera.nombre} · ${primera.horario}`
+                    : ""}
               </p>
               <div style={{ marginTop: 12 }}>
-                <Reserva
-                  dias={dias}
-                  consultorioId={primera?.id ?? ""}
-                  consultorio={primera?.nombre ?? ""}
-                  profesional={p.nombre}
-                />
+                <Reserva consultorios={reservables} profesional={p.nombre} />
               </div>
             </div>
           ) : (

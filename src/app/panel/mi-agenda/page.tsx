@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 import { FilaCita } from "@/componentes/FilaCita";
+import { FiltroMedico } from "@/componentes/FiltroMedico";
 import { enHoraLocal } from "@/lib/panel-datos";
 import { prisma } from "@/lib/prisma";
 import { sesionActual } from "@/lib/sesion-actual";
@@ -74,19 +75,8 @@ export default async function MiAgenda({
         </p>
 
         {esEquipo && profesionales.length > 0 ? (
-          <div className="chips" style={{ marginTop: 14 }}>
-            <Link href="/panel/mi-agenda" className="chip">
-              Todos
-            </Link>
-            {profesionales.map((p) => (
-              <Link
-                key={p.slug}
-                href={`/panel/mi-agenda?medico=${p.slug}`}
-                className="chip"
-              >
-                {p.nombre}
-              </Link>
-            ))}
+          <div style={{ marginTop: 16 }}>
+            <FiltroMedico medicos={profesionales} elegido={medico} />
           </div>
         ) : null}
       </section>

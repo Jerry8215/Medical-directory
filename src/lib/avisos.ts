@@ -198,8 +198,7 @@ export async function avisarNovedades(limite = 30): Promise<{
         ...lineas,
         "",
         `Puede revisarlas en ${urlAbsoluta("/panel")}`,
-      ].join("
-"),
+      ].join("\n"),
     });
 
     if (!salio) return { avisadas: 0, pendientes: novedades.length };

@@ -6,26 +6,34 @@ import { agendarCita } from "@/lib/citas";
 
 type Dia = { fecha: string; etiqueta: string; horas: string[] };
 
+export type ConsultorioReservable = {
+  id: string;
+  nombre: string;
+  ciudad: string;
+  horario: string;
+  dias: Dia[];
+};
+
 /**
- * Elegir día, hora y dejar la cita puesta.
+ * Elegir consultorio, día y hora.
  *
- * Los huecos llegan calculados del servidor, así que el paciente nunca ve
- * un horario inventado por el navegador, y al confirmar se vuelve a
- * verificar contra la agenda: entre que lo eligió y lo confirmó, alguien
- * más pudo haberlo tomado.
+ * Un médico que atiende en dos ciudades tiene dos agendas distintas, y
+ * ofrecer solo la del primero obliga al paciente de la otra ciudad a
+ * llamar. Por eso el consultorio se elige primero y los horarios cambian
+ * con él.
+ *
+ * Al confirmar se vuelve a verificar contra la agenda: entre que el
+ * paciente eligió y confirmó, alguien más pudo haber tomado ese horario.
  */
 export function Reserva({
-  dias,
-  consultorioId,
-  consultorio,
+  consultorios,
   profesional,
 }: {
-  dias: Dia[];
-  consultorioId: string;
-  consultorio: string;
+  consultorios: ConsultorioReservable[];
   profesional: string;
 }) {
-  const [diaElegido, setDiaElegido] = useState(dias[0]?.fecha ?? "");
+  const [consultorioId, setConsultorioId] = useState(consultorios[0]?.id ?? "");
+  const [diaElegido, setDiaElegido] = useState(consultorios[0]?.dias[0]?.fecha ?? "");
   const [hora, setHora] = useState("");
   const [nombre, setNombre] = useState("");
   const [telefono, setTelefono] = useState("");
@@ -36,16 +44,21 @@ export function Reserva({
   } | null>(null);
   const [guardando, iniciar] = useTransition();
 
-  if (dias.length === 0) {
+  const consultorio =
+    consultorios.find((c) => c.id === consultorioId) ?? consultorios[0];
+
+  if (!consultorio || consultorio.dias.length === 0) {
     return (
       <div className="nota-umbral">
-        Este consultorio todavía no tiene horarios cargados. En cuanto el
-        profesional los registre, aparecerán acá con disponibilidad real.
+        {consultorios.length > 1
+          ? "Ese consultorio todavía no tiene horarios cargados. Pruebe con el otro o escriba al médico."
+          : "Este consultorio todavía no tiene horarios cargados. En cuanto el profesional los registre, aparecerán acá con disponibilidad real."}
       </div>
     );
   }
 
-  const dia = dias.find((d) => d.fecha === diaElegido) ?? dias[0];
+  const dia =
+    consultorio.dias.find((d) => d.fecha === diaElegido) ?? consultorio.dias[0];
 
   if (resultado?.ok) {
     return (
@@ -65,8 +78,32 @@ export function Reserva({
 
   return (
     <div>
+      {consultorios.length > 1 ? (
+        <div className="campo" style={{ marginBottom: 6 }}>
+          <label htmlFor="consultorio-cita">Consultorio</label>
+          <select
+            id="consultorio-cita"
+            value={consultorio.id}
+            onChange={(e) => {
+              const nuevo = consultorios.find((c) => c.id === e.target.value);
+              setConsultorioId(e.target.value);
+              setDiaElegido(nuevo?.dias[0]?.fecha ?? "");
+              setHora("");
+              setResultado(null);
+            }}
+          >
+            {consultorios.map((c) => (
+              <option key={c.id} value={c.id}>
+                {c.nombre} · {c.ciudad}
+              </option>
+            ))}
+          </select>
+          <small className="meta">{consultorio.horario}</small>
+        </div>
+      ) : null}
+
       <div className="dias" role="group" aria-label="Días disponibles">
-        {dias.map((d) => {
+        {consultorio.dias.map((d) => {
           const [, , numero] = d.fecha.split("-");
           const nombreDia = d.etiqueta.split(" ")[0].slice(0, 3);
           return (
@@ -113,7 +150,7 @@ export function Reserva({
             e.preventDefault();
             iniciar(async () => {
               const r = await agendarCita({
-                consultorioId,
+                consultorioId: consultorio.id,
                 fecha: dia.fecha,
                 hora,
                 nombre,
@@ -151,13 +188,11 @@ export function Reserva({
           </div>
 
           <button className="boton-lleno" type="submit" disabled={guardando}>
-            {guardando
-              ? "Agendando…"
-              : `Agendar ${dia.etiqueta} a las ${hora}`}
+            {guardando ? "Agendando…" : `Agendar ${dia.etiqueta} a las ${hora}`}
           </button>
         </form>
       ) : (
-        <button className="boton-lleno" type="button" disabled>
+        <button className="boton-lleno" type="button" disabled style={{ width: "100%" }}>
           Elija un horario
         </button>
       )}
@@ -169,7 +204,7 @@ export function Reserva({
       ) : null}
 
       <p className="meta" style={{ marginTop: 10, textAlign: "center" }}>
-        Con {profesional} en {consultorio}. Recibirá la confirmación y el
+        Con {profesional} en {consultorio.nombre}. Recibirá la confirmación y el
         recordatorio por WhatsApp.
       </p>
     </div>

@@ -1610,3 +1610,40 @@ a.chip:hover {
   align-items: center;
   gap: 12px;
 }
+
+/* ---------- filtro de médico en la agenda ---------- */
+
+.filtro-medico .campo-busqueda {
+  background: var(--papel);
+  border: 1px solid var(--borde);
+  border-radius: 10px;
+  padding-inline: 14px;
+  max-width: 420px;
+}
+
+.filtro-medico input {
+  border: 0;
+  background: transparent;
+  color: var(--tinta);
+  font: inherit;
+  font-size: 0.95rem;
+  padding-block: 10px;
+  width: 100%;
+  min-width: 0;
+}
+
+.filtro-medico input:focus {
+  outline: none;
+}
+
+.filtro-medico .chip {
+  border: 1px solid transparent;
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.86rem;
+}
+
+.filtro-medico .chip[aria-current="true"] {
+  background: var(--azul);
+  color: #fff;
+}
