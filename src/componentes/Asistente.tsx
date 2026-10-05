@@ -3,6 +3,8 @@
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 
+import { Asistente as IconoAsistente } from "@/componentes/Iconos";
+
 type Sugerencia = { slug: string; nombre: string; especialidad: string };
 type Turno = { quien: "paciente" | "asistente"; texto: string; sugerencias?: Sugerencia[] };
 
@@ -88,8 +90,25 @@ export function Asistente() {
           }
         }}
         aria-expanded={abierto}
+        aria-label={abierto ? "Cerrar el asistente" : "Abrir el asistente"}
+        title={abierto ? "Cerrar el asistente" : "Pregúntele al asistente"}
       >
-        {abierto ? "Cerrar" : "Asistente"}
+        {abierto ? (
+          <svg
+            width="22"
+            height="22"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            aria-hidden="true"
+          >
+            <path d="m6 6 12 12M18 6 6 18" />
+          </svg>
+        ) : (
+          <IconoAsistente size={22} />
+        )}
       </button>
 
       {abierto ? (

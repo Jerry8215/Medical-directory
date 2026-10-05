@@ -179,3 +179,19 @@ export function Pulmon({ size = 18 }: Props) {
     </svg>
   );
 }
+
+/**
+ * El asistente, en la burbuja flotante.
+ *
+ * Provisional: se reemplaza por el archivo que entregue el consultorio en
+ * cuanto esté en el proyecto. El trazo coincide con el resto de los íconos
+ * para que no desentone mientras tanto.
+ */
+export function Asistente({ size = 22 }: Props) {
+  return (
+    <svg {...base(size)}>
+      <path d="M20 12.5c0 3.6-3.6 6.5-8 6.5-1 0-2-.1-2.9-.4L4 20.5l1.5-3.6C4.5 15.7 4 14.2 4 12.5 4 8.9 7.6 6 12 6s8 2.9 8 6.5Z" />
+      <path d="M9 11.5h.01M12 11.5h.01M15 11.5h.01" />
+    </svg>
+  );
+}

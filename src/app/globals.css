@@ -139,10 +139,37 @@ img {
   margin-left: auto;
   display: flex;
   align-items: center;
-  gap: 22px;
+  gap: 8px;
   font-size: 0.94rem;
   font-weight: 500;
   color: var(--navy);
+}
+
+/* Los enlaces de la barra son botones de texto: el activo se marca con
+   fondo, que es lo que le dice al paciente en qué parte del sitio está. */
+.barra nav a {
+  padding: 8px 14px;
+  border-radius: 9px;
+}
+
+.barra nav a:not(.boton-lleno):hover {
+  background: var(--azul-tenue);
+  color: var(--azul);
+}
+
+.barra nav a[aria-current="page"]:not(.boton-lleno) {
+  background: var(--azul-tenue);
+  color: var(--azul);
+  font-weight: 600;
+}
+
+.boton-icono {
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  display: inline-grid;
+  place-items: center;
+  border-radius: 10px;
 }
 
 @media (max-width: 900px) {
@@ -1330,15 +1357,22 @@ a.chip:hover {
   right: 18px;
   bottom: calc(18px + env(safe-area-inset-bottom, 0px));
   z-index: 40;
+  width: 54px;
+  height: 54px;
+  display: grid;
+  place-items: center;
   border: 0;
-  border-radius: 999px;
+  border-radius: 50%;
   background: var(--verde);
   color: #fff;
-  padding: 13px 22px;
-  font: inherit;
-  font-weight: 600;
   cursor: pointer;
   box-shadow: 0 10px 26px rgba(32, 190, 112, 0.35);
+  transition: background 0.15s ease, transform 0.15s ease;
+}
+
+.burbuja:hover {
+  background: var(--verde-fuerte);
+  transform: translateY(-1px);
 }
 
 .chat {

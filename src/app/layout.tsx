@@ -4,7 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 
 import { Asistente } from "@/componentes/Asistente";
-import { Calendario } from "@/componentes/Iconos";
+import { BarraNavegacion } from "@/componentes/BarraNavegacion";
 import { sitio, urlAbsoluta } from "@/config/sitio";
 import { ciudades, especialidades } from "@/lib/catalogo";
 
@@ -52,22 +52,13 @@ export default async function RootLayout({
               />
             </Link>
 
-            <nav>
-              <Link href="/" className="oculta-movil">
-                Inicio
-              </Link>
-              <Link href="/delicias" className="oculta-movil">
-                Especialidades
-              </Link>
-              <Link href="/delicias" className="oculta-movil">
-                Médicos
-              </Link>
-              <Link href="/planes">¿Eres médico?</Link>
-              <Link href="/delicias" className="boton-lleno">
-                <Calendario size={17} />
-                Agendar cita
-              </Link>
-            </nav>
+            <BarraNavegacion
+              enlaces={[
+                { href: "/", texto: "Inicio", soloEscritorio: true },
+                { href: "/delicias", texto: "Médicos", soloEscritorio: true },
+                { href: "/planes", texto: "¿Eres médico?" },
+              ]}
+            />
           </div>
         </header>
 
