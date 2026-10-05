@@ -39,9 +39,15 @@ export type Credencial = {
   vigenteHasta?: string;
 };
 
+import type { Capacidades, Plan } from "@/lib/planes";
+
 export type Profesional = {
   slug: string;
   nombre: string;
+  fotografia?: string;
+  plan: Plan;
+  /** Lo que su plan le permite hoy, ya resuelto por vencimiento. */
+  puede: Capacidades;
   semblanza: string;
   especialidades: string[];
   padecimientos: string[];

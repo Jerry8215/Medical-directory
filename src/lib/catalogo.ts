@@ -14,6 +14,7 @@
  */
 
 import { sitio } from "@/config/sitio";
+import { capacidades, planVigente, type Plan } from "@/lib/planes";
 import { prisma } from "@/lib/prisma";
 import type {
   Ciudad,
@@ -67,6 +68,9 @@ type ProfesionalConTodo = {
   nombre: string;
   semblanza: string | null;
   convenios: string | null;
+  fotografia: string | null;
+  plan: string;
+  planHasta: Date | null;
   estado: string;
   calificacion: number | null;
   numeroOpiniones: number;
@@ -91,9 +95,16 @@ const INCLUIR = {
 
 function aProfesional(p: ProfesionalConTodo, padecimientosPorEspecialidad: Map<string, string[]>): Profesional {
   const especialidades = p.especialidades.map((e) => e.especialidad.slug);
+  const plan = planVigente(p.plan as Plan, p.planHasta);
+  const puede = capacidades(p.plan as Plan, p.planHasta);
   return {
     slug: p.slug,
     nombre: p.nombre,
+    // La fotografía es del plan Gold en adelante: sin él no se muestra
+    // aunque esté cargada.
+    fotografia: puede.fotografia ? p.fotografia ?? undefined : undefined,
+    plan,
+    puede,
     semblanza: p.semblanza ?? "",
     especialidades,
     // Sin tabla propia todavía: un perfil atiende los padecimientos de sus

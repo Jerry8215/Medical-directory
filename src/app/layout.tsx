@@ -63,7 +63,7 @@ export default async function RootLayout({
                   {c.nombre}
                 </Link>
               ))}
-              <Link href="/alta" className="enlace-acento">
+              <Link href="/planes" className="enlace-acento">
                 Soy médico
               </Link>
             </nav>
@@ -86,6 +86,7 @@ export default async function RootLayout({
             <p style={{ marginTop: 10 }}>
               <Link href="/privacidad">Aviso de privacidad</Link> ·{" "}
               <Link href="/terminos">Términos de uso</Link> ·{" "}
+              <Link href="/planes">Planes</Link> ·{" "}
               <Link href="/alta">Soy médico</Link>
             </p>
           </div>

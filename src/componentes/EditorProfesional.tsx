@@ -3,6 +3,7 @@
 import { useState, useTransition } from "react";
 
 import { crearAccesoProfesional } from "@/lib/usuarios-admin";
+import { cambiarPlan } from "@/lib/profesionales-admin";
 import {
   eliminarConsultorio,
   guardarConsultorio,
@@ -18,6 +19,8 @@ type Props = {
   perfil: DatosPerfil;
   consultorios: DatosConsultorio[];
   ciudades: { slug: string; nombre: string }[];
+  plan: "BASICO" | "GOLD" | "PREMIUM";
+  planHasta: string;
 };
 
 /**
@@ -27,7 +30,16 @@ type Props = {
  * tal hora— y de ahí sale la agenda que ve el paciente. Por eso el editor
  * muestra el efecto en una línea: cuántas citas caben en cada tramo.
  */
-export function EditorProfesional({ slug, perfil, consultorios, ciudades }: Props) {
+export function EditorProfesional({
+  slug,
+  perfil,
+  consultorios,
+  ciudades,
+  plan,
+  planHasta,
+}: Props) {
+  const [planElegido, setPlanElegido] = useState(plan);
+  const [vence, setVence] = useState(planHasta);
   const [datos, setDatos] = useState<DatosPerfil>(perfil);
   const [locales, setLocales] = useState<DatosConsultorio[]>(consultorios);
   const [aviso, setAviso] = useState("");
@@ -320,6 +332,57 @@ export function EditorProfesional({ slug, perfil, consultorios, ciudades }: Prop
           </div>
         </section>
       ))}
+
+      <section className="ficha formulario">
+        <h2>Plan</h2>
+        <p className="meta">
+          Define qué herramientas tiene el perfil: fotografía y WhatsApp desde
+          Gold, agenda en línea desde Premium. La cédula verificada y la
+          presencia en el directorio no dependen del plan.
+        </p>
+        <div className="campos-dos">
+          <div className="campo">
+            <label htmlFor="plan">Plan contratado</label>
+            <select
+              id="plan"
+              value={planElegido}
+              onChange={(e) =>
+                setPlanElegido(e.target.value as "BASICO" | "GOLD" | "PREMIUM")
+              }
+            >
+              <option value="BASICO">Básico</option>
+              <option value="GOLD">Gold</option>
+              <option value="PREMIUM">Premium</option>
+            </select>
+          </div>
+          <div className="campo">
+            <label htmlFor="plan-hasta">Pagado hasta</label>
+            <input
+              id="plan-hasta"
+              type="date"
+              value={vence}
+              onChange={(e) => setVence(e.target.value)}
+              disabled={planElegido === "BASICO"}
+            />
+            <small className="meta">
+              Al vencer, el perfil vuelve al plan básico sin desaparecer.
+            </small>
+          </div>
+        </div>
+        <button
+          type="button"
+          className="boton-lleno boton-corto"
+          disabled={trabajando}
+          onClick={() =>
+            iniciar(async () => {
+              const r = await cambiarPlan(slug, planElegido, vence || undefined);
+              setAviso(r.mensaje);
+            })
+          }
+        >
+          Guardar plan
+        </button>
+      </section>
 
       <section className="ficha formulario">
         <h2>Acceso del profesional</h2>

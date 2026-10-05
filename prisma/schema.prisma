@@ -91,6 +91,17 @@ model Padecimiento {
 //  Profesionales
 // ----------------------------------------------------------------------
 
+/// Qué incluye el perfil de un profesional según lo que contrató.
+///
+/// El plan no decide si el perfil es verificado —eso no se vende— sino qué
+/// herramientas tiene: foto, contacto directo por WhatsApp y agenda en
+/// línea. Al lanzamiento todos entran en BASICO sin costo.
+enum PlanSuscripcion {
+  BASICO
+  GOLD
+  PREMIUM
+}
+
 enum EstadoPerfil {
   BORRADOR
   EN_REVISION
@@ -113,6 +124,12 @@ model Profesional {
   telefono    String?
   correo      String?
   estado      EstadoPerfil @default(BORRADOR)
+
+  plan        PlanSuscripcion @default(BASICO)
+  /// Hasta cuándo está pagado. Vencido, el perfil sigue publicado pero
+  /// vuelve a las herramientas del plan básico: se cobra el plan, nunca la
+  /// presencia del médico en el directorio.
+  planHasta   DateTime?
 
   /// Promedio y número de opiniones, ya calculados. Se guardan para no
   /// recorrer todas las opiniones en cada listado del directorio.
@@ -303,14 +320,21 @@ model Aviso {
 //  Opiniones, usuarios y operación
 // ----------------------------------------------------------------------
 
+/// La opinión de un paciente.
+///
+/// Se publica después de revisarla. `citaId` distingue la opinión de quien
+/// sí tuvo consulta de la de cualquiera que pasó por el sitio, que es lo
+/// que hace creíble la calificación.
 model Opinion {
   id            String      @id @default(cuid())
   profesionalId String
   profesional   Profesional @relation(fields: [profesionalId], references: [id], onDelete: Cascade)
+  citaId        String?     @unique
   autor         String
   calificacion  Int
   texto         String
   publicada     Boolean     @default(false)
+  revisadaPor   String?
   fecha         DateTime    @default(now())
 
   @@index([profesionalId, publicada])

@@ -1000,3 +1000,69 @@ img {
   font-size: 0.9rem;
   line-height: 1.5;
 }
+
+/* ---------- opiniones y contacto ---------- */
+
+.resena {
+  border-top: 1px solid var(--borde);
+  padding-top: 12px;
+  margin-top: 12px;
+}
+
+.resena:first-of-type {
+  border-top: 0;
+  padding-top: 0;
+  margin-top: 0;
+}
+
+.resena p {
+  font-size: 0.93rem;
+}
+
+.resena .quien {
+  font-size: 0.82rem;
+  color: var(--suave);
+  margin-top: 4px;
+}
+
+.estrellas-elegir {
+  display: flex;
+  gap: 4px;
+}
+
+.estrellas-elegir button {
+  border: 0;
+  background: none;
+  color: var(--estrella);
+  font-size: 1.6rem;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0 2px;
+}
+
+.boton-whatsapp {
+  display: block;
+  margin-top: 12px;
+  text-align: center;
+  background: #25d366;
+  color: #06321a;
+  border-radius: 999px;
+  padding: 12px 18px;
+  font-weight: 700;
+}
+
+.boton-whatsapp:hover {
+  background: #1fb757;
+  color: #06321a;
+}
+
+.pastilla-plan {
+  display: inline-block;
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: var(--acento);
+  color: #fff;
+  margin-left: 6px;
+}

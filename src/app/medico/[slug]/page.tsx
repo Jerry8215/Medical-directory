@@ -2,9 +2,11 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
+import { FormularioOpinion } from "@/componentes/FormularioOpinion";
 import { Reserva } from "@/componentes/Reserva";
-import { urlAbsoluta } from "@/config/sitio";
+import { sitio, urlAbsoluta } from "@/config/sitio";
 import { huecos, porDia } from "@/lib/agenda";
+import { opinionesDe, telefonoDe } from "@/lib/opiniones-lectura";
 import { ocupadosDe } from "@/lib/citas-lectura";
 import {
   cedulaVerificada,
@@ -65,6 +67,11 @@ export default async function PaginaProfesional({ params }: Props) {
   const ciudadPrincipal = primera
     ? listaCiudades.find((c: Ciudad) => c.slug === primera.ciudad)
     : undefined;
+  // El teléfono se publica siempre: es lo único que el plan básico ofrece
+  // al paciente, y sin él ese perfil no sirve de nada.
+  const telefono = await telefonoDe(slug);
+  const opiniones = await opinionesDe(slug);
+
   const nombreDeCiudad = (slugCiudad: string) =>
     listaCiudades.find((c: Ciudad) => c.slug === slugCiudad)?.nombre ?? "";
 
@@ -214,23 +221,86 @@ export default async function PaginaProfesional({ params }: Props) {
               <p style={{ color: "var(--suave)" }}>{p.convenios}</p>
             </div>
           ) : null}
+
+          <div className="ficha">
+            <h2>Opiniones de pacientes</h2>
+            {opiniones.length > 0 ? (
+              <div>
+                {opiniones.map((o) => (
+                  <div className="resena" key={o.id}>
+                    <p style={{ color: "var(--estrella)", fontWeight: 600 }}>
+                      {"★".repeat(o.calificacion)}
+                      {"☆".repeat(5 - o.calificacion)}
+                    </p>
+                    <p>«{o.texto}»</p>
+                    <p className="quien">
+                      {o.autor} · {o.cuando}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="meta">
+                Todavía no hay opiniones publicadas de este profesional.
+              </p>
+            )}
+            <div style={{ marginTop: 14 }}>
+              <FormularioOpinion slug={slug} profesional={p.nombre} />
+            </div>
+          </div>
         </div>
 
         <aside>
-          <div className="ficha">
-            <h2>Agende su cita</h2>
-            <p style={{ color: "var(--suave)", fontSize: "0.9rem" }}>
-              {primera ? `${primera.nombre} · ${primera.horario}` : ""}
-            </p>
-            <div style={{ marginTop: 12 }}>
-              <Reserva
-                dias={dias}
-                consultorioId={primera?.id ?? ""}
-                consultorio={primera?.nombre ?? ""}
-                profesional={p.nombre}
-              />
+          {p.puede.agenda ? (
+            <div className="ficha">
+              <h2>Agende su cita</h2>
+              <p style={{ color: "var(--suave)", fontSize: "0.9rem" }}>
+                {primera ? `${primera.nombre} · ${primera.horario}` : ""}
+              </p>
+              <div style={{ marginTop: 12 }}>
+                <Reserva
+                  dias={dias}
+                  consultorioId={primera?.id ?? ""}
+                  consultorio={primera?.nombre ?? ""}
+                  profesional={p.nombre}
+                />
+              </div>
             </div>
-          </div>
+          ) : (
+            <div className="ficha">
+              <h2>Contacto</h2>
+              <p style={{ color: "var(--suave)", fontSize: "0.9rem" }}>
+                {primera ? `${primera.nombre} · ${primera.horario}` : ""}
+              </p>
+              {telefono ? (
+                <>
+                  <p className="num" style={{ fontSize: "1.2rem", fontWeight: 700, marginTop: 10 }}>
+                    {telefono}
+                  </p>
+                  {p.puede.whatsapp ? (
+                    <a
+                      className="boton-whatsapp"
+                      href={`https://wa.me/52${telefono}?text=${encodeURIComponent(
+                        `Hola, lo contacto desde ${sitio.nombre} para agendar una consulta.`,
+                      )}`}
+                      target="_blank"
+                      rel="noreferrer"
+                    >
+                      Escribir por WhatsApp
+                    </a>
+                  ) : (
+                    <p className="meta" style={{ marginTop: 8 }}>
+                      Llame para agendar su consulta.
+                    </p>
+                  )}
+                </>
+              ) : (
+                <p className="meta" style={{ marginTop: 10 }}>
+                  Este profesional todavía no publicó un teléfono de contacto.
+                </p>
+              )}
+            </div>
+          )}
         </aside>
       </div>
     </main>

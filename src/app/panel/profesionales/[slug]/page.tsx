@@ -81,6 +81,8 @@ export default async function EditarProfesional({ params }: Props) {
             franjas: c.franjas.map((f) => ({ dia: f.dia, desde: f.desde, hasta: f.hasta })),
           }))}
           ciudades={ciudades.map((c) => ({ slug: c.slug, nombre: c.nombre }))}
+          plan={profesional.plan}
+          planHasta={profesional.planHasta ? profesional.planHasta.toISOString().slice(0, 10) : ""}
         />
       </section>
     </main>

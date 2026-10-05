@@ -99,16 +99,15 @@ async function cargarProfesional(p: Profesional) {
       nombre: p.nombre,
       semblanza: p.semblanza,
       convenios: p.convenios,
-      calificacion: p.calificacion,
-      numeroOpiniones: p.opiniones,
     },
     create: {
       slug: p.slug,
       nombre: p.nombre,
       semblanza: p.semblanza,
       convenios: p.convenios,
-      calificacion: p.calificacion,
-      numeroOpiniones: p.opiniones,
+      // La calificación no se siembra: sale de las opiniones que los
+      // pacientes dejen y el directorio publique. Un promedio inventado
+      // vuelve inútil el que de verdad se gane.
       profesionId: profesion.id,
       // Un perfil de muestra nunca se publica: existe para revisar el
       // diseño, no para que un paciente lo encuentre.

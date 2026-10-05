@@ -218,3 +218,52 @@ export async function eliminarConsultorio(
   revalidatePath("/panel");
   return { ok: true, mensaje: "Consultorio eliminado." };
 }
+
+/**
+ * Cambiar el plan de un perfil.
+ *
+ * Solo el administrador: el plan define qué herramientas tiene el perfil y
+ * un profesional no puede subirse el suyo. La fecha de vencimiento es lo
+ * que devuelve el perfil al básico cuando deja de pagarse, sin que nadie
+ * tenga que acordarse.
+ */
+export async function cambiarPlan(
+  slug: string,
+  plan: "BASICO" | "GOLD" | "PREMIUM",
+  hasta?: string,
+): Promise<Resultado> {
+  const sesion = await sesionActual();
+  if (!sesion || sesion.rol !== "ADMINISTRADOR") {
+    return { ok: false, mensaje: "Solo el administrador puede cambiar el plan." };
+  }
+
+  const vencimiento = hasta ? new Date(`${hasta}T12:00:00Z`) : null;
+  if (hasta && Number.isNaN(vencimiento!.getTime())) {
+    return { ok: false, mensaje: "La fecha de vencimiento no es válida." };
+  }
+
+  await prisma.profesional.update({
+    where: { slug },
+    data: { plan, planHasta: plan === "BASICO" ? null : vencimiento },
+  });
+
+  await prisma.registroAuditoria.create({
+    data: {
+      actor: sesion.nombre,
+      accion: "plan.cambiado",
+      entidad: "profesional",
+      entidadId: slug,
+      detalle: `${plan}${hasta ? ` hasta ${hasta}` : ""}`,
+    },
+  });
+
+  revalidatePath(`/medico/${slug}`);
+  revalidatePath("/panel");
+  return {
+    ok: true,
+    mensaje:
+      plan === "BASICO"
+        ? "Perfil en plan Básico."
+        : `Plan ${plan === "GOLD" ? "Gold" : "Premium"} activo${hasta ? ` hasta el ${hasta}` : ""}.`,
+  };
+}
