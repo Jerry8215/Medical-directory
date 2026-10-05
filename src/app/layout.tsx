@@ -54,9 +54,9 @@ export default async function RootLayout({
 
             <BarraNavegacion
               enlaces={[
-                { href: "/", texto: "Inicio", soloEscritorio: true },
-                { href: "/delicias", texto: "Médicos", soloEscritorio: true },
-                { href: "/planes", texto: "¿Eres médico?" },
+                { href: "/", texto: "Inicio", icono: "casa" },
+                { href: "/delicias", texto: "Médicos", icono: "medicos" },
+                { href: "/planes", texto: "¿Eres médico?", icono: "medico" },
               ]}
             />
           </div>

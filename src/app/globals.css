@@ -131,7 +131,7 @@ img {
 }
 
 .marca img {
-  height: 40px;
+  height: 54px;
   width: auto;
 }
 
@@ -145,39 +145,38 @@ img {
   color: var(--navy);
 }
 
-/* Los enlaces de la barra son botones de texto: el activo se marca con
-   fondo, que es lo que le dice al paciente en qué parte del sitio está. */
-.barra nav a {
-  padding: 8px 14px;
-  border-radius: 9px;
-}
-
-.barra nav a:not(.boton-lleno):hover {
-  background: var(--azul-tenue);
-  color: var(--azul);
-}
-
-.barra nav a[aria-current="page"]:not(.boton-lleno) {
-  background: var(--azul-tenue);
-  color: var(--azul);
-  font-weight: 600;
-}
-
+/* Los enlaces de la barra son botones de ícono del mismo tamaño. El de la
+   sección en la que está el paciente se marca con fondo: sin texto, el
+   fondo es lo único que le dice dónde está parado. */
+.boton-icono-barra,
 .boton-icono {
-  width: 40px;
-  height: 40px;
+  width: 48px;
+  height: 48px;
   padding: 0;
   display: inline-grid;
   place-items: center;
-  border-radius: 10px;
+  border-radius: 11px;
 }
 
-@media (max-width: 900px) {
-  .barra nav .oculta-movil {
-    display: none;
-  }
+.boton-icono-barra {
+  color: var(--navy);
+  border: 1px solid transparent;
+}
+
+.boton-icono-barra:hover {
+  background: var(--azul-tenue);
+  color: var(--azul);
+}
+
+.boton-icono-barra[aria-current="page"] {
+  background: var(--azul-tenue);
+  border-color: #c7ddf0;
+  color: var(--azul);
+}
+
+@media (max-width: 760px) {
   .marca img {
-    height: 34px;
+    height: 42px;
   }
 }
 

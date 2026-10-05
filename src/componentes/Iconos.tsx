@@ -6,20 +6,30 @@
  * página. Todos heredan el color del texto y miden lo que se les pida.
  */
 
-type Props = { size?: number };
+type Props = { size?: number; grosor?: number };
 
-function base(size: number) {
+function base(size: number, grosor = 1.8) {
   return {
     width: size,
     height: size,
     viewBox: "0 0 24 24",
     fill: "none",
     stroke: "currentColor",
-    strokeWidth: 1.8,
+    strokeWidth: grosor,
     strokeLinecap: "round" as const,
     strokeLinejoin: "round" as const,
     "aria-hidden": true,
   };
+}
+
+export function Casa({ size = 18 }: Props) {
+  return (
+    <svg {...base(size)}>
+      <path d="M4 10.5 12 4l8 6.5" />
+      <path d="M6 9.8V19a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1V9.8" />
+      <path d="M10 20v-5h4v5" />
+    </svg>
+  );
 }
 
 export function Lupa({ size = 18 }: Props) {
@@ -40,9 +50,9 @@ export function Pin({ size = 18 }: Props) {
   );
 }
 
-export function Calendario({ size = 18 }: Props) {
+export function Calendario({ size = 18, grosor }: Props) {
   return (
-    <svg {...base(size)}>
+    <svg {...base(size, grosor)}>
       <rect x="3.5" y="5" width="17" height="15.5" rx="3" />
       <path d="M3.5 9.5h17M8 3v4M16 3v4" />
     </svg>

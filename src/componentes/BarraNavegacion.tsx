@@ -3,9 +3,15 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-import { Calendario } from "@/componentes/Iconos";
+import { Calendario, Casa, Estetoscopio, Maletin } from "@/componentes/Iconos";
 
-type Enlace = { href: string; texto: string; soloEscritorio?: boolean };
+type Enlace = { href: string; texto: string; icono: "casa" | "medicos" | "medico" };
+
+const ICONOS = {
+  casa: Casa,
+  medicos: Estetoscopio,
+  medico: Maletin,
+} as const;
 
 /**
  * Los enlaces de la barra.
@@ -23,16 +29,21 @@ export function BarraNavegacion({ enlaces }: { enlaces: Enlace[] }) {
 
   return (
     <nav>
-      {enlaces.map((e) => (
-        <Link
-          key={e.href + e.texto}
-          href={e.href}
-          className={e.soloEscritorio ? "oculta-movil" : undefined}
-          aria-current={activo(e.href) ? "page" : undefined}
-        >
-          {e.texto}
-        </Link>
-      ))}
+      {enlaces.map((e) => {
+        const Icono = ICONOS[e.icono];
+        return (
+          <Link
+            key={e.href + e.texto}
+            href={e.href}
+            className="boton-icono-barra"
+            aria-current={activo(e.href) ? "page" : undefined}
+            aria-label={e.texto}
+            title={e.texto}
+          >
+            <Icono size={24} />
+          </Link>
+        );
+      })}
 
       <Link
         href="/delicias"
@@ -40,7 +51,7 @@ export function BarraNavegacion({ enlaces }: { enlaces: Enlace[] }) {
         aria-label="Agendar cita"
         title="Agendar cita"
       >
-        <Calendario size={19} />
+        <Calendario size={26} grosor={2.3} />
       </Link>
     </nav>
   );
