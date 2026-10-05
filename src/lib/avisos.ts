@@ -42,8 +42,13 @@ export type Correo = { para: string; asunto: string; cuerpo: string };
  */
 export async function enviarCorreo(correo: Correo): Promise<boolean> {
   const clave = process.env.RESEND_API_KEY;
-  const remitente = process.env.CORREO_REMITENTE;
-  if (!clave || !remitente) return false;
+  if (!clave) return false;
+
+  // Mientras el dominio no esté verificado ante el proveedor, se usa su
+  // remitente compartido, que solo puede escribirle a la cuenta dueña de la
+  // clave. Alcanza para los avisos al consultorio y evita bloquear todo
+  // esperando unos registros de DNS.
+  const remitente = process.env.CORREO_REMITENTE ?? "onboarding@resend.dev";
 
   const respuesta = await fetch("https://api.resend.com/emails", {
     method: "POST",
