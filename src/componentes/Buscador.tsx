@@ -18,6 +18,7 @@ export function Buscador({
   etiquetas,
   especialidades,
   ciudad,
+  inicial = "",
 }: {
   profesionales: Profesional[];
   /** slug de padecimiento -> nombre legible, para poder buscar por texto */
@@ -25,8 +26,10 @@ export function Buscador({
   /** slug de especialidad -> nombre legible */
   especialidades: Record<string, string>;
   ciudad: string;
+  /** Lo que el paciente escribió en la portada. */
+  inicial?: string;
 }) {
-  const [consulta, setConsulta] = useState("");
+  const [consulta, setConsulta] = useState(inicial);
 
   const encontrados = useMemo(() => {
     const q = consulta.trim().toLowerCase();
@@ -65,6 +68,7 @@ export function Buscador({
               key={p.slug}
               profesional={p}
               especialidad={especialidades[p.especialidades[0]]}
+              ciudad={ciudad}
             />
           ))}
         </div>

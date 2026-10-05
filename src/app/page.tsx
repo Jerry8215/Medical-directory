@@ -1,13 +1,45 @@
 import Link from "next/link";
 
+import { BuscadorPortada } from "@/componentes/BuscadorPortada";
+import {
+  Bebe,
+  Calendario,
+  Corazon,
+  Documento,
+  Estetoscopio,
+  Estrella,
+  Hueso,
+  Lupa,
+  Mujer,
+  Pulmon,
+} from "@/componentes/Iconos";
 import { TarjetaProfesional } from "@/componentes/TarjetaProfesional";
 import { sitio } from "@/config/sitio";
 import {
   ciudades,
   especialidades,
+  profesionalesEn,
   profesionalesPublicados,
-  publicable,
 } from "@/lib/catalogo";
+
+export const revalidate = 1800;
+
+/**
+ * Un ícono por especialidad.
+ *
+ * El paciente reconoce la silueta antes que el texto, y una cuadrícula con
+ * el mismo dibujo repetido obliga a leerlas todas. Las que no estén en la
+ * tabla caen en el estetoscopio.
+ */
+const ICONOS: Record<string, (p: { size?: number }) => React.JSX.Element> = {
+  "cirugia-general": Estetoscopio,
+  ginecologia: Mujer,
+  pediatria: Bebe,
+  traumatologia: Hueso,
+  "medicina-interna": Corazon,
+  cardiologia: Corazon,
+  neumologia: Pulmon,
+};
 
 export default async function Inicio() {
   const [listaCiudades, listaEspecialidades, profesionales] = await Promise.all([
@@ -16,78 +48,140 @@ export default async function Inicio() {
     profesionalesPublicados(),
   ]);
 
-  const conteos = new Map(
-    await Promise.all(
-      listaCiudades.map(
-        async (c) => [c.slug, (await publicable(c.slug)).cuantos] as const,
-      ),
-    ),
+  // Cuántos atienden cada especialidad, para que la tarjeta no prometa una
+  // oferta que no existe.
+  const porEspecialidad = await Promise.all(
+    listaEspecialidades.map(async (e) => {
+      const cuantos = (
+        await Promise.all(listaCiudades.map((c) => profesionalesEn(c.slug, e.slug)))
+      ).flat();
+      const unicos = new Set(cuantos.map((p) => p.slug));
+      return { ...e, cuantos: unicos.size };
+    }),
   );
-  const nombreDeEspecialidad = new Map(
-    listaEspecialidades.map((e) => [e.slug, e.nombre]),
-  );
+
+  const nombreDeEspecialidad = new Map(listaEspecialidades.map((e) => [e.slug, e.nombre]));
+  const nombreDeCiudad = new Map(listaCiudades.map((c) => [c.slug, c.nombre]));
+
+  // Los destacados son los mejor calificados; mientras no haya opiniones,
+  // simplemente los primeros publicados.
+  const destacados = [...profesionales]
+    .sort((a, b) => (b.calificacion ?? 0) - (a.calificacion ?? 0))
+    .slice(0, 3);
 
   return (
     <main>
-      <section className="envoltura" style={{ paddingBlock: "48px 12px" }}>
-        <p className="eyebrow">Chihuahua · región centro-sur</p>
-        <h1 style={{ fontSize: "clamp(2rem, 5vw, 3rem)", marginBlock: "10px 12px" }}>
-          Encuentre a su médico y agende su cita en minutos.
-        </h1>
-        <p className="intro">
-          Cada especialista del directorio tiene su cédula profesional cotejada
-          contra el Registro Nacional de Profesionistas. Consulte horarios y
-          precios reales, y reserve directamente, sin llamadas ni
-          intermediarios.
-        </p>
-      </section>
+      <section className="portada">
+        <div className="envoltura">
+          <h1>Encuentra tu médico en Delicias</h1>
+          <p className="intro">
+            Especialistas cerca de ti, con cédula verificada. Compara perfiles y
+            agenda tu próxima consulta en minutos.
+          </p>
 
-      <section className="envoltura seccion">
-        <div className="seccion-cabeza">
-          <h2>Elija su ciudad</h2>
-          <span>{listaCiudades.length} ciudades</span>
-        </div>
-        <div className="rejilla">
-          {listaCiudades.map((ciudad) => {
-            const cuantos = conteos.get(ciudad.slug) ?? 0;
-            return (
-              <Link key={ciudad.slug} href={`/${ciudad.slug}`} className="tarjeta">
-                <h3>{ciudad.nombre}</h3>
-                <p className="meta">{ciudad.estado}</p>
-                <p className="meta">
-                  {cuantos === 1 ? "1 profesional" : `${cuantos} profesionales`}
-                </p>
+          <BuscadorPortada
+            ciudades={listaCiudades.map((c) => ({ slug: c.slug, nombre: c.nombre }))}
+          />
+
+          <div className="populares">
+            <span>Búsquedas populares:</span>
+            {listaEspecialidades.slice(0, 4).map((e) => (
+              <Link key={e.slug} href={`/delicias/${e.slug}`}>
+                {e.nombre}
               </Link>
-            );
-          })}
+            ))}
+          </div>
         </div>
       </section>
 
+      <div className="envoltura">
+        <div className="ventajas">
+          <div className="ventaja">
+            <span className="icono-cuadro">
+              <Documento size={20} />
+            </span>
+            <div>
+              <b>Perfiles completos</b>
+              <p>Conoce su experiencia, especialidades, consultorios y precios.</p>
+            </div>
+          </div>
+          <div className="ventaja">
+            <span className="icono-cuadro">
+              <Estrella size={20} />
+            </span>
+            <div>
+              <b>Opiniones de pacientes</b>
+              <p>Lee reseñas de personas que ya se atendieron con él.</p>
+            </div>
+          </div>
+          <div className="ventaja">
+            <span className="icono-cuadro">
+              <Calendario size={20} />
+            </span>
+            <div>
+              <b>Reserva sencilla</b>
+              <p>Agenda tu cita en línea en pocos minutos, sin llamadas.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <section className="envoltura seccion">
         <div className="seccion-cabeza">
-          <h2>Especialidades</h2>
-          <span>Se abren conforme se suman profesionales</span>
+          <div>
+            <h2>Busca por especialidad</h2>
+            <p>
+              Encuentra al especialista que necesitas entre las especialidades
+              disponibles en la región.
+            </p>
+          </div>
         </div>
-        <div className="chips">
-          {listaEspecialidades.map((e) => (
-            <Link key={e.slug} href={`/delicias/${e.slug}`} className="chip">
-              {e.nombre}
+
+        <div className="rejilla-especialidades">
+          {porEspecialidad.map((e) => (
+            <Link
+              key={e.slug}
+              href={`/delicias/${e.slug}`}
+              className="tarjeta especialidad-tarjeta"
+            >
+              <span className="icono-cuadro">
+                {(() => {
+                  const Icono = ICONOS[e.slug] ?? Estetoscopio;
+                  return <Icono size={21} />;
+                })()}
+              </span>
+              <b>{e.nombre}</b>
+              <span>
+                {e.cuantos === 0
+                  ? "Próximamente"
+                  : e.cuantos === 1
+                    ? "1 médico"
+                    : `${e.cuantos} médicos`}
+              </span>
             </Link>
           ))}
         </div>
       </section>
 
-      {profesionales.length > 0 ? (
+      {destacados.length > 0 ? (
         <section className="envoltura seccion">
           <div className="seccion-cabeza">
-            <h2>Profesionales publicados</h2>
+            <div>
+              <h2>Médicos destacados</h2>
+              <p>Conoce a algunos de los especialistas del directorio.</p>
+            </div>
+            <Link href="/delicias" className="enlace-acento">
+              Ver todos los médicos →
+            </Link>
           </div>
+
           <div className="rejilla">
-            {profesionales.map((p) => (
+            {destacados.map((p) => (
               <TarjetaProfesional
                 key={p.slug}
                 profesional={p}
                 especialidad={nombreDeEspecialidad.get(p.especialidades[0])}
+                ciudad={nombreDeCiudad.get(p.consultorios[0]?.ciudad ?? "")}
               />
             ))}
           </div>
@@ -95,10 +189,48 @@ export default async function Inicio() {
       ) : null}
 
       <section className="envoltura seccion">
-        <div className="nota-umbral">
-          Una página de especialidad se publica cuando reúne {sitio.umbralPublicacion}{" "}
-          profesionales en esa ciudad. Hasta entonces permanece visible para quien
-          tenga el enlace, pero no se ofrece a los buscadores.
+        <div className="seccion-cabeza">
+          <h2>Tu próxima consulta, en tres pasos</h2>
+        </div>
+        <div className="pasos">
+          <div className="paso">
+            <span className="numero">1</span>
+            <div>
+              <b>Busca</b>
+              <p>Encuentra un médico por especialidad, padecimiento o nombre.</p>
+            </div>
+          </div>
+          <div className="paso">
+            <span className="numero">2</span>
+            <div>
+              <b>Compara</b>
+              <p>Revisa perfiles, opiniones, horarios y precios de consulta.</p>
+            </div>
+          </div>
+          <div className="paso">
+            <span className="numero">3</span>
+            <div>
+              <b>Agenda</b>
+              <p>Reserva en línea y recibe tu recordatorio por WhatsApp.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="envoltura seccion">
+        <div className="banda">
+          <div>
+            <h2>¿Eres médico en la región?</h2>
+            <p>
+              Únete a {sitio.nombre} y conecta con más pacientes. Publica tu
+              perfil con cédula verificada, muestra tus especialidades y recibe
+              citas en línea.
+            </p>
+          </div>
+          <Link href="/alta" className="boton-lleno">
+            <Lupa size={17} />
+            Crear mi perfil
+          </Link>
         </div>
       </section>
     </main>

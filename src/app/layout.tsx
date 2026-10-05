@@ -1,23 +1,17 @@
 import type { Metadata } from "next";
-import { Fraunces, Public_Sans } from "next/font/google";
+import { Inter } from "next/font/google";
 import Image from "next/image";
 import Link from "next/link";
 
 import { Asistente } from "@/componentes/Asistente";
+import { Calendario } from "@/componentes/Iconos";
 import { sitio, urlAbsoluta } from "@/config/sitio";
-import { ciudades } from "@/lib/catalogo";
+import { ciudades, especialidades } from "@/lib/catalogo";
 
 import "./globals.css";
 
-const titulo = Fraunces({
-  variable: "--fuente-titulo",
-  subsets: ["latin"],
-  weight: ["400", "600", "700"],
-  display: "swap",
-});
-
-const texto = Public_Sans({
-  variable: "--fuente-texto",
+const inter = Inter({
+  variable: "--fuente",
   subsets: ["latin"],
   weight: ["400", "500", "600", "700"],
   display: "swap",
@@ -30,41 +24,48 @@ export const metadata: Metadata = {
     template: `%s · ${sitio.nombre}`,
   },
   description:
-    "Directorio de médicos con cédula verificada en Delicias, Meoqui, Saucillo, Rosales y Camargo. Consulte horarios y precios reales, y agende su cita en línea.",
+    "Directorio de médicos con cédula verificada en Delicias, Meoqui, Saucillo, Rosales y Camargo. Compare perfiles, consulte horarios y precios, y agende su cita en línea.",
 };
 
 export default async function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
-  const listaCiudades = await ciudades();
+  const [listaCiudades, listaEspecialidades] = await Promise.all([
+    ciudades(),
+    especialidades(),
+  ]);
+
   return (
-    <html lang="es" className={`${titulo.variable} ${texto.variable}`}>
+    <html lang="es" className={inter.variable}>
       <body>
-        <p className="aviso-borrador">
-          Versión en construcción · avance del proyecto
-        </p>
+        <p className="aviso-borrador">Versión en construcción · avance del proyecto</p>
 
         <header className="barra">
           <div className="envoltura">
             <Link href="/" className="marca" aria-label={`${sitio.nombre}, inicio`}>
-              {/* El logotipo ya dice «directorio médico», así que la barra no
-                  repite la bajada. */}
               <Image
                 src="/logotipo.png"
                 alt={sitio.nombre}
                 width={960}
-                height={349}
+                height={406}
                 priority
               />
             </Link>
+
             <nav>
-              {listaCiudades.map((c) => (
-                <Link key={c.slug} href={`/${c.slug}`}>
-                  {c.nombre}
-                </Link>
-              ))}
-              <Link href="/planes" className="enlace-acento">
-                Soy médico
+              <Link href="/" className="oculta-movil">
+                Inicio
+              </Link>
+              <Link href="/delicias" className="oculta-movil">
+                Especialidades
+              </Link>
+              <Link href="/delicias" className="oculta-movil">
+                Médicos
+              </Link>
+              <Link href="/planes">¿Eres médico?</Link>
+              <Link href="/delicias" className="boton-lleno">
+                <Calendario size={17} />
+                Agendar cita
               </Link>
             </nav>
           </div>
@@ -76,19 +77,60 @@ export default async function RootLayout({
 
         <footer className="pie">
           <div className="envoltura">
-            <p>
-              <strong>{sitio.nombre}</strong> {sitio.bajada}.
-            </p>
-            <p>
-              Cada perfil publicado tiene su cédula profesional cotejada contra
-              el Registro Nacional de Profesionistas.
-            </p>
-            <p style={{ marginTop: 10 }}>
-              <Link href="/privacidad">Aviso de privacidad</Link> ·{" "}
-              <Link href="/terminos">Términos de uso</Link> ·{" "}
-              <Link href="/planes">Planes</Link> ·{" "}
-              <Link href="/alta">Soy médico</Link>
-            </p>
+            <div className="columnas">
+              <div>
+                <div className="marca-pie">
+                  <Image
+                    src="/logotipo-claro.png"
+                    alt={sitio.nombre}
+                    width={960}
+                    height={406}
+                    style={{ height: 44, width: "auto" }}
+                  />
+                </div>
+                <p style={{ marginTop: 12, maxWidth: "34ch" }}>
+                  Profesionales con cédula verificada en la región centro-sur de
+                  Chihuahua. Compare perfiles, consulte horarios y agende en
+                  línea.
+                </p>
+              </div>
+
+              <div>
+                <h3>Ciudades</h3>
+                {listaCiudades.map((c) => (
+                  <Link key={c.slug} href={`/${c.slug}`}>
+                    {c.nombre}
+                  </Link>
+                ))}
+              </div>
+
+              <div>
+                <h3>Especialidades</h3>
+                {listaEspecialidades.slice(0, 6).map((e) => (
+                  <Link key={e.slug} href={`/delicias/${e.slug}`}>
+                    {e.nombre}
+                  </Link>
+                ))}
+              </div>
+
+              <div>
+                <h3>Para médicos</h3>
+                <Link href="/planes">Planes</Link>
+                <Link href="/alta">Aparecer en el directorio</Link>
+                <Link href="/panel">Entrar al panel</Link>
+              </div>
+            </div>
+
+            <div className="legal">
+              <span>
+                © {new Date().getFullYear()} {sitio.nombre}. Todos los derechos
+                reservados.
+              </span>
+              <span>
+                <Link href="/privacidad">Aviso de privacidad</Link> ·{" "}
+                <Link href="/terminos">Términos de uso</Link>
+              </span>
+            </div>
           </div>
         </footer>
       </body>

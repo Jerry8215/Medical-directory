@@ -13,7 +13,10 @@ import {
   publicable,
 } from "@/lib/catalogo";
 
-type Props = { params: Promise<{ ciudad: string }> };
+type Props = {
+  params: Promise<{ ciudad: string }>;
+  searchParams: Promise<{ q?: string }>;
+};
 
 export async function generateStaticParams() {
   return (await ciudades()).map((c) => ({ ciudad: c.slug }));
@@ -36,8 +39,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   };
 }
 
-export default async function PaginaCiudad({ params }: Props) {
+export default async function PaginaCiudad({ params, searchParams }: Props) {
   const { ciudad: slug } = await params;
+  const { q } = await searchParams;
   const c = await ciudad(slug);
   if (!c) notFound();
 
@@ -99,6 +103,7 @@ export default async function PaginaCiudad({ params }: Props) {
             etiquetas={etiquetas}
             especialidades={nombreDeEspecialidad}
             ciudad={c.nombre}
+            inicial={q ?? ""}
           />
         ) : (
           <div className="nota-umbral">
