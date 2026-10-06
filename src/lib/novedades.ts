@@ -9,11 +9,14 @@
  * contador. Eso funciona desde el primer día, sin depender de ningún
  * proveedor: aunque falle el correo, el consultorio se entera al entrar.
  *
- * Segundo, una tarea periódica envía por correo las que estén sin avisar.
- * Si no hay proveedor configurado, no se marcan como avisadas y se
- * reintentan después, en lugar de perderse.
+ * Segundo, el correo sale en el mismo momento del hecho, no cuando pase una
+ * tarea programada: el consultorio pidió enterarse de un alta cuando
+ * ocurre, no al otro día. Si no hay proveedor configurado o el envío falla,
+ * la novedad no se marca como avisada y la tarea diaria la reintenta, en
+ * lugar de perderse.
  */
 
+import { entregarPendientes } from "@/lib/avisos";
 import { prisma } from "@/lib/prisma";
 
 export type Tipo =
@@ -47,7 +50,13 @@ export async function anotar(datos: {
     });
   } catch (error) {
     console.error("[novedad] no se pudo registrar", error);
+    return;
   }
+
+  // Se espera el envío en lugar de dispararlo y seguir: en un servidor sin
+  // estado la función se congela al responder, y un envío sin esperar se
+  // quedaría a medias.
+  await entregarPendientes();
 }
 
 export async function sinLeer(limite = 20) {

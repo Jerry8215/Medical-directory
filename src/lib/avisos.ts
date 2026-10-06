@@ -220,21 +220,41 @@ export async function avisarNovedades(limite = 30): Promise<{
 }
 
 /**
+ * El día de mañana completo, en hora de Chihuahua.
+ *
+ * La tarea corre una vez al día, de madrugada temprano, así que la ventana
+ * tiene que ser el día entero y no unas horas sueltas: de lo contrario el
+ * paciente de las seis de la tarde nunca recibiría su recordatorio.
+ */
+export function manana(ahora: Date): { desde: Date; hasta: Date } {
+  const local = new Date(ahora.getTime() - ZONA);
+  const inicio = Date.UTC(
+    local.getUTCFullYear(),
+    local.getUTCMonth(),
+    local.getUTCDate() + 1,
+  );
+  return {
+    desde: new Date(inicio + ZONA),
+    hasta: new Date(inicio + ZONA + 24 * 60 * 60_000),
+  };
+}
+
+/**
  * Recordatorios de las citas de mañana.
  *
  * Es lo que más ausencias evita, y por eso corre todos los días aunque no
  * haya nadie en el consultorio. Se marca la cita para no recordar dos veces
  * lo mismo.
  */
-export async function recordarCitasDeManana(): Promise<{ recordadas: number }> {
-  const ahora = new Date();
-  const desde = new Date(ahora.getTime() + 20 * 60 * 60_000);
-  const hasta = new Date(ahora.getTime() + 28 * 60 * 60_000);
+export async function recordarCitasDeManana(
+  ahora = new Date(),
+): Promise<{ recordadas: number }> {
+  const { desde, hasta } = manana(ahora);
 
   const citas = await prisma.cita.findMany({
     where: {
       estado: { in: ["AGENDADA", "CONFIRMADA"] },
-      inicio: { gte: desde, lte: hasta },
+      inicio: { gte: desde, lt: hasta },
       avisos: { none: { canal: "WHATSAPP", destino: { contains: "paciente" } } },
     },
     include: { paciente: true, consultorio: true },
@@ -251,4 +271,37 @@ export async function recordarCitasDeManana(): Promise<{ recordadas: number }> {
   }
 
   return { recordadas: citas.length };
+}
+
+/**
+ * Entrega lo pendiente en el momento, sin esperar a la tarea diaria.
+ *
+ * El plan de alojamiento solo admite una tarea programada por día, así que
+ * confiar los avisos únicamente a ella significaría que el consultorio se
+ * entera de una solicitud de alta hasta la mañana siguiente, que es
+ * exactamente lo que reportó. Por eso el aviso sale junto con el hecho que
+ * lo origina y la tarea diaria queda como red de seguridad para lo que
+ * haya fallado.
+ *
+ * Nunca lanza ni se cuelga: si el proveedor de correo no responde, la cita
+ * o el alta ya quedaron guardadas y el aviso se reintenta solo.
+ */
+export async function entregarPendientes(espera = 5000): Promise<void> {
+  // El catch va pegado al trabajo y no al race: si el proveedor tarda más
+  // que la espera y falla después, el rechazo ya tiene quien lo atienda.
+  const trabajo = (async () => {
+    await procesarAvisos(10);
+    await avisarNovedades(10);
+  })().catch((error) => {
+    console.error("[avisos] no se pudieron entregar", error);
+  });
+
+  let reloj: ReturnType<typeof setTimeout> | undefined;
+  await Promise.race([
+    trabajo,
+    new Promise((listo) => {
+      reloj = setTimeout(listo, espera);
+    }),
+  ]);
+  if (reloj) clearTimeout(reloj);
 }
