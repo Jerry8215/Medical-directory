@@ -172,6 +172,7 @@ export async function procesarAvisos(limite = 50): Promise<{
 export async function avisarNovedades(limite = 30): Promise<{
   avisadas: number;
   pendientes: number;
+  motivo?: string;
 }> {
   const destino = process.env.CORREO_CONSULTORIO;
   const novedades = await prisma.novedad.findMany({
@@ -181,7 +182,13 @@ export async function avisarNovedades(limite = 30): Promise<{
   });
 
   if (novedades.length === 0) return { avisadas: 0, pendientes: 0 };
-  if (!destino) return { avisadas: 0, pendientes: novedades.length };
+  if (!destino) {
+    return {
+      avisadas: 0,
+      pendientes: novedades.length,
+      motivo: "falta la dirección del consultorio",
+    };
+  }
 
   const lineas = novedades.map(
     (n) => `· ${n.titulo}${n.detalle ? `
@@ -206,7 +213,13 @@ export async function avisarNovedades(limite = 30): Promise<{
       ].join("\n"),
     });
 
-    if (!salio) return { avisadas: 0, pendientes: novedades.length };
+    if (!salio) {
+      return {
+        avisadas: 0,
+        pendientes: novedades.length,
+        motivo: "falta la llave del proveedor de correo",
+      };
+    }
 
     await prisma.novedad.updateMany({
       where: { id: { in: novedades.map((n) => n.id) } },
@@ -214,8 +227,15 @@ export async function avisarNovedades(limite = 30): Promise<{
     });
     return { avisadas: novedades.length, pendientes: 0 };
   } catch (error) {
+    // El motivo viaja en la respuesta y no solo al registro: la tarea
+    // corre sin nadie mirando, y un fallo mudo del correo fue justo lo que
+    // dejó al consultorio sin enterarse de las altas.
     console.error("[novedades] no se pudieron avisar", error);
-    return { avisadas: 0, pendientes: novedades.length };
+    return {
+      avisadas: 0,
+      pendientes: novedades.length,
+      motivo: String(error).slice(0, 300),
+    };
   }
 }
 

@@ -26,6 +26,8 @@ export async function GET(peticion: NextRequest) {
     ...avisos,
     novedadesAvisadas: novedades.avisadas,
     novedadesPendientes: novedades.pendientes,
+    novedadesMotivo: novedades.motivo,
+    remitente: process.env.CORREO_REMITENTE ?? "onboarding@resend.dev",
     cuando: new Date().toISOString(),
   });
 }
