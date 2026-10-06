@@ -53,6 +53,17 @@ export async function crearAccesoProfesional(
     if (existente.profesionalId && existente.profesionalId !== profesional.id) {
       return { ok: false, mensaje: "Ese correo ya tiene acceso a otro perfil." };
     }
+    // Un administrador que use su propio correo acá se quedaría sin su
+    // propio acceso: esta misma llamada le cambia la contraseña y lo baja a
+    // profesional. Le pasó al dueño del directorio, que quedó fuera de su
+    // panel por pulsar un botón que tenía derecho a pulsar.
+    if (existente.rol === "ADMINISTRADOR" || existente.rol === "RECEPCION") {
+      return {
+        ok: false,
+        mensaje:
+          "Ese correo es el de un acceso del equipo y perdería su permiso de administrador. Use otro correo para el acceso del profesional.",
+      };
+    }
     await prisma.usuario.update({
       where: { id: existente.id },
       data: {
