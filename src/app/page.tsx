@@ -13,6 +13,7 @@ import {
   Mujer,
   Pulmon,
 } from "@/componentes/Iconos";
+import { PortadaCarrusel } from "@/componentes/PortadaCarrusel";
 import { TarjetaProfesional } from "@/componentes/TarjetaProfesional";
 import { sitio } from "@/config/sitio";
 import {
@@ -32,6 +33,18 @@ export const metadata: Metadata = {
 };
 
 export const revalidate = 1800;
+
+/**
+ * Las fotografías de la portada.
+ *
+ * Doce escenas de consulta, todas con la misma composición: el médico a la
+ * derecha y el consultorio despejado a la izquierda, que es donde cae el
+ * título y el buscador.
+ */
+const FOTOGRAFIAS = Array.from(
+  { length: 12 },
+  (_, i) => `/portada/${String(i + 1).padStart(2, "0")}.webp`,
+);
 
 /**
  * Un ícono por especialidad.
@@ -81,6 +94,11 @@ export default async function Inicio() {
   return (
     <main>
       <section className="portada">
+        <PortadaCarrusel
+          imagenes={FOTOGRAFIAS}
+          descripcion="Médicos de la región atendiendo a sus pacientes en consultorio."
+        />
+
         <div className="envoltura">
           <h1>Encuentra tu médico en Delicias</h1>
           <p className="intro">

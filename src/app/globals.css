@@ -34,6 +34,11 @@
   --sombra-suave: 0 1px 3px rgba(18, 59, 89, 0.08);
   --radio: 14px;
   --ancho: 1140px;
+
+  /* La barra flota: no ocupa todo el ancho ni se pega al borde de arriba.
+     El alto y ese aire se usan también para meter la portada por debajo. */
+  --barra-alto: 84px;
+  --barra-aire: 16px;
 }
 
 * {
@@ -109,19 +114,41 @@ img {
 
 /* ---------------------------------------------------------------- barra */
 
+/* Una barra flotante de vidrio, no una franja pegada al borde. Deja ver la
+   fotografía de la portada por debajo en lugar de cortarla con una línea, y
+   al desplazarse acompaña sin tapar: el desenfoque mantiene legibles los
+   enlaces sobre cualquier cosa que pase por atrás. */
+/* El aire va como relleno y no como margen: un margen se fusionaría con el
+   negativo de la portada y el cálculo para meterla por debajo dejaría de
+   cerrar. Pegada arriba, el relleno la separa del borde igual que antes. */
 .barra {
   position: sticky;
   top: 0;
-  z-index: 30;
-  background: var(--papel);
-  border-bottom: 1px solid var(--borde);
+  z-index: 50;
+  padding: var(--barra-aire) 12px;
 }
 
 .barra .envoltura {
   display: flex;
   align-items: center;
-  gap: 20px;
-  padding-block: 12px;
+  gap: 18px;
+  height: var(--barra-alto);
+  padding-inline: 18px;
+  border-radius: 24px;
+  background: rgba(255, 255, 255, 0.78);
+  backdrop-filter: blur(20px) saturate(150%);
+  -webkit-backdrop-filter: blur(20px) saturate(150%);
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  box-shadow: 0 14px 36px -16px rgba(15, 23, 42, 0.14),
+    0 1px 2px rgba(15, 23, 42, 0.03);
+  transition: background 240ms ease, box-shadow 240ms ease;
+}
+
+/* Donde no hay desenfoque, el vidrio translúcido deja el texto ilegible. */
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .barra .envoltura {
+    background: rgba(255, 255, 255, 0.97);
+  }
 }
 
 .marca {
@@ -131,7 +158,7 @@ img {
 }
 
 .marca img {
-  height: 54px;
+  height: 58px;
   width: auto;
 }
 
@@ -145,33 +172,45 @@ img {
   color: var(--navy);
 }
 
-/* Los enlaces de la barra son botones de ícono del mismo tamaño. El de la
-   sección en la que está el paciente se marca con fondo: sin texto, el
-   fondo es lo único que le dice dónde está parado. */
-.boton-cita {
-  height: 48px;
-  padding-inline: 20px;
+/* Los enlaces de la barra son botones de ícono del mismo tamaño, redondos
+   como la barra que los contiene. El de la sección en la que está el
+   paciente se marca con fondo: sin texto, el fondo es lo único que le dice
+   dónde está parado. */
+/* Va calificado con `.barra` a propósito. `.boton-lleno` se define más
+   abajo y con la misma especificidad, así que sin esto gana por orden y se
+   lleva puestos el alto, el radio y, en celular, el `font-size: 0` que
+   deja el botón como ícono: el texto se salía de la barra. */
+.barra .boton-cita {
+  height: 46px;
+  padding-inline: 22px;
   margin-left: 6px;
   font-size: 0.95rem;
+  border-radius: 999px;
+  box-shadow: 0 6px 16px -6px rgba(32, 190, 112, 0.65);
+}
+
+.barra .boton-cita:hover {
+  box-shadow: 0 10px 22px -8px rgba(32, 190, 112, 0.7);
 }
 
 .boton-icono-barra,
 .boton-icono {
-  width: 48px;
-  height: 48px;
+  width: 46px;
+  height: 46px;
   padding: 0;
   display: inline-grid;
   place-items: center;
-  border-radius: 11px;
+  border-radius: 999px;
 }
 
 .boton-icono-barra {
   color: var(--navy);
   border: 1px solid transparent;
+  transition: background 160ms ease, color 160ms ease;
 }
 
 .boton-icono-barra:hover {
-  background: var(--azul-tenue);
+  background: rgba(15, 23, 42, 0.05);
   color: var(--azul);
 }
 
@@ -182,12 +221,30 @@ img {
 }
 
 @media (max-width: 760px) {
+  :root {
+    --barra-alto: 68px;
+    --barra-aire: 10px;
+  }
+  .barra {
+    padding: var(--barra-aire) 8px;
+  }
+  .barra .envoltura {
+    gap: 8px;
+    padding-inline: 12px;
+    border-radius: 20px;
+  }
   .marca img {
+    height: 38px;
+  }
+  .boton-icono-barra,
+  .boton-icono {
+    width: 42px;
     height: 42px;
   }
   /* En celular el texto del botón se come la barra; queda el ícono. */
-  .boton-cita {
-    width: 48px;
+  .barra .boton-cita {
+    width: 44px;
+    height: 44px;
     padding-inline: 0;
     display: inline-grid;
     place-items: center;
@@ -290,24 +347,112 @@ img {
 
 /* --------------------------------------------------------------- portada */
 
+/* La portada se mete por debajo de la barra flotante y toma el alto de la
+   pantalla. Antes la fotografía entraba en una franja de unos doscientos
+   píxeles y quedaba recortada: se veía una bata y nada del consultorio. El
+   contenido baja para no pelearse con la barra. */
 .portada {
   position: relative;
+  isolation: isolate;
   color: #fff;
   background-color: var(--navy);
-  background-image: linear-gradient(
+  margin-top: calc(-1 * (var(--barra-alto) + var(--barra-aire) * 2));
+  min-height: min(92vh, 820px);
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+}
+
+.portada-fondo {
+  position: absolute;
+  inset: 0;
+  z-index: -2;
+}
+
+.portada-capa {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  /* En las doce fotografías el médico está a la derecha del encuadre, así
+     que al angostarse la pantalla conviene recortar por la izquierda. */
+  object-position: 72% center;
+  opacity: 0;
+  transform: scale(1.03);
+  /* El acercamiento vuelve a su punto de partida recién terminado el cruce,
+     para que no se lo vea retroceder mientras se desvanece. */
+  transition: opacity 1400ms ease, transform 0s linear 1400ms;
+}
+
+.portada-capa-activa {
+  opacity: 1;
+  transform: scale(1.11);
+  transition: opacity 1400ms ease, transform 9000ms ease-out;
+}
+
+/* Alternar el sentido del acercamiento evita que las doce se sientan la
+   misma animación repetida doce veces. */
+.portada-capa:nth-child(even) {
+  transform: scale(1.11);
+}
+
+.portada-capa:nth-child(even).portada-capa-activa {
+  transform: scale(1.03);
+}
+
+/* El velo va sobre la fotografía y debajo del texto: son imágenes muy
+   claras y sin él no se leería ni el título ni el buscador. */
+.portada::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: linear-gradient(
       100deg,
-      rgba(18, 59, 89, 0.97) 0%,
-      rgba(18, 59, 89, 0.93) 34%,
-      rgba(18, 59, 89, 0.4) 62%,
-      rgba(18, 59, 89, 0.12) 100%
+      rgba(18, 59, 89, 0.96) 0%,
+      rgba(18, 59, 89, 0.9) 32%,
+      rgba(18, 59, 89, 0.55) 58%,
+      rgba(18, 59, 89, 0.18) 100%
     ),
-    url("/portada.jpg");
-  background-size: cover;
-  background-position: center right;
+    linear-gradient(180deg, rgba(18, 59, 89, 0.45) 0%, rgba(18, 59, 89, 0) 30%);
 }
 
 .portada .envoltura {
-  padding-block: 56px 44px;
+  width: 100%;
+  padding-block: calc(var(--barra-alto) + var(--barra-aire) * 2 + 54px) 78px;
+}
+
+/* Alineados con el texto y no en la esquina: abajo a la derecha chocaban
+   con el botón del asistente y con la tarjeta que monta sobre la portada. */
+.portada-puntos {
+  position: absolute;
+  left: max(20px, calc((100% - var(--ancho)) / 2 + 20px));
+  bottom: 54px;
+  display: flex;
+  gap: 8px;
+  z-index: 3;
+}
+
+.portada-punto {
+  width: 9px;
+  height: 9px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.38);
+  cursor: pointer;
+  transition: background 200ms ease, width 240ms ease;
+}
+
+.portada-punto:hover {
+  background: rgba(255, 255, 255, 0.72);
+}
+
+.portada-punto-activo {
+  width: 26px;
+  border-radius: 999px;
+  background: #fff;
 }
 
 .portada h1 {
@@ -324,16 +469,24 @@ img {
 }
 
 @media (max-width: 760px) {
+  /* En vertical el degradado lateral no alcanza: el texto cae encima de la
+     fotografía entera, así que el velo se vuelve de arriba abajo. */
+  .portada::before {
+    background: linear-gradient(
+      180deg,
+      rgba(18, 59, 89, 0.88) 0%,
+      rgba(18, 59, 89, 0.66) 48%,
+      rgba(18, 59, 89, 0.9) 100%
+    );
+  }
   .portada {
-    background-image: linear-gradient(
-        180deg,
-        rgba(18, 59, 89, 0.95) 0%,
-        rgba(18, 59, 89, 0.88) 100%
-      ),
-      url("/portada.jpg");
+    min-height: min(88vh, 680px);
   }
   .portada h1 {
     max-width: none;
+  }
+  .portada-puntos {
+    bottom: 34px;
   }
 }
 
