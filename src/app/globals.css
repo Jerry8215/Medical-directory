@@ -1672,6 +1672,47 @@ a.chip:hover {
 .bento-chica {
   flex-direction: column;
   padding: 20px 20px 68px;
+  min-height: 268px;
+}
+
+/* El título y su línea se van al fondo de la tarjeta, que es donde los deja
+   el diseño: arriba a la derecha manda la ilustración. */
+.bento-chica b {
+  margin-top: auto;
+}
+
+/* La altura va fijada, no solo el ancho: la rodilla llega vertical y la
+   maternidad apaisada, y sin tope la más alta se le echaba encima al
+   título de la tarjeta. */
+.bento-arte {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 47%;
+  max-width: 200px;
+  height: 104px;
+  pointer-events: none;
+}
+
+.bento-arte img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  object-position: top right;
+}
+
+/* Las dos fotografías se encuadran contra la esquina; los objetos
+   recortados flotan sobre el color de la tarjeta. */
+.bento-arte-foto {
+  width: 54%;
+  max-width: 220px;
+  border-bottom-left-radius: 24px;
+  overflow: hidden;
+}
+
+.bento-arte-foto img {
+  object-fit: cover;
 }
 
 .bento-chica b {
@@ -1751,7 +1792,8 @@ a.chip:hover {
 }
 
 .dibujo-cuerpo {
-  width: min(100%, 290px);
+  display: block;
+  width: min(100%, 300px);
   height: auto;
 }
 
@@ -1880,9 +1922,37 @@ a.chip:hover {
   font-size: 0.83rem;
 }
 
-.dibujo-mapa {
+.mapa {
+  position: relative;
+}
+
+.mapa img {
+  display: block;
   width: 100%;
   height: auto;
+}
+
+/* El nombre cuelga del alfiler que ya trae dibujado el mapa, por eso va en
+   por ciento: al achicarse la ilustración el rótulo la sigue. */
+.mapa-rotulo {
+  position: absolute;
+  /* El rótulo se apoya justo encima de la punta del alfiler. */
+  transform: translate(-50%, calc(-100% - 6px));
+  background: var(--papel);
+  border: 1px solid var(--borde);
+  border-radius: 999px;
+  padding: 5px 12px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--navy);
+  box-shadow: var(--sombra-suave);
+  white-space: nowrap;
+}
+
+.mapa-rotulo-principal {
+  background: var(--verde);
+  border-color: transparent;
+  color: #fff;
 }
 
 /* ---------- franja de verificación ---------- */
@@ -1948,7 +2018,8 @@ a.chip:hover {
 }
 
 .dibujo-escudo {
-  width: min(100%, 230px);
+  display: block;
+  width: min(100%, 250px);
   height: auto;
 }
 

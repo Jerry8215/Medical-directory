@@ -87,17 +87,33 @@ const DESCRIPCION_GENERICA =
 const ZONAS = ["Cabeza", "Respiratorio", "Corazón", "Digestivo", "Huesos y articulaciones"];
 
 /**
- * Dónde cae cada ciudad en el dibujo del mapa.
+ * Dónde cae el nombre de cada ciudad sobre el mapa.
  *
- * No es un mapa a escala, pero las posiciones relativas son las reales:
- * Meoqui y Rosales al norte de Delicias, Saucillo y Camargo al sur.
+ * Los alfileres vienen dibujados en la ilustración: estas son las
+ * posiciones de cada uno, en por ciento, para colgarles el nombre encima.
+ * El mapa es una ilustración, no una carta geográfica, así que las
+ * posiciones son las del dibujo y no las del territorio.
  */
-const MAPA: Record<string, { x: number; y: number }> = {
-  delicias: { x: 248, y: 214 },
-  meoqui: { x: 158, y: 112 },
-  rosales: { x: 372, y: 148 },
-  saucillo: { x: 366, y: 292 },
-  camargo: { x: 196, y: 344 },
+const MAPA: Record<string, { left: number; top: number }> = {
+  delicias: { left: 51.9, top: 26.5 },
+  meoqui: { left: 28.8, top: 16.3 },
+  rosales: { left: 76.4, top: 22.2 },
+  saucillo: { left: 84.6, top: 54.8 },
+  camargo: { left: 24.3, top: 45.2 },
+};
+
+/**
+ * La ilustración de cada especialidad, entregada con el diseño.
+ *
+ * `foto` distingue las dos fotografías de los tres objetos recortados: unas
+ * se encuadran y los otros flotan sobre el color de la tarjeta.
+ */
+const ARTE: Record<string, { src: string; foto?: boolean }> = {
+  "cirugia-general": { src: "/elementos/consulta.webp", foto: true },
+  ginecologia: { src: "/elementos/maternidad.webp", foto: true },
+  pediatria: { src: "/elementos/pediatria.webp" },
+  traumatologia: { src: "/elementos/rodilla.webp" },
+  "medicina-interna": { src: "/elementos/estetoscopio.webp" },
 };
 
 const ICONOS: Record<string, (p: { size?: number }) => React.JSX.Element> = {
@@ -277,7 +293,7 @@ export default async function Inicio() {
               className="bento-grande"
             >
               <span className="bento-foto">
-                <img src="/portada/05.webp" alt="" loading="lazy" />
+                <img src="/elementos/consulta.webp" alt="" loading="lazy" />
               </span>
               <span className="bento-info">
                 <span className="icono-cuadro">
@@ -300,8 +316,14 @@ export default async function Inicio() {
           <div className="bento-chicas">
             {porEspecialidad.slice(1, 5).map((e) => {
               const Icono = ICONOS[e.slug] ?? Estetoscopio;
-              return (
+                const arte = ARTE[e.slug];
+                return (
                 <Link key={e.slug} href={`/delicias/${e.slug}`} className="bento-chica">
+                  {arte ? (
+                    <span className={`bento-arte${arte.foto ? " bento-arte-foto" : ""}`}>
+                      <img src={arte.src} alt="" loading="lazy" />
+                    </span>
+                  ) : null}
                   <span className="icono-cuadro">
                     <Icono size={19} />
                   </span>
@@ -444,12 +466,16 @@ export default async function Inicio() {
             </ul>
           </div>
 
+          {/* Solo las que tienen alfiler en el dibujo: una ciudad nueva
+              aparece en la lista de al lado, no encimada sobre otra. */}
           <MapaRegion
-            ciudades={porCiudad.map((c) => ({
-              nombre: c.nombre,
-              principal: c.slug === "delicias",
-              ...(MAPA[c.slug] ?? MAPA.delicias),
-            }))}
+            ciudades={porCiudad
+              .filter((c) => MAPA[c.slug])
+              .map((c) => ({
+                nombre: c.nombre,
+                principal: c.slug === "delicias",
+                ...MAPA[c.slug],
+              }))}
           />
         </div>
       </section>
