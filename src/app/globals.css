@@ -1518,6 +1518,228 @@ a.chip:hover {
   margin-top: 14px;
 }
 
+
+/* -------------------------------------------------- portada: secciones */
+
+/* Padecimientos agrupados por especialidad. El paciente rara vez busca
+   «traumatología»: busca «me duele la rodilla», y esta es la puerta para
+   esa búsqueda. */
+.padecimientos {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 18px;
+}
+
+.padecimiento-grupo {
+  background: var(--papel);
+  border: 1px solid var(--borde);
+  border-radius: var(--radio);
+  padding: 18px;
+  box-shadow: var(--sombra-suave);
+}
+
+.padecimiento-grupo h3 {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  font-size: 1rem;
+  color: var(--navy);
+  margin-bottom: 14px;
+}
+
+.padecimiento-grupo .icono-cuadro {
+  width: 36px;
+  height: 36px;
+  border-radius: 9px;
+}
+
+a.chip {
+  transition: background 160ms ease, color 160ms ease;
+}
+
+a.chip:hover {
+  background: var(--azul);
+  color: #fff;
+}
+
+/* Sin nadie que lo atienda todavía: se nombra, pero no se promete. */
+.chip-apagado {
+  background: var(--papel-2);
+  border: 1px dashed var(--borde);
+  color: var(--suave);
+  font-weight: 400;
+}
+
+.rejilla-ciudades {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(232px, 1fr));
+  gap: 14px;
+}
+
+.ciudad-tarjeta {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+}
+
+.ciudad-tarjeta b {
+  display: block;
+  color: var(--navy);
+  font-weight: 600;
+}
+
+.ciudad-tarjeta span {
+  color: var(--suave);
+  font-size: 0.85rem;
+}
+
+/* Las comprobaciones, a dos columnas: el texto que explica a la izquierda
+   y la lista de lo que se revisa a la derecha. */
+.verificacion {
+  display: grid;
+  grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.15fr);
+  gap: 36px;
+  align-items: start;
+  background: var(--papel);
+  border: 1px solid var(--borde);
+  border-radius: var(--radio);
+  padding: 30px;
+  box-shadow: var(--sombra-suave);
+}
+
+.verificacion h2 {
+  margin-block: 8px 12px;
+}
+
+.verificacion .intro {
+  font-size: 0.96rem;
+}
+
+.comprobaciones {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 20px 24px;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.comprobaciones li {
+  display: flex;
+  gap: 13px;
+  align-items: flex-start;
+}
+
+.comprobaciones b {
+  display: block;
+  color: var(--navy);
+  margin-bottom: 3px;
+}
+
+.comprobaciones p {
+  color: var(--suave);
+  font-size: 0.89rem;
+  line-height: 1.55;
+}
+
+.preguntas {
+  display: grid;
+  gap: 10px;
+}
+
+.preguntas details {
+  background: var(--papel);
+  border: 1px solid var(--borde);
+  border-radius: var(--radio);
+  box-shadow: var(--sombra-suave);
+  overflow: hidden;
+}
+
+.preguntas summary {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 20px;
+  font-weight: 600;
+  color: var(--navy);
+  cursor: pointer;
+  list-style: none;
+  transition: background 160ms ease;
+}
+
+.preguntas summary::-webkit-details-marker {
+  display: none;
+}
+
+.preguntas summary:hover {
+  background: var(--papel-2);
+}
+
+/* El signo se dibuja con CSS para no cargar un ícono por pregunta. */
+.preguntas summary::after {
+  content: "";
+  margin-left: auto;
+  flex: 0 0 auto;
+  width: 9px;
+  height: 9px;
+  border-right: 2px solid var(--azul);
+  border-bottom: 2px solid var(--azul);
+  transform: rotate(45deg) translate(-2px, -2px);
+  transition: transform 200ms ease;
+}
+
+.preguntas details[open] summary::after {
+  transform: rotate(-135deg) translate(-2px, -2px);
+}
+
+.preguntas details p {
+  padding: 0 20px 18px;
+  color: var(--suave);
+  line-height: 1.62;
+  max-width: 78ch;
+}
+
+/* Un directorio médico tiene que decir con todas sus letras lo que no es. */
+.aviso-urgencias {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-top: 18px;
+  padding: 16px 18px;
+  border-radius: var(--radio);
+  background: #fdf0ef;
+  border: 1px solid #f6d7d4;
+}
+
+.aviso-urgencias .icono-cuadro {
+  background: #fadbd8;
+  color: #b4332a;
+}
+
+.aviso-urgencias p {
+  color: #7d2b24;
+  font-size: 0.92rem;
+  line-height: 1.55;
+}
+
+.aviso-urgencias b {
+  color: #8c2f26;
+}
+
+.aviso-urgencias a {
+  color: #b4332a;
+  font-weight: 700;
+  text-decoration: underline;
+}
+
+@media (max-width: 860px) {
+  .verificacion {
+    grid-template-columns: 1fr;
+    gap: 24px;
+    padding: 22px;
+  }
+}
+
 /* ----------------------------------------------------------- asistente */
 
 /* El ícono del asistente es a color, así que el botón va en blanco: sobre
