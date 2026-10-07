@@ -44,10 +44,10 @@ export default async function RootLayout({
           <div className="envoltura">
             <Link href="/" className="marca" aria-label={`${sitio.nombre}, inicio`}>
               <Image
-                src="/logotipo.png"
+                src="/logotipo-v2.png"
                 alt={sitio.nombre}
-                width={960}
-                height={406}
+                width={990}
+                height={320}
                 priority
               />
             </Link>
@@ -72,10 +72,10 @@ export default async function RootLayout({
               <div>
                 <div className="marca-pie">
                   <Image
-                    src="/logotipo-claro.png"
+                    src="/logotipo-v2-claro.png"
                     alt={sitio.nombre}
-                    width={960}
-                    height={406}
+                    width={990}
+                    height={320}
                     style={{ height: 44, width: "auto" }}
                   />
                 </div>
