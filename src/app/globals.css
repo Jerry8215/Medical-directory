@@ -1742,8 +1742,10 @@ a.chip:hover {
 
 /* ----------------------------------------------------------- asistente */
 
-/* El ícono del asistente es a color, así que el botón va en blanco: sobre
-   el verde de marca los azules del dibujo se perderían. */
+/* El botón va en azul marino. El dibujo del asistente es de cianes,
+   turquesa y violeta claros: sobre blanco el botón se perdía contra las
+   tarjetas, y sobre el verde de marca competiría con «Agendar cita». El
+   marino es el único de la paleta que deja saltar los claros del dibujo. */
 .burbuja {
   position: fixed;
   right: 18px;
@@ -1753,19 +1755,19 @@ a.chip:hover {
   height: 70px;
   display: grid;
   place-items: center;
-  border: 1px solid rgba(255, 255, 255, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.22);
   border-radius: 50%;
-  background: var(--papel);
-  color: var(--navy);
+  background: linear-gradient(140deg, var(--navy) 0%, var(--navy-claro) 100%);
+  color: #fff;
   cursor: pointer;
-  box-shadow: 0 18px 40px -14px rgba(15, 23, 42, 0.34),
-    0 2px 6px rgba(15, 23, 42, 0.06);
+  box-shadow: 0 18px 40px -14px rgba(18, 59, 89, 0.5),
+    0 2px 6px rgba(15, 23, 42, 0.08);
   transition: box-shadow 240ms ease, transform 240ms ease;
 }
 
 .burbuja:hover {
-  box-shadow: 0 22px 48px -14px rgba(15, 23, 42, 0.4),
-    0 2px 6px rgba(15, 23, 42, 0.06);
+  box-shadow: 0 22px 48px -14px rgba(18, 59, 89, 0.58),
+    0 2px 6px rgba(15, 23, 42, 0.08);
   transform: translateY(-2px);
 }
 
