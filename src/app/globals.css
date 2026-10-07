@@ -114,10 +114,10 @@ img {
 
 /* ---------------------------------------------------------------- barra */
 
-/* Una barra flotante de vidrio, no una franja pegada al borde. Deja ver la
-   fotografía de la portada por debajo en lugar de cortarla con una línea, y
-   al desplazarse acompaña sin tapar: el desenfoque mantiene legibles los
-   enlaces sobre cualquier cosa que pase por atrás. */
+/* Una barra flotante, no una franja pegada al borde: la fotografía de la
+   portada sigue de largo por debajo en lugar de quedar cortada por una
+   línea. Va opaca, así que los enlaces se leen igual sobre la foto más
+   clara o más oscura que pase por atrás. */
 /* El aire va como relleno y no como margen: un margen se fusionaría con el
    negativo de la portada y el cálculo para meterla por debajo dejaría de
    cerrar. Pegada arriba, el relleno la separa del borde igual que antes. */
@@ -135,21 +135,13 @@ img {
   height: var(--barra-alto);
   padding-inline: 18px;
   border-radius: 24px;
-  background: rgba(255, 255, 255, 0.78);
-  backdrop-filter: blur(20px) saturate(150%);
-  -webkit-backdrop-filter: blur(20px) saturate(150%);
-  border: 1px solid rgba(255, 255, 255, 0.6);
+  background: var(--papel);
+  border: 1px solid var(--borde);
   box-shadow: 0 14px 36px -16px rgba(15, 23, 42, 0.14),
     0 1px 2px rgba(15, 23, 42, 0.03);
   transition: background 240ms ease, box-shadow 240ms ease;
 }
 
-/* Donde no hay desenfoque, el vidrio translúcido deja el texto ilegible. */
-@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
-  .barra .envoltura {
-    background: rgba(255, 255, 255, 0.97);
-  }
-}
 
 .marca {
   display: inline-flex;
