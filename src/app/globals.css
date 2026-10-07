@@ -166,7 +166,9 @@ img {
   margin-left: auto;
   display: flex;
   align-items: center;
-  gap: 8px;
+  /* Pegados, porque cada enlace ya trae su propia pastilla de relleno:
+     separarlos más los desarma como grupo. */
+  gap: 2px;
   font-size: 0.94rem;
   font-weight: 500;
   color: var(--navy);
@@ -193,31 +195,39 @@ img {
   box-shadow: 0 10px 22px -8px rgba(32, 190, 112, 0.7);
 }
 
-.boton-icono-barra,
-.boton-icono {
-  width: 46px;
-  height: 46px;
-  padding: 0;
-  display: inline-grid;
-  place-items: center;
+/* En pantalla de computadora los enlaces van con su nombre, en pastilla,
+   como el resto de la barra. En celular las tres palabras no caben junto
+   al logotipo y los mismos enlaces se vuelven botones de ícono. */
+.enlace-barra {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 44px;
+  padding-inline: 15px;
   border-radius: 999px;
-}
-
-.boton-icono-barra {
   color: var(--navy);
   border: 1px solid transparent;
+  font-size: 0.95rem;
+  font-weight: 600;
+  white-space: nowrap;
   transition: background 160ms ease, color 160ms ease;
 }
 
-.boton-icono-barra:hover {
+.enlace-barra:hover {
   background: rgba(15, 23, 42, 0.05);
   color: var(--azul);
 }
 
-.boton-icono-barra[aria-current="page"] {
+.enlace-barra[aria-current="page"] {
   background: var(--azul-tenue);
   border-color: #c7ddf0;
   color: var(--azul);
+}
+
+/* El ícono es el reemplazo del texto en pantalla angosta, no un adorno
+   al lado: acá sobra. */
+.barra-icono {
+  display: none;
 }
 
 @media (max-width: 760px) {
@@ -236,10 +246,32 @@ img {
   .marca img {
     height: 38px;
   }
-  .boton-icono-barra,
-  .boton-icono {
+  .barra nav {
+    gap: 4px;
+  }
+  /* Acá se invierte: manda el ícono y el nombre se guarda. */
+  .enlace-barra {
     width: 42px;
     height: 42px;
+    padding-inline: 0;
+    display: inline-grid;
+    place-items: center;
+    gap: 0;
+  }
+  .barra-icono {
+    display: grid;
+    place-items: center;
+  }
+  /* Se esconde a la vista, no del lector de pantalla: con `display: none`
+     el enlace se quedaría sin nombre y serían tres íconos sin decir qué
+     son. */
+  .barra-texto {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
   }
   /* En celular el texto del botón se come la barra; queda el ícono. */
   .barra .boton-cita {
@@ -1385,17 +1417,6 @@ a.chip:hover {
   border-radius: var(--radio);
   padding: 14px 18px;
   font-size: 0.92rem;
-}
-
-.aviso-borrador {
-  background: var(--navy);
-  color: #fff;
-  font-size: 0.78rem;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  font-weight: 600;
-  text-align: center;
-  padding: 7px 16px;
 }
 
 .aviso-accion {

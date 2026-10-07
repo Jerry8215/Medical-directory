@@ -35,12 +35,19 @@ export function BarraNavegacion({ enlaces }: { enlaces: Enlace[] }) {
           <Link
             key={e.href + e.texto}
             href={e.href}
-            className="boton-icono-barra"
+            className="enlace-barra"
             aria-current={activo(e.href) ? "page" : undefined}
-            aria-label={e.texto}
             title={e.texto}
           >
-            <Icono size={24} />
+            {/* En pantalla ancha se lee el nombre de la sección; en celular
+                no caben tres palabras junto al logotipo y queda el ícono.
+                Los dos van siempre en el documento y es el CSS el que
+                elige, así que no hay que medir la pantalla desde
+                JavaScript ni esperar a que el componente se hidrate. */}
+            <span className="barra-icono" aria-hidden="true">
+              <Icono size={24} />
+            </span>
+            <span className="barra-texto">{e.texto}</span>
           </Link>
         );
       })}

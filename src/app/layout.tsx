@@ -38,8 +38,6 @@ export default async function RootLayout({
   return (
     <html lang="es" className={inter.variable}>
       <body>
-        <p className="aviso-borrador">Versión en construcción · avance del proyecto</p>
-
         <header className="barra">
           <div className="envoltura">
             <Link href="/" className="marca" aria-label={`${sitio.nombre}, inicio`}>
