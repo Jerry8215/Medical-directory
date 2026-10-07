@@ -116,6 +116,18 @@ const ARTE: Record<string, { src: string; foto?: boolean }> = {
   "medicina-interna": { src: "/elementos/estetoscopio.webp" },
 };
 
+/**
+ * El rótulo corto que va arriba de la tarjeta.
+ *
+ * «Ginecología y Obstetricia» en versalitas y en dos renglones se come la
+ * tarjeta, así que arriba va solo la primera mitad y el nombre completo
+ * queda en el título.
+ */
+function rotuloDe(nombre: string): string {
+  const [primera] = nombre.split(" y ");
+  return primera;
+}
+
 const ICONOS: Record<string, (p: { size?: number }) => React.JSX.Element> = {
   "cirugia-general": Estetoscopio,
   ginecologia: Mujer,
@@ -286,58 +298,43 @@ export default async function Inicio() {
           </div>
         </div>
 
-        <div className="bento">
-          {porEspecialidad[0] ? (
-            <Link
-              href={`/delicias/${porEspecialidad[0].slug}`}
-              className="bento-grande"
-            >
-              <span className="bento-foto">
-                <img src="/elementos/consulta.webp" alt="" loading="lazy" />
-              </span>
-              <span className="bento-info">
-                <span className="icono-cuadro">
-                  {(() => {
-                    const Icono = ICONOS[porEspecialidad[0].slug] ?? Estetoscopio;
-                    return <Icono size={20} />;
-                  })()}
-                </span>
-                <b>{porEspecialidad[0].nombre}</b>
-                <span className="bento-texto">
-                  {DESCRIPCIONES[porEspecialidad[0].slug] ?? DESCRIPCION_GENERICA}
-                </span>
-                <span className="flecha">
-                  <Flecha />
-                </span>
-              </span>
-            </Link>
-          ) : null}
+        <div className="especialidades-rejilla">
+          {porEspecialidad.slice(0, 5).map((e, i) => {
+            const Icono = ICONOS[e.slug] ?? Estetoscopio;
+            const arte = ARTE[e.slug];
+            return (
+              <Link
+                key={e.slug}
+                href={`/delicias/${e.slug}`}
+                className={`tarjeta-esp${i === 0 ? " tarjeta-esp-ancha" : ""}`}
+                data-esp={e.slug}
+              >
+                {arte ? (
+                  <span
+                    className={`esp-arte${arte.foto ? " esp-arte-foto" : ""}`}
+                    aria-hidden="true"
+                  >
+                    <img src={arte.src} alt="" loading="lazy" />
+                  </span>
+                ) : null}
 
-          <div className="bento-chicas">
-            {porEspecialidad.slice(1, 5).map((e) => {
-              const Icono = ICONOS[e.slug] ?? Estetoscopio;
-                const arte = ARTE[e.slug];
-                return (
-                <Link key={e.slug} href={`/delicias/${e.slug}`} className="bento-chica">
-                  {arte ? (
-                    <span className={`bento-arte${arte.foto ? " bento-arte-foto" : ""}`}>
-                      <img src={arte.src} alt="" loading="lazy" />
-                    </span>
-                  ) : null}
-                  <span className="icono-cuadro">
-                    <Icono size={19} />
+                <span className="esp-cuerpo">
+                  <span className="esp-rotulo">
+                    <Icono size={17} />
+                    {rotuloDe(e.nombre)}
                   </span>
                   <b>{e.nombre}</b>
-                  <span className="bento-texto">
+                  <span className="esp-texto">
                     {DESCRIPCIONES[e.slug] ?? DESCRIPCION_GENERICA}
                   </span>
-                  <span className="flecha">
-                    <Flecha size={15} />
+                  <span className="esp-boton">
+                    Ver especialistas
+                    <Flecha size={16} />
                   </span>
-                </Link>
-              );
-            })}
-          </div>
+                </span>
+              </Link>
+            );
+          })}
         </div>
       </section>
 

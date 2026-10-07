@@ -1595,180 +1595,215 @@ a.chip:hover {
   gap: 26px;
 }
 
-/* ---------- especialidades, en mosaico ---------- */
+/* ---------- especialidades ---------- */
 
-.bento {
+.especialidades-rejilla {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1.42fr);
-  gap: 16px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px;
 }
 
-.bento-grande,
-.bento-chica {
+/* Cada especialidad trae su color de acento y su tinte. El tinte se declara
+   dos veces, opaco y transparente: el desvanecido de la fotografía
+   interpola entre los dos, y con la palabra `transparent` el navegador
+   pasaría por un gris sucio en el medio. */
+.tarjeta-esp {
+  --tinte: #eef5fb;
+  --tinte-0: rgba(238, 245, 251, 0);
+  --acento: var(--azul);
+
   position: relative;
-  display: flex;
-  border-radius: 18px;
+  display: block;
   overflow: hidden;
-  border: 1px solid var(--borde);
+  isolation: isolate;
+  min-height: 236px;
+  padding: 26px 28px;
+  border-radius: 22px;
+  /* Tinte plano, no degradado: el velo que apaga la fotografía termina en
+     este mismo color, y con un fondo que viraba al blanco quedaba una
+     costura vertical justo donde empieza la imagen. */
+  background: var(--tinte);
+  box-shadow: 0 10px 30px -18px rgba(18, 59, 89, 0.38);
   transition: transform 220ms ease, box-shadow 220ms ease;
 }
 
-.bento-grande:hover,
-.bento-chica:hover {
+.tarjeta-esp:hover {
   transform: translateY(-3px);
-  box-shadow: 0 18px 38px -20px rgba(18, 59, 89, 0.4);
+  box-shadow: 0 20px 44px -22px rgba(18, 59, 89, 0.48);
 }
 
-.bento-grande {
-  flex-direction: column;
-  background: linear-gradient(180deg, #eaf7f0 0%, #ddf0e7 100%);
+.tarjeta-esp[data-esp="ginecologia"] {
+  --tinte: #fdeaf2;
+  --tinte-0: rgba(253, 234, 242, 0);
+  --acento: #d4458a;
 }
 
-.bento-foto {
-  display: block;
-  aspect-ratio: 16 / 11;
-  overflow: hidden;
+.tarjeta-esp[data-esp="pediatria"] {
+  --tinte: #e8f2fd;
+  --tinte-0: rgba(232, 242, 253, 0);
+  --acento: #2189d4;
 }
 
-.bento-foto img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  display: block;
+.tarjeta-esp[data-esp="traumatologia"] {
+  --tinte: #fdf1e0;
+  --tinte-0: rgba(253, 241, 224, 0);
+  --acento: #d08c16;
 }
 
-/* El relleno de abajo le reserva su espacio al botón redondo: sin él, una
-   descripción larga se le mete por debajo. */
-.bento-info {
-  display: block;
-  padding: 20px 22px 68px;
-  position: relative;
+.tarjeta-esp[data-esp="medicina-interna"] {
+  --tinte: #e6f5ec;
+  --tinte-0: rgba(230, 245, 236, 0);
+  --acento: #22945f;
 }
 
-.bento-info b,
-.bento-chica b {
-  display: block;
-  color: var(--navy);
-  font-size: 1.14rem;
-  margin-top: 12px;
+.tarjeta-esp[data-esp="cirugia-general"] {
+  --tinte: #e7f3f1;
+  --tinte-0: rgba(231, 243, 241, 0);
+  --acento: #15857c;
 }
 
-.bento-texto {
-  display: block;
-  margin-top: 6px;
-  color: #4e6a7d;
-  font-size: 0.9rem;
-  line-height: 1.5;
-  max-width: 34ch;
-  padding-right: 54px;
+/* La primera ocupa el ancho entero y hace de cabecera de la cuadrícula. */
+.tarjeta-esp-ancha {
+  grid-column: 1 / -1;
+  min-height: 266px;
 }
 
-.bento-chicas {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 16px;
-}
-
-.bento-chica {
-  flex-direction: column;
-  padding: 20px 20px 68px;
-  min-height: 268px;
-}
-
-/* El título y su línea se van al fondo de la tarjeta, que es donde los deja
-   el diseño: arriba a la derecha manda la ilustración. */
-.bento-chica b {
-  margin-top: auto;
-}
-
-/* La altura va fijada, no solo el ancho: la rodilla llega vertical y la
-   maternidad apaisada, y sin tope la más alta se le echaba encima al
-   título de la tarjeta. */
-.bento-arte {
+.esp-arte {
   position: absolute;
-  top: 0;
-  right: 0;
-  width: 47%;
-  max-width: 200px;
-  height: 104px;
-  pointer-events: none;
+  inset: 0 0 0 auto;
+  width: 54%;
+  z-index: -1;
 }
 
-.bento-arte img {
-  display: block;
+.esp-arte img {
   width: 100%;
   height: 100%;
   object-fit: contain;
-  object-position: top right;
+  object-position: center right;
 }
 
-/* Las dos fotografías se encuadran contra la esquina; los objetos
-   recortados flotan sobre el color de la tarjeta. */
-.bento-arte-foto {
-  width: 54%;
-  max-width: 220px;
-  border-bottom-left-radius: 24px;
-  overflow: hidden;
-}
-
-.bento-arte-foto img {
+.esp-arte-foto img {
   object-fit: cover;
 }
 
-.bento-chica b {
-  font-size: 1.02rem;
-}
-
-.bento-chica .bento-texto {
-  font-size: 0.86rem;
-}
-
-/* Un tinte por tarjeta: con el mismo fondo las cuatro se leen como una
-   lista, y lo que se busca es que cada especialidad se distinga. */
-.bento-chica:nth-child(1) {
-  background: linear-gradient(150deg, #fdeef4 0%, #fbe3ee 100%);
-}
-.bento-chica:nth-child(2) {
-  background: linear-gradient(150deg, #e9f3fd 0%, #dcebfa 100%);
-}
-.bento-chica:nth-child(3) {
-  background: linear-gradient(150deg, #fdf3e6 0%, #fbe9d6 100%);
-}
-.bento-chica:nth-child(4) {
-  background: linear-gradient(150deg, #e8f7f0 0%, #d8f0e6 100%);
-}
-
-.bento-chica .icono-cuadro,
-.bento-info .icono-cuadro {
-  background: rgba(255, 255, 255, 0.85);
-  color: var(--azul);
-  box-shadow: 0 2px 8px rgba(18, 59, 89, 0.1);
-}
-
-.flecha {
+/* El velo apaga la fotografía del lado del texto y la deja intacta del
+   lado de afuera. */
+.esp-arte::after {
+  content: "";
   position: absolute;
-  right: 20px;
-  bottom: 20px;
-  width: 38px;
-  height: 38px;
-  display: grid;
-  place-items: center;
-  border-radius: 50%;
+  inset: 0;
+  background: linear-gradient(90deg, var(--tinte) 4%, var(--tinte-0) 68%);
+}
+
+.tarjeta-esp-ancha .esp-arte {
+  width: 46%;
+}
+
+.esp-cuerpo {
+  display: block;
+  position: relative;
+  max-width: 52%;
+}
+
+.tarjeta-esp-ancha .esp-cuerpo {
+  max-width: 50%;
+}
+
+.esp-rotulo {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  color: var(--acento);
+  text-transform: uppercase;
+  letter-spacing: 0.11em;
+  font-size: 0.72rem;
+  font-weight: 800;
+}
+
+.tarjeta-esp b {
+  display: block;
+  margin-top: 13px;
+  color: var(--navy);
+  font-size: clamp(1.18rem, 2vw, 1.52rem);
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+}
+
+.esp-texto {
+  display: block;
+  margin-top: 10px;
+  color: #5b7183;
+  font-size: 0.93rem;
+  line-height: 1.52;
+}
+
+.esp-boton {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 20px;
+  padding: 11px 19px;
+  border-radius: 999px;
   background: var(--papel);
   color: var(--navy);
-  box-shadow: 0 4px 12px rgba(18, 59, 89, 0.16);
-  transition: background 200ms ease, color 200ms ease;
+  font-weight: 700;
+  font-size: 0.9rem;
+  box-shadow: 0 5px 16px -6px rgba(18, 59, 89, 0.25);
+  transition: box-shadow 200ms ease, transform 200ms ease;
 }
 
-.bento-grande .flecha {
-  background: var(--verde);
-  color: #fff;
+.esp-boton svg {
+  color: var(--acento);
+  transition: transform 200ms ease;
 }
 
-.bento-grande:hover .flecha,
-.bento-chica:hover .flecha {
-  background: var(--navy);
-  color: #fff;
+.tarjeta-esp:hover .esp-boton {
+  box-shadow: 0 9px 22px -8px rgba(18, 59, 89, 0.34);
+}
+
+.tarjeta-esp:hover .esp-boton svg {
+  transform: translateX(3px);
+}
+
+@media (max-width: 900px) {
+  .especialidades-rejilla {
+    grid-template-columns: 1fr;
+  }
+  .tarjeta-esp-ancha {
+    min-height: 236px;
+  }
+  .tarjeta-esp-ancha .esp-arte {
+    width: 54%;
+  }
+  .tarjeta-esp-ancha .esp-cuerpo {
+    max-width: 54%;
+  }
+}
+
+/* En vertical no hay sitio para dos columnas dentro de la tarjeta: la
+   ilustración se va arriba, de ancho completo, y el texto debajo. */
+@media (max-width: 620px) {
+  .tarjeta-esp,
+  .tarjeta-esp-ancha {
+    padding-top: 164px;
+    min-height: 0;
+  }
+  .esp-arte,
+  .tarjeta-esp-ancha .esp-arte {
+    inset: 0 0 auto 0;
+    width: 100%;
+    height: 170px;
+  }
+  .esp-arte img {
+    object-position: center;
+  }
+  .esp-arte::after {
+    background: linear-gradient(180deg, var(--tinte-0) 28%, var(--tinte) 96%);
+  }
+  .esp-cuerpo,
+  .tarjeta-esp-ancha .esp-cuerpo {
+    max-width: none;
+  }
 }
 
 /* ---------- síntomas ---------- */
@@ -2286,7 +2321,6 @@ a.chip:hover {
 }
 
 @media (max-width: 980px) {
-  .bento,
   .sintomas,
   .ciudades,
   .verificacion,
@@ -2316,9 +2350,6 @@ a.chip:hover {
 }
 
 @media (max-width: 620px) {
-  .bento-chicas {
-    grid-template-columns: 1fr;
-  }
   .sintoma-fila {
     grid-template-columns: 1fr;
   }
