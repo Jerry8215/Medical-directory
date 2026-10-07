@@ -1542,35 +1542,275 @@ a.chip:hover {
 
 /* -------------------------------------------------- portada: secciones */
 
-/* Padecimientos agrupados por especialidad. El paciente rara vez busca
-   «traumatología»: busca «me duele la rodilla», y esta es la puerta para
-   esa búsqueda. */
-.padecimientos {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 18px;
+.rotulo {
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--verde-fuerte);
 }
 
-.padecimiento-grupo {
+/* Encabezado a dos columnas: el título manda a la izquierda y a la derecha
+   quedan la explicación y el enlace de «ver todo». */
+.cabeza-doble {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
+  gap: 24px 40px;
+  align-items: end;
+  margin-bottom: 26px;
+}
+
+.cabeza-doble h2 {
+  margin-top: 8px;
+  font-size: clamp(1.5rem, 3vw, 2.05rem);
+  line-height: 1.22;
+  max-width: 20ch;
+}
+
+.cabeza-doble-lado {
+  display: grid;
+  gap: 10px;
+  justify-items: end;
+  text-align: right;
+  color: var(--suave);
+}
+
+.titulo-seccion {
+  margin-block: 8px 26px;
+  font-size: clamp(1.5rem, 3vw, 2.05rem);
+}
+
+/* La franja clara que separa la portada del resto. */
+.franja-ventajas {
+  background: var(--papel);
+  border-bottom: 1px solid var(--borde);
+}
+
+.franja-ventajas .ventajas {
+  background: none;
+  border: 0;
+  box-shadow: none;
+  margin-top: 0;
+  padding-block: 26px;
+  gap: 26px;
+}
+
+/* ---------- especialidades, en mosaico ---------- */
+
+.bento {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.42fr);
+  gap: 16px;
+}
+
+.bento-grande,
+.bento-chica {
+  position: relative;
+  display: flex;
+  border-radius: 18px;
+  overflow: hidden;
+  border: 1px solid var(--borde);
+  transition: transform 220ms ease, box-shadow 220ms ease;
+}
+
+.bento-grande:hover,
+.bento-chica:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 18px 38px -20px rgba(18, 59, 89, 0.4);
+}
+
+.bento-grande {
+  flex-direction: column;
+  background: linear-gradient(180deg, #eaf7f0 0%, #ddf0e7 100%);
+}
+
+.bento-foto {
+  display: block;
+  aspect-ratio: 16 / 11;
+  overflow: hidden;
+}
+
+.bento-foto img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* El relleno de abajo le reserva su espacio al botón redondo: sin él, una
+   descripción larga se le mete por debajo. */
+.bento-info {
+  display: block;
+  padding: 20px 22px 68px;
+  position: relative;
+}
+
+.bento-info b,
+.bento-chica b {
+  display: block;
+  color: var(--navy);
+  font-size: 1.14rem;
+  margin-top: 12px;
+}
+
+.bento-texto {
+  display: block;
+  margin-top: 6px;
+  color: #4e6a7d;
+  font-size: 0.9rem;
+  line-height: 1.5;
+  max-width: 34ch;
+  padding-right: 54px;
+}
+
+.bento-chicas {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.bento-chica {
+  flex-direction: column;
+  padding: 20px 20px 68px;
+}
+
+.bento-chica b {
+  font-size: 1.02rem;
+}
+
+.bento-chica .bento-texto {
+  font-size: 0.86rem;
+}
+
+/* Un tinte por tarjeta: con el mismo fondo las cuatro se leen como una
+   lista, y lo que se busca es que cada especialidad se distinga. */
+.bento-chica:nth-child(1) {
+  background: linear-gradient(150deg, #fdeef4 0%, #fbe3ee 100%);
+}
+.bento-chica:nth-child(2) {
+  background: linear-gradient(150deg, #e9f3fd 0%, #dcebfa 100%);
+}
+.bento-chica:nth-child(3) {
+  background: linear-gradient(150deg, #fdf3e6 0%, #fbe9d6 100%);
+}
+.bento-chica:nth-child(4) {
+  background: linear-gradient(150deg, #e8f7f0 0%, #d8f0e6 100%);
+}
+
+.bento-chica .icono-cuadro,
+.bento-info .icono-cuadro {
+  background: rgba(255, 255, 255, 0.85);
+  color: var(--azul);
+  box-shadow: 0 2px 8px rgba(18, 59, 89, 0.1);
+}
+
+.flecha {
+  position: absolute;
+  right: 20px;
+  bottom: 20px;
+  width: 38px;
+  height: 38px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--papel);
+  color: var(--navy);
+  box-shadow: 0 4px 12px rgba(18, 59, 89, 0.16);
+  transition: background 200ms ease, color 200ms ease;
+}
+
+.bento-grande .flecha {
+  background: var(--verde);
+  color: #fff;
+}
+
+.bento-grande:hover .flecha,
+.bento-chica:hover .flecha {
+  background: var(--navy);
+  color: #fff;
+}
+
+/* ---------- síntomas ---------- */
+
+.franja-sintomas {
+  background: linear-gradient(180deg, var(--papel-2) 0%, #eaf4fb 100%);
+  border-block: 1px solid var(--borde);
+}
+
+.sintomas {
+  display: grid;
+  grid-template-columns: minmax(0, 0.82fr) minmax(0, 1.18fr);
+  gap: 40px;
+  align-items: center;
+}
+
+.sintomas-arte {
+  position: relative;
+  display: grid;
+  place-items: center;
+}
+
+.dibujo-cuerpo {
+  width: min(100%, 290px);
+  height: auto;
+}
+
+/* Las etiquetas de zona se reparten a lo alto del dibujo. */
+.zonas {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-evenly;
+  align-items: flex-start;
+  pointer-events: none;
+}
+
+.zona {
   background: var(--papel);
   border: 1px solid var(--borde);
-  border-radius: var(--radio);
-  padding: 18px;
+  border-radius: 999px;
+  padding: 7px 15px;
+  font-size: 0.84rem;
+  font-weight: 600;
+  color: var(--navy);
   box-shadow: var(--sombra-suave);
 }
 
-.padecimiento-grupo h3 {
-  display: flex;
-  align-items: center;
-  gap: 11px;
-  font-size: 1rem;
-  color: var(--navy);
-  margin-bottom: 14px;
+.zona:nth-child(even) {
+  align-self: flex-end;
 }
 
-.padecimiento-grupo .icono-cuadro {
-  width: 36px;
-  height: 36px;
+.sintomas-filas {
+  display: grid;
+  gap: 12px;
+  margin-top: 22px;
+}
+
+.sintoma-fila {
+  display: grid;
+  grid-template-columns: minmax(0, 215px) minmax(0, 1fr);
+  gap: 14px;
+  align-items: center;
+  background: var(--papel);
+  border: 1px solid var(--borde);
+  border-radius: 14px;
+  padding: 12px 14px;
+  box-shadow: var(--sombra-suave);
+}
+
+.sintoma-nombre {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 600;
+  color: var(--navy);
+  font-size: 0.92rem;
+}
+
+.sintoma-nombre .icono-cuadro {
+  width: 34px;
+  height: 34px;
   border-radius: 9px;
 }
 
@@ -1591,76 +1831,297 @@ a.chip:hover {
   font-weight: 400;
 }
 
-.rejilla-ciudades {
+/* ---------- ciudades ---------- */
+
+.ciudades {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(232px, 1fr));
-  gap: 14px;
+  grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr);
+  gap: 36px;
+  align-items: center;
 }
 
-.ciudad-tarjeta {
+.lista-ciudades {
+  list-style: none;
+  padding: 0;
+  margin: 22px 0 0;
+  display: grid;
+  gap: 6px;
+}
+
+.lista-ciudades a {
   display: flex;
   align-items: center;
-  gap: 13px;
+  gap: 12px;
+  padding: 9px 10px;
+  border-radius: 12px;
+  transition: background 160ms ease;
 }
 
-.ciudad-tarjeta b {
+.lista-ciudades a:hover {
+  background: var(--papel);
+}
+
+.lista-ciudades .icono-cuadro {
+  width: 34px;
+  height: 34px;
+  border-radius: 9px;
+  background: var(--verde-tenue);
+  color: var(--verde-fuerte);
+}
+
+.lista-ciudades b {
   display: block;
   color: var(--navy);
-  font-weight: 600;
+  font-size: 0.97rem;
 }
 
-.ciudad-tarjeta span {
+.lista-ciudades small {
   color: var(--suave);
-  font-size: 0.85rem;
+  font-size: 0.83rem;
 }
 
-/* Las comprobaciones, a dos columnas: el texto que explica a la izquierda
-   y la lista de lo que se revisa a la derecha. */
+.dibujo-mapa {
+  width: 100%;
+  height: auto;
+}
+
+/* ---------- franja de verificación ---------- */
+
 .verificacion {
   display: grid;
-  grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.15fr);
-  gap: 36px;
-  align-items: start;
-  background: var(--papel);
-  border: 1px solid var(--borde);
-  border-radius: var(--radio);
-  padding: 30px;
-  box-shadow: var(--sombra-suave);
+  grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
+  gap: 34px;
+  align-items: center;
+  border-radius: 22px;
+  padding: 40px;
+  color: #fff;
+  background:
+    radial-gradient(120% 140% at 85% 20%, rgba(32, 190, 112, 0.28) 0%, rgba(32, 190, 112, 0) 55%),
+    linear-gradient(135deg, #0f3046 0%, #123b59 48%, #0d4f5e 100%);
+}
+
+.verificacion .rotulo {
+  color: #6fe3b4;
 }
 
 .verificacion h2 {
-  margin-block: 8px 12px;
+  color: #fff;
+  margin-block: 10px 14px;
+  font-size: clamp(1.5rem, 3vw, 2.1rem);
+  line-height: 1.2;
 }
 
-.verificacion .intro {
-  font-size: 0.96rem;
+.verificacion h2 span {
+  color: #4fd9ad;
 }
 
-.comprobaciones {
+.verificacion p {
+  color: rgba(255, 255, 255, 0.82);
+  line-height: 1.62;
+  max-width: 52ch;
+}
+
+.boton-contorno {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  margin-top: 20px;
+  padding: 11px 20px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  color: #fff;
+  font-weight: 600;
+  font-size: 0.93rem;
+  transition: background 180ms ease, border-color 180ms ease;
+}
+
+.boton-contorno:hover {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.7);
+  color: #fff;
+}
+
+.verificacion-arte {
+  position: relative;
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-  gap: 20px 24px;
+  place-items: center;
+}
+
+.dibujo-escudo {
+  width: min(100%, 230px);
+  height: auto;
+}
+
+.sellos {
   list-style: none;
   padding: 0;
   margin: 0;
+  display: grid;
+  gap: 10px;
+  width: 100%;
+  margin-top: 18px;
 }
 
-.comprobaciones li {
+.sellos li {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  padding: 10px 14px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  font-size: 0.87rem;
+  font-weight: 500;
+}
+
+.sellos .icono-cuadro {
+  width: 32px;
+  height: 32px;
+  border-radius: 9px;
+  background: rgba(255, 255, 255, 0.16);
+  color: #8ff0cb;
+}
+
+/* ---------- los tres pasos ---------- */
+
+.pasos-ui {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 20px;
+}
+
+.paso-ui {
+  background: var(--papel);
+  border: 1px solid var(--borde);
+  border-radius: 18px;
+  padding: 20px;
+  box-shadow: var(--sombra-suave);
+}
+
+.paso-cabeza {
   display: flex;
   gap: 13px;
   align-items: flex-start;
 }
 
-.comprobaciones b {
-  display: block;
+.paso-cabeza b {
   color: var(--navy);
-  margin-bottom: 3px;
+  font-size: 1.04rem;
 }
 
-.comprobaciones p {
+.paso-cabeza p {
   color: var(--suave);
-  font-size: 0.89rem;
-  line-height: 1.55;
+  font-size: 0.88rem;
+  line-height: 1.5;
+  margin-top: 3px;
+}
+
+.paso-ui .numero {
+  flex: 0 0 auto;
+  width: 32px;
+  height: 32px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--verde-tenue);
+  color: var(--verde-fuerte);
+  font-weight: 700;
+  font-size: 0.92rem;
+}
+
+/* Maquetas: el dibujo de lo que el paciente va a ver en cada paso. */
+.maqueta {
+  margin-top: 16px;
+  display: grid;
+  gap: 9px;
+  background: var(--papel-2);
+  border: 1px solid var(--borde);
+  border-radius: 13px;
+  padding: 13px;
+}
+
+.maqueta-busqueda {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  background: var(--papel);
+  border: 1px solid var(--borde);
+  border-radius: 999px;
+  padding: 9px 13px;
+  font-size: 0.82rem;
+  color: var(--suave);
+}
+
+.maqueta-fila {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--papel);
+  border: 1px solid var(--borde);
+  border-radius: 10px;
+  padding: 10px;
+}
+
+.maqueta-avatar {
+  flex: 0 0 auto;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: var(--azul-tenue);
+  color: var(--azul);
+  display: grid;
+  place-items: center;
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
+/* Dos renglones grises que insinúan el texto de la ficha. */
+.maqueta-barras {
+  flex: 1;
+  height: 8px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--borde) 0 62%, transparent 62%),
+    linear-gradient(90deg, var(--borde) 0 40%, transparent 40%);
+  background-size: 100% 8px, 100% 8px;
+  background-position: 0 0, 0 14px;
+  background-repeat: no-repeat;
+  height: 22px;
+}
+
+.maqueta-confirmada {
+  justify-self: end;
+  background: var(--verde);
+  color: #fff;
+  border-radius: 999px;
+  padding: 8px 15px;
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+
+/* ---------- preguntas ---------- */
+
+.faq {
+  display: grid;
+  grid-template-columns: minmax(0, 0.78fr) minmax(0, 1.22fr);
+  gap: 38px;
+  align-items: start;
+}
+
+.faq-intro h2 {
+  margin-block: 8px 12px;
+  font-size: clamp(1.5rem, 3vw, 2.05rem);
+}
+
+.faq-intro p {
+  color: var(--suave);
+  line-height: 1.6;
+  max-width: 34ch;
+}
+
+.dibujo-burbujas {
+  width: min(100%, 240px);
+  height: auto;
+  margin-top: 18px;
 }
 
 .preguntas {
@@ -1725,7 +2186,7 @@ a.chip:hover {
   display: flex;
   align-items: center;
   gap: 14px;
-  margin-top: 18px;
+  margin-top: 22px;
   padding: 16px 18px;
   border-radius: var(--radio);
   background: #fdf0ef;
@@ -1753,11 +2214,53 @@ a.chip:hover {
   text-decoration: underline;
 }
 
-@media (max-width: 860px) {
-  .verificacion {
+@media (max-width: 980px) {
+  .bento,
+  .sintomas,
+  .ciudades,
+  .verificacion,
+  .faq {
     grid-template-columns: 1fr;
-    gap: 24px;
-    padding: 22px;
+  }
+  .cabeza-doble {
+    grid-template-columns: 1fr;
+    align-items: start;
+  }
+  .cabeza-doble-lado {
+    justify-items: start;
+    text-align: left;
+  }
+  .verificacion {
+    padding: 28px 22px;
+  }
+  .sintomas-arte {
+    order: 2;
+  }
+  .faq-intro p {
+    max-width: none;
+  }
+  .dibujo-burbujas {
+    display: none;
+  }
+}
+
+@media (max-width: 620px) {
+  .bento-chicas {
+    grid-template-columns: 1fr;
+  }
+  .sintoma-fila {
+    grid-template-columns: 1fr;
+  }
+  .zonas {
+    position: static;
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 8px;
+    margin-top: 16px;
+  }
+  .zona:nth-child(even) {
+    align-self: auto;
   }
 }
 

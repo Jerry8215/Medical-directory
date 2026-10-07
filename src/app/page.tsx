@@ -14,8 +14,14 @@ import {
   Mujer,
   Pin,
   Pulmon,
-  Reloj,
 } from "@/componentes/Iconos";
+import {
+  BurbujasDudas,
+  Cuerpo,
+  EscudoVerificado,
+  Flecha,
+  MapaRegion,
+} from "@/componentes/Ilustraciones";
 import { PortadaCarrusel } from "@/componentes/PortadaCarrusel";
 import { TarjetaProfesional } from "@/componentes/TarjetaProfesional";
 import {
@@ -57,6 +63,43 @@ const FOTOGRAFIAS = Array.from(
  * el mismo dibujo repetido obliga a leerlas todas. Las que no estén en la
  * tabla caen en el estetoscopio.
  */
+/**
+ * Una línea por especialidad, para la cuadrícula de arriba.
+ *
+ * Se describe lo que resuelve, no lo que estudió: el paciente que llega a la
+ * portada está buscando a quién acudir, no un plan de estudios. Las que no
+ * estén acá caen en una línea general en lugar de quedarse mudas.
+ */
+const DESCRIPCIONES: Record<string, string> = {
+  "cirugia-general": "Diagnóstico y tratamiento quirúrgico, con un enfoque humano y seguro.",
+  ginecologia: "Cuidado integral de la mujer, en todas las etapas.",
+  pediatria: "Salud y crecimiento de los más pequeños de la casa.",
+  traumatologia: "Recupera tu movilidad después de una lesión o una fractura.",
+  "medicina-interna": "Prevención y control de las enfermedades del adulto.",
+  cardiologia: "Cuidado del corazón y de la presión arterial.",
+  neumologia: "Atención de las vías respiratorias y la respiración.",
+};
+
+const DESCRIPCION_GENERICA =
+  "Especialistas de la región con cédula verificada y cita en línea.";
+
+/** Las zonas que nombra el dibujo del mapa de síntomas. */
+const ZONAS = ["Cabeza", "Respiratorio", "Corazón", "Digestivo", "Huesos y articulaciones"];
+
+/**
+ * Dónde cae cada ciudad en el dibujo del mapa.
+ *
+ * No es un mapa a escala, pero las posiciones relativas son las reales:
+ * Meoqui y Rosales al norte de Delicias, Saucillo y Camargo al sur.
+ */
+const MAPA: Record<string, { x: number; y: number }> = {
+  delicias: { x: 248, y: 214 },
+  meoqui: { x: 158, y: 112 },
+  rosales: { x: 372, y: 148 },
+  saucillo: { x: 366, y: 292 },
+  camargo: { x: 196, y: 344 },
+};
+
 const ICONOS: Record<string, (p: { size?: number }) => React.JSX.Element> = {
   "cirugia-general": Estetoscopio,
   ginecologia: Mujer,
@@ -77,7 +120,7 @@ const ICONOS: Record<string, (p: { size?: number }) => React.JSX.Element> = {
 const PREGUNTAS = [
   {
     q: "¿Cuánto cuesta usar el directorio?",
-    r: "Nada. Buscar médico, comparar perfiles y agendar su cita no le cuesta al paciente. Lo que usted paga es la consulta, directamente en el consultorio, y el precio aparece en el perfil de cada médico cuando él lo publica.",
+    r: "Nada. Buscar médico, comparar perfiles y agendar tu cita no te cuesta. Lo que pagas es la consulta, directamente en el consultorio, y el precio aparece en el perfil de cada médico cuando él lo publica.",
   },
   {
     q: "¿Cómo sé que el médico tiene cédula de verdad?",
@@ -85,19 +128,19 @@ const PREGUNTAS = [
   },
   {
     q: "¿Puedo agendar en línea con cualquier médico?",
-    r: "Con los que tienen agenda en línea activa, sí: usted elige el horario y la cita queda confirmada en el momento. En los demás perfiles aparece el teléfono del consultorio para que llame directamente.",
+    r: "Con los que tienen agenda en línea activa, sí: eliges el horario y la cita queda confirmada en el momento. En los demás perfiles aparece el teléfono del consultorio para que llames directamente.",
   },
   {
     q: "¿Puedo cambiar o cancelar mi cita?",
-    r: "Sí. Al agendar recibe un enlace propio de su cita; desde ahí la cambia o la cancela sin llamar al consultorio. El horario que libera vuelve a quedar disponible para otro paciente.",
+    r: "Sí. Al agendar recibes un enlace propio de tu cita; desde ahí la cambias o la cancelas sin llamar al consultorio. El horario que liberas vuelve a quedar disponible para otro paciente.",
   },
   {
     q: "¿Atienden urgencias?",
-    r: "No. Médicos de Delicias es un directorio para consulta programada. Ante una urgencia médica llame al 911 o acuda al servicio de urgencias más cercano.",
+    r: "No. Médicos de Delicias es un directorio para consulta programada. Ante una urgencia médica llama al 911 o acude al servicio de urgencias más cercano.",
   },
   {
     q: "Soy médico, ¿cómo aparezco en el directorio?",
-    r: "Solicite su alta desde el sitio con su cédula profesional. Revisamos los datos y, una vez verificados, su perfil se publica con su especialidad, sus consultorios y sus horarios.",
+    r: "Solicita tu alta desde el sitio con tu cédula profesional. Revisamos los datos y, una vez verificados, tu perfil se publica con tu especialidad, tus consultorios y tus horarios.",
   },
 ];
 
@@ -176,138 +219,183 @@ export default async function Inicio() {
         </div>
       </section>
 
-      <div className="envoltura">
-        <div className="ventajas">
-          <div className="ventaja">
-            <span className="icono-cuadro">
-              <Documento size={20} />
-            </span>
-            <div>
-              <b>Perfiles completos</b>
-              <p>Conoce su experiencia, especialidades, consultorios y precios.</p>
+      <div className="franja-ventajas">
+        <div className="envoltura">
+          <div className="ventajas">
+            <div className="ventaja">
+              <span className="icono-cuadro">
+                <Documento size={20} />
+              </span>
+              <div>
+                <b>Perfiles completos</b>
+                <p>Conoce la experiencia, formación y detalles de cada médico.</p>
+              </div>
             </div>
-          </div>
-          <div className="ventaja">
-            <span className="icono-cuadro">
-              <Estrella size={20} />
-            </span>
-            <div>
-              <b>Opiniones de pacientes</b>
-              <p>Lee reseñas de personas que ya se atendieron con él.</p>
+            <div className="ventaja">
+              <span className="icono-cuadro">
+                <Estrella size={20} />
+              </span>
+              <div>
+                <b>Opiniones de pacientes</b>
+                <p>Lee reseñas reales de personas que ya se atendieron con él.</p>
+              </div>
             </div>
-          </div>
-          <div className="ventaja">
-            <span className="icono-cuadro">
-              <Calendario size={20} />
-            </span>
-            <div>
-              <b>Reserva sencilla</b>
-              <p>Agenda tu cita en línea en pocos minutos, sin llamadas.</p>
+            <div className="ventaja">
+              <span className="icono-cuadro">
+                <Calendario size={20} />
+              </span>
+              <div>
+                <b>Reserva sencilla</b>
+                <p>Agenda tu cita en línea en pocos minutos, sin llamadas.</p>
+              </div>
             </div>
           </div>
         </div>
       </div>
 
       <section className="envoltura seccion">
-        <div className="seccion-cabeza">
+        <div className="cabeza-doble">
           <div>
-            <h2>Busca por especialidad</h2>
+            <p className="rotulo">Especialidades</p>
+            <h2>Encuentra atención para cada etapa de tu vida</h2>
+          </div>
+          <div className="cabeza-doble-lado">
             <p>
-              Encuentra al especialista que necesitas entre las especialidades
-              disponibles en la región.
+              Desde la prevención hasta el tratamiento, encuentra al
+              especialista indicado para ti y para tu familia en Delicias.
             </p>
+            <Link href="/delicias" className="enlace-acento">
+              Ver todas las especialidades →
+            </Link>
           </div>
         </div>
 
-        <div className="rejilla-especialidades">
-          {porEspecialidad.map((e) => (
+        <div className="bento">
+          {porEspecialidad[0] ? (
             <Link
-              key={e.slug}
-              href={`/delicias/${e.slug}`}
-              className="tarjeta especialidad-tarjeta"
+              href={`/delicias/${porEspecialidad[0].slug}`}
+              className="bento-grande"
             >
-              <span className="icono-cuadro">
-                {(() => {
-                  const Icono = ICONOS[e.slug] ?? Estetoscopio;
-                  return <Icono size={21} />;
-                })()}
+              <span className="bento-foto">
+                <img src="/portada/05.webp" alt="" loading="lazy" />
               </span>
-              <b>{e.nombre}</b>
-              <span>
-                {e.cuantos === 0
-                  ? "Próximamente"
-                  : e.cuantos === 1
-                    ? "1 médico"
-                    : `${e.cuantos} médicos`}
+              <span className="bento-info">
+                <span className="icono-cuadro">
+                  {(() => {
+                    const Icono = ICONOS[porEspecialidad[0].slug] ?? Estetoscopio;
+                    return <Icono size={20} />;
+                  })()}
+                </span>
+                <b>{porEspecialidad[0].nombre}</b>
+                <span className="bento-texto">
+                  {DESCRIPCIONES[porEspecialidad[0].slug] ?? DESCRIPCION_GENERICA}
+                </span>
+                <span className="flecha">
+                  <Flecha />
+                </span>
               </span>
             </Link>
-          ))}
+          ) : null}
+
+          <div className="bento-chicas">
+            {porEspecialidad.slice(1, 5).map((e) => {
+              const Icono = ICONOS[e.slug] ?? Estetoscopio;
+              return (
+                <Link key={e.slug} href={`/delicias/${e.slug}`} className="bento-chica">
+                  <span className="icono-cuadro">
+                    <Icono size={19} />
+                  </span>
+                  <b>{e.nombre}</b>
+                  <span className="bento-texto">
+                    {DESCRIPCIONES[e.slug] ?? DESCRIPCION_GENERICA}
+                  </span>
+                  <span className="flecha">
+                    <Flecha size={15} />
+                  </span>
+                </Link>
+              );
+            })}
+          </div>
         </div>
       </section>
 
       {porPadecimiento.length > 0 ? (
-        <section className="envoltura seccion">
-          <div className="seccion-cabeza">
-            <div>
-              <h2>¿Qué le está pasando?</h2>
-              <p>
-                A veces uno no sabe qué especialista le toca, pero sí sabe qué
-                le duele. Elija el motivo y le mostramos quién lo atiende.
-              </p>
+        <section className="franja-sintomas">
+          <div className="envoltura seccion sintomas">
+            <div className="sintomas-arte">
+              <Cuerpo />
+              <div className="zonas">
+                {ZONAS.map((z) => (
+                  <span className="zona" key={z}>
+                    {z}
+                  </span>
+                ))}
+              </div>
             </div>
-          </div>
 
-          <div className="padecimientos">
-            {listaEspecialidades.map((e) => {
-              const suyos = porPadecimiento.filter(
-                (p) => p.especialidad.slug === e.slug,
-              );
-              if (suyos.length === 0) return null;
-              const Icono = ICONOS[e.slug] ?? Estetoscopio;
-              return (
-                <div className="padecimiento-grupo" key={e.slug}>
-                  <h3>
-                    <span className="icono-cuadro">
-                      <Icono size={18} />
-                    </span>
-                    {e.nombre}
-                  </h3>
-                  <div className="chips">
-                    {suyos.map((p) =>
-                      p.cuantos > 0 ? (
-                        <Link
-                          key={p.slug}
-                          href={`/delicias/padecimiento/${p.slug}`}
-                          className="chip"
-                        >
-                          {p.nombre}
-                        </Link>
-                      ) : (
-                        // Sin nadie que lo atienda todavía, el enlace llevaría
-                        // a una página vacía: se muestra apagado.
-                        <span key={p.slug} className="chip chip-apagado">
-                          {p.nombre}
+            <div>
+              <p className="rotulo">Síntomas</p>
+              <h2>¿Qué te está pasando?</h2>
+              <p className="intro">
+                A veces no sabes qué especialista te toca, pero sí sabes qué te
+                duele. Elige el motivo y te mostramos quién lo atiende.
+              </p>
+
+              <div className="sintomas-filas">
+                {listaEspecialidades.map((e) => {
+                  const suyos = porPadecimiento.filter(
+                    (p) => p.especialidad.slug === e.slug,
+                  );
+                  if (suyos.length === 0) return null;
+                  const Icono = ICONOS[e.slug] ?? Estetoscopio;
+                  return (
+                    <div className="sintoma-fila" key={e.slug}>
+                      <span className="sintoma-nombre">
+                        <span className="icono-cuadro">
+                          <Icono size={17} />
                         </span>
-                      ),
-                    )}
-                  </div>
-                </div>
-              );
-            })}
+                        {e.nombre}
+                      </span>
+                      <div className="chips">
+                        {suyos.map((p) =>
+                          p.cuantos > 0 ? (
+                            <Link
+                              key={p.slug}
+                              href={`/delicias/padecimiento/${p.slug}`}
+                              className="chip"
+                            >
+                              {p.nombre}
+                            </Link>
+                          ) : (
+                            // Sin nadie que lo atienda todavía, el enlace
+                            // llevaría a una página vacía: se muestra apagado.
+                            <span key={p.slug} className="chip chip-apagado">
+                              {p.nombre}
+                            </span>
+                          ),
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
           </div>
         </section>
       ) : null}
 
       {destacados.length > 0 ? (
         <section className="envoltura seccion">
-          <div className="seccion-cabeza">
+          <div className="cabeza-doble">
             <div>
-              <h2>Médicos destacados</h2>
-              <p>Conoce a algunos de los especialistas del directorio.</p>
+              <p className="rotulo">Médicos destacados</p>
+              <h2>Conoce a algunos de los especialistas en Delicias</h2>
             </div>
-            <Link href="/delicias" className="enlace-acento">
-              Ver todos los médicos →
-            </Link>
+            <div className="cabeza-doble-lado">
+              <Link href="/delicias" className="enlace-acento">
+                Ver todos los médicos →
+              </Link>
+            </div>
           </div>
 
           <div className="rejilla">
@@ -324,148 +412,187 @@ export default async function Inicio() {
       ) : null}
 
       <section className="envoltura seccion">
-        <div className="seccion-cabeza">
+        <div className="ciudades">
           <div>
+            <p className="rotulo">En tu ciudad y alrededores</p>
             <h2>Dónde atendemos</h2>
-            <p>
-              Médicos de la región centro-sur de Chihuahua, con su consultorio
-              y sus horarios en cada ciudad.
+            <p className="intro">
+              Médicos de la región centro-sur de Chihuahua, con su consultorio y
+              sus horarios en cada ciudad.
             </p>
-          </div>
-        </div>
 
-        <div className="rejilla-ciudades">
-          {porCiudad.map((c) => (
-            <Link key={c.slug} href={`/${c.slug}`} className="tarjeta ciudad-tarjeta">
-              <span className="icono-cuadro">
-                <Pin size={19} />
-              </span>
-              <div>
-                <b>{c.nombre}</b>
-                <span>
-                  {c.cuantos === 0
-                    ? "Abriendo cobertura"
-                    : c.cuantos === 1
-                      ? "1 médico con consultorio"
-                      : `${c.cuantos} médicos con consultorio`}
-                </span>
-              </div>
-            </Link>
-          ))}
+            <ul className="lista-ciudades">
+              {porCiudad.map((c) => (
+                <li key={c.slug}>
+                  <Link href={`/${c.slug}`}>
+                    <span className="icono-cuadro">
+                      <Pin size={17} />
+                    </span>
+                    <span>
+                      <b>{c.nombre}</b>
+                      <small>
+                        {c.cuantos === 0
+                          ? "Abriendo cobertura"
+                          : c.cuantos === 1
+                            ? "1 médico con consultorio"
+                            : `${c.cuantos} médicos con consultorio`}
+                      </small>
+                    </span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          <MapaRegion
+            ciudades={porCiudad.map((c) => ({
+              nombre: c.nombre,
+              principal: c.slug === "delicias",
+              ...(MAPA[c.slug] ?? MAPA.delicias),
+            }))}
+          />
         </div>
       </section>
 
       <section className="envoltura seccion">
         <div className="verificacion">
-          <div>
-            <p className="eyebrow">Por qué puede confiar</p>
-            <h2>Ningún perfil se publica sin comprobarse</h2>
-            <p className="intro">
-              Un directorio médico sirve de poco si cualquiera puede aparecer
-              en él. Antes de publicar un perfil revisamos, uno por uno, estos
-              cuatro puntos.
+          <div className="verificacion-texto">
+            <p className="rotulo">Perfiles verificados</p>
+            <h2>
+              Ningún perfil se publica <span>sin comprobarse</span>
+            </h2>
+            <p>
+              Un directorio médico sirve de poco si cualquiera puede aparecer en
+              él. Antes de publicar un perfil comprobamos la cédula profesional,
+              la especialidad y, donde hace falta, la certificación del consejo,
+              para que agendes con confianza.
             </p>
+            <a href="#preguntas" className="boton-contorno">
+              Mira cómo lo comprobamos
+              <Flecha size={16} />
+            </a>
           </div>
 
-          <ul className="comprobaciones">
-            <li>
-              <span className="icono-cuadro">
-                <Documento size={19} />
-              </span>
-              <div>
-                <b>Cédula profesional</b>
-                <p>
-                  Se comprueba en el Registro Nacional de Profesionistas antes
-                  de que el perfil exista para el paciente.
-                </p>
-              </div>
-            </li>
-            <li>
-              <span className="icono-cuadro">
-                <Escudo size={19} />
-              </span>
-              <div>
-                <b>Certificación del consejo</b>
-                <p>
-                  En las especialidades que lo exigen se verifica además el
-                  consejo, y se revisa que siga vigente.
-                </p>
-              </div>
-            </li>
-            <li>
-              <span className="icono-cuadro">
-                <Estrella size={19} />
-              </span>
-              <div>
-                <b>Opiniones de pacientes reales</b>
-                <p>
-                  Solo puede opinar quien tuvo una cita registrada, una vez por
-                  cita, y la reseña pasa por revisión antes de publicarse.
-                </p>
-              </div>
-            </li>
-            <li>
-              <span className="icono-cuadro">
-                <Reloj size={19} />
-              </span>
-              <div>
-                <b>Horarios del propio médico</b>
-                <p>
-                  La disponibilidad que usted ve la carga y la actualiza el
-                  consultorio, no es una estimación nuestra.
-                </p>
-              </div>
-            </li>
-          </ul>
-        </div>
-      </section>
-
-      <section className="envoltura seccion">
-        <div className="seccion-cabeza">
-          <h2>Tu próxima consulta, en tres pasos</h2>
-        </div>
-        <div className="pasos">
-          <div className="paso">
-            <span className="numero">1</span>
-            <div>
-              <b>Busca</b>
-              <p>Encuentra un médico por especialidad, padecimiento o nombre.</p>
-            </div>
-          </div>
-          <div className="paso">
-            <span className="numero">2</span>
-            <div>
-              <b>Compara</b>
-              <p>Revisa perfiles, opiniones, horarios y precios de consulta.</p>
-            </div>
-          </div>
-          <div className="paso">
-            <span className="numero">3</span>
-            <div>
-              <b>Agenda</b>
-              <p>Reserva en línea y recibe tu recordatorio por WhatsApp.</p>
-            </div>
+          <div className="verificacion-arte">
+            <EscudoVerificado />
+            <ul className="sellos">
+              <li>
+                <span className="icono-cuadro">
+                  <Documento size={17} />
+                </span>
+                Cédula profesional verificada
+              </li>
+              <li>
+                <span className="icono-cuadro">
+                  <Escudo size={17} />
+                </span>
+                Especialidad y consejo confirmados
+              </li>
+              <li>
+                <span className="icono-cuadro">
+                  <Estrella size={17} />
+                </span>
+                Opiniones solo de quien tuvo cita
+              </li>
+            </ul>
           </div>
         </div>
       </section>
 
       <section className="envoltura seccion">
-        <div className="seccion-cabeza">
-          <div>
-            <h2>Preguntas frecuentes</h2>
-            <p>Lo que más nos preguntan antes de agendar la primera cita.</p>
+        <p className="rotulo">Así de fácil</p>
+        <h2 className="titulo-seccion">Tu próxima consulta, en tres pasos</h2>
+
+        <div className="pasos-ui">
+          <div className="paso-ui">
+            <div className="paso-cabeza">
+              <span className="numero">1</span>
+              <div>
+                <b>Busca</b>
+                <p>Encuentra un médico por especialidad, síntoma o nombre.</p>
+              </div>
+            </div>
+            {/* Las maquetas son decoración: muestran de un vistazo cómo se ve
+                cada paso sin obligar a leerlo. */}
+            <div className="maqueta" aria-hidden="true">
+              <div className="maqueta-busqueda">
+                <Lupa size={15} />
+                Pediatría en Delicias
+              </div>
+              <div className="maqueta-fila">
+                <span className="maqueta-avatar" />
+                <span className="maqueta-barras" />
+              </div>
+              <div className="maqueta-fila">
+                <span className="maqueta-avatar" />
+                <span className="maqueta-barras" />
+              </div>
+            </div>
+          </div>
+
+          <div className="paso-ui">
+            <div className="paso-cabeza">
+              <span className="numero">2</span>
+              <div>
+                <b>Compara</b>
+                <p>Revisa perfiles, opiniones, horarios y precios de consulta.</p>
+              </div>
+            </div>
+            <div className="maqueta" aria-hidden="true">
+              <div className="maqueta-fila">
+                <span className="maqueta-avatar maqueta-iniciales">HN</span>
+                <span className="maqueta-barras" />
+              </div>
+              <div className="maqueta-fila">
+                <span className="maqueta-avatar maqueta-iniciales">IS</span>
+                <span className="maqueta-barras" />
+              </div>
+            </div>
+          </div>
+
+          <div className="paso-ui">
+            <div className="paso-cabeza">
+              <span className="numero">3</span>
+              <div>
+                <b>Agenda</b>
+                <p>Reserva en línea y recibe la confirmación de tu cita.</p>
+              </div>
+            </div>
+            <div className="maqueta" aria-hidden="true">
+              <div className="maqueta-fila">
+                <span className="maqueta-avatar">
+                  <Calendario size={17} />
+                </span>
+                <span className="maqueta-barras" />
+              </div>
+              <div className="maqueta-confirmada">¡Cita agendada!</div>
+            </div>
           </div>
         </div>
+      </section>
 
-        <div className="preguntas">
-          {PREGUNTAS.map((p) => (
-            // <details> en lugar de un acordeón con JavaScript: funciona
-            // antes de que cargue nada y el buscador lee la respuesta.
-            <details key={p.q}>
-              <summary>{p.q}</summary>
-              <p>{p.r}</p>
-            </details>
-          ))}
+      <section className="envoltura seccion" id="preguntas">
+        <div className="faq">
+          <div className="faq-intro">
+            <p className="rotulo">Preguntas frecuentes</p>
+            <h2>Resolvemos tus dudas</h2>
+            <p>
+              Aquí están las respuestas a lo que más nos preguntan antes de
+              agendar la primera cita.
+            </p>
+            <BurbujasDudas />
+          </div>
+
+          <div className="preguntas">
+            {PREGUNTAS.map((p) => (
+              // <details> en lugar de un acordeón con JavaScript: funciona
+              // antes de que cargue nada y el buscador lee la respuesta.
+              <details key={p.q}>
+                <summary>{p.q}</summary>
+                <p>{p.r}</p>
+              </details>
+            ))}
+          </div>
         </div>
 
         <div className="aviso-urgencias">
@@ -475,7 +602,7 @@ export default async function Inicio() {
           <p>
             <b>Esto no es un servicio de urgencias.</b> Ante dolor en el pecho,
             dificultad para respirar, sangrado abundante o pérdida del
-            conocimiento, llame al <a href="tel:911">911</a> o acuda al servicio
+            conocimiento, llama al <a href="tel:911">911</a> o acude al servicio
             de urgencias más cercano.
           </p>
         </div>
@@ -513,7 +640,6 @@ export default async function Inicio() {
           }),
         }}
       />
-
       <section className="envoltura seccion">
         <div className="banda">
           <div>
