@@ -12,6 +12,7 @@
  */
 
 import { prisma } from "@/lib/prisma";
+import { DIAS_DE_AVISO, diasRestantes } from "@/lib/suscripciones";
 import { sitio, urlAbsoluta } from "@/config/sitio";
 
 const ZONA = 6 * 60 * 60_000; // Chihuahua, UTC−6 todo el año
@@ -291,6 +292,112 @@ export async function recordarCitasDeManana(
   }
 
   return { recordadas: citas.length };
+}
+
+/**
+ * Avisa al médico que su plan está por vencer, y el día que venció.
+ *
+ * Corre con la tarea diaria, así que tiene que poder repetirse sin
+ * molestar dos veces por lo mismo: cada aviso queda asentado en la
+ * auditoría con la fecha de vencimiento que lo motivó, y antes de mandar
+ * nada se comprueba que ese asiento no exista. Si el consultorio corre la
+ * tarea a mano tres veces el mismo día, el médico recibe un solo correo.
+ *
+ * Vencer no suspende el perfil. El profesional sigue publicado y solo
+ * pierde las herramientas del plan, de modo que el aviso informa y no
+ * amenaza.
+ */
+export async function avisarVencimientos(): Promise<{
+  avisados: number;
+  pendientes: number;
+}> {
+  const ahora = new Date();
+  const limite = new Date(ahora.getTime() + DIAS_DE_AVISO * 86_400_000);
+
+  const porVencer = await prisma.profesional.findMany({
+    where: {
+      plan: { not: "BASICO" },
+      planHasta: { not: null, lte: limite },
+    },
+    select: { id: true, nombre: true, correo: true, plan: true, planHasta: true },
+  });
+
+  let avisados = 0;
+  let pendientes = 0;
+
+  for (const p of porVencer) {
+    if (!p.planHasta) continue;
+    const dias = diasRestantes(p.planHasta, ahora) ?? 0;
+    const momento = dias < 0 ? "vencido" : "por-vencer";
+    const marca = `${p.id}:${momento}:${p.planHasta.toISOString().slice(0, 10)}`;
+
+    const yaAvisado = await prisma.registroAuditoria.findFirst({
+      where: { accion: "plan.aviso", entidadId: marca },
+      select: { id: true },
+    });
+    if (yaAvisado) continue;
+
+    if (!p.correo) {
+      pendientes += 1;
+      continue;
+    }
+
+    const cuando = p.planHasta.toLocaleDateString("es-MX");
+    const texto =
+      momento === "vencido"
+        ? [
+            `Doctor(a) ${p.nombre}:`,
+            "",
+            `Su plan ${p.plan} venció el ${cuando}.`,
+            "",
+            "Su perfil sigue publicado y los pacientes lo siguen encontrando: lo que se",
+            "pausó son las herramientas del plan. Puede renovarlo cuando guste desde su panel.",
+            "",
+            `Renovar: ${urlAbsoluta("/panel")}`,
+          ]
+        : [
+            `Doctor(a) ${p.nombre}:`,
+            "",
+            `Su plan ${p.plan} vence el ${cuando}, en ${dias} día(s).`,
+            "",
+            "Si lo renueva antes de esa fecha no pierde los días que le quedan: el nuevo",
+            "periodo se suma al final del actual.",
+            "",
+            `Renovar: ${urlAbsoluta("/panel")}`,
+          ];
+
+    try {
+      const salio = await enviarCorreo({
+        para: p.correo,
+        asunto:
+          momento === "vencido"
+            ? `Su plan ${p.plan} venció`
+            : `Su plan ${p.plan} vence en ${dias} día(s)`,
+        cuerpo: texto.join("\n"),
+      });
+      if (!salio) {
+        pendientes += 1;
+        continue;
+      }
+    } catch (error) {
+      console.error("[vencimientos] no se pudo avisar", error);
+      pendientes += 1;
+      continue;
+    }
+
+    await prisma.registroAuditoria.create({
+      data: {
+        actor: "sistema",
+        accion: "plan.aviso",
+        entidad: "profesional",
+        entidadId: marca,
+        detalle: momento === "vencido" ? "Aviso de vencimiento" : `Aviso previo, ${dias} día(s)`,
+      },
+    });
+    avisados += 1;
+  }
+
+  return { avisados, pendientes };
 }
 
 /**

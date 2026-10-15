@@ -106,6 +106,10 @@ export default async function Panel() {
             Opiniones
           </Link>{" "}
           ·{" "}
+          <Link href="/panel/cobros" className="enlace-acento">
+            Cobros
+          </Link>{" "}
+          ·{" "}
           <Link href="/panel/mi-clave" className="enlace-acento">
             Mi contraseña
           </Link>{" "}

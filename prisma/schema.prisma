@@ -143,6 +143,7 @@ model Profesional {
   especialidades ProfesionalEspecialidad[]
   consultorios   Consultorio[]
   verificaciones Verificacion[]
+  pagos          Pago[]
   citas          Cita[]
   opiniones      Opinion[]
   usuarios       Usuario[]
@@ -347,6 +348,62 @@ model Opinion {
   fecha         DateTime    @default(now())
 
   @@index([profesionalId, publicada])
+}
+
+// ----------------------------------------------------------------------
+//  Cobro de las suscripciones
+// ----------------------------------------------------------------------
+
+enum MedioPago {
+  TRANSFERENCIA
+  TARJETA
+  /// Cortesía del consultorio: no entró dinero, pero el periodo corre.
+  CORTESIA
+}
+
+enum EstadoPago {
+  /// Se eligió el plan y se esperan los datos del depósito.
+  PENDIENTE
+  /// El médico ya reportó su comprobante y falta que alguien lo apruebe.
+  EN_REVISION
+  /// Confirmado. Es el único estado que mueve la fecha de vencimiento.
+  ACREDITADO
+  RECHAZADO
+}
+
+/// Un cobro de suscripción, del momento en que se elige el plan hasta que
+/// se acredita. Queda como historia: el periodo que cubrió, quién lo
+/// revisó y con qué folio se le dio recibo al médico.
+model Pago {
+  id            String          @id @default(cuid())
+  profesionalId String
+  profesional   Profesional     @relation(fields: [profesionalId], references: [id], onDelete: Cascade)
+
+  plan          PlanSuscripcion
+  /// 1 o 12. Se guarda el número y no la palabra para poder sumar meses.
+  meses         Int
+  /// En centavos de peso. Nunca decimales: sumar flotantes termina
+  /// cobrando de más o de menos según la pantalla.
+  importe       Int
+  medio         MedioPago
+  estado        EstadoPago      @default(PENDIENTE)
+
+  /// Folio del recibo, correlativo por año. Solo al acreditarse.
+  folio         String?         @unique
+  /// Referencia bancaria o del procesador, tal como la reporta el médico.
+  referencia    String?
+  /// Qué periodo quedó cubierto con este pago.
+  periodoDesde  DateTime?
+  periodoHasta  DateTime?
+
+  revisadoPor   String?
+  revisadoEn    DateTime?
+  /// Por qué se rechazó, o la nota que deje quien lo revisó.
+  detalle       String?
+  creadoEn      DateTime        @default(now())
+
+  @@index([profesionalId, creadoEn])
+  @@index([estado, creadoEn])
 }
 
 enum Rol {
