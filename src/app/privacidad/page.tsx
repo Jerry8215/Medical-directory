@@ -95,16 +95,38 @@ export default function Privacidad() {
           <h2>Cómo acceder, corregir o eliminar sus datos</h2>
           <p style={{ color: "var(--suave)" }}>
             Puede cancelar su cita en cualquier momento desde el enlace que
-            recibió, sin crear ninguna cuenta. Para solicitar el acceso, la
-            rectificación, la cancelación de sus datos o la oposición a su
-            tratamiento, escriba al correo de contacto de la plataforma
-            indicando su nombre y el teléfono con el que agendó. Atendemos su
-            solicitud en un plazo máximo de veinte días hábiles.
+            recibió, sin crear ninguna cuenta. Para ejercer cualquiera de sus
+            derechos ARCO escriba al correo de contacto de la plataforma
+            indicando su nombre y el teléfono con el que agendó, que es el dato
+            con el que podemos identificarlo. Atendemos su solicitud en un plazo
+            máximo de veinte días hábiles.
           </p>
           <p style={{ color: "var(--suave)", marginTop: 10 }}>
-            Conservamos sus datos mientras exista una relación de atención y por
-            el plazo que la normatividad aplicable exija. Después se eliminan o
-            se anonimizan.
+            <b>Acceso.</b> Le entregamos un documento con todo lo que guardamos
+            sobre usted: sus datos de contacto, cada una de sus citas con su
+            médico, consultorio, fecha y estado, y las opiniones que haya
+            dejado.
+          </p>
+          <p style={{ color: "var(--suave)", marginTop: 10 }}>
+            <b>Rectificación.</b> Corregimos cualquier dato equivocado, como su
+            nombre o su correo, y queda registrada la corrección.
+          </p>
+          <p style={{ color: "var(--suave)", marginTop: 10 }}>
+            <b>Cancelación.</b> Eliminamos su nombre, su teléfono, su correo y
+            el motivo que haya escrito al agendar. La cita se conserva sin
+            titular, porque es el registro de trabajo del médico y de su
+            consultorio; deja de estar asociada a usted y no puede volver a
+            vincularse.
+          </p>
+          <p style={{ color: "var(--suave)", marginTop: 10 }}>
+            <b>Oposición.</b> Dejamos de enviarle recordatorios y solicitudes de
+            opinión, sin borrar su historial de citas.
+          </p>
+          <p style={{ color: "var(--suave)", marginTop: 10 }}>
+            Cada solicitud que atendemos queda asentada con su fecha y la
+            persona que la resolvió. Conservamos sus datos mientras exista una
+            relación de atención y por el plazo que la normatividad aplicable
+            exija. Después se eliminan o se anonimizan.
           </p>
         </div>
 

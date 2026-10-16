@@ -277,6 +277,10 @@ export async function recordarCitasDeManana(
       estado: { in: ["AGENDADA", "CONFIRMADA"] },
       inicio: { gte: desde, lt: hasta },
       avisos: { none: { canal: "WHATSAPP", destino: { contains: "paciente" } } },
+      // Quien ejerció su derecho de oposición deja de recibir avisos. El
+      // campo existía desde el principio y nadie lo leía, así que darse de
+      // baja no servía de nada.
+      paciente: { bajaEn: null },
     },
     include: { paciente: true, consultorio: true },
   });

@@ -110,6 +110,10 @@ export default async function Panel() {
             Cobros
           </Link>{" "}
           ·{" "}
+          <Link href="/panel/datos-personales" className="enlace-acento">
+            Datos personales
+          </Link>{" "}
+          ·{" "}
           <Link href="/panel/mi-clave" className="enlace-acento">
             Mi contraseña
           </Link>{" "}
