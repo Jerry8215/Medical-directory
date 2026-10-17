@@ -3,6 +3,9 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { EditorProfesional } from "@/componentes/EditorProfesional";
+import { MetricasPerfil } from "@/componentes/MetricasPerfil";
+import { capacidades } from "@/lib/planes";
+import { panoramaDelMes } from "@/lib/metricas-datos";
 import { prisma } from "@/lib/prisma";
 
 export const metadata: Metadata = {
@@ -30,6 +33,8 @@ export default async function EditarProfesional({ params }: Props) {
 
   if (!profesional) notFound();
 
+  const panorama = await panoramaDelMes(profesional.id);
+
   return (
     <main>
       <section className="envoltura" style={{ paddingBlock: "36px 4px" }}>
@@ -55,6 +60,17 @@ export default async function EditarProfesional({ params }: Props) {
                 .join(" · ")
             : "sin credenciales registradas"}
         </p>
+      </section>
+
+      <section className="envoltura seccion">
+        <div className="seccion-cabeza">
+          <h2>Su mes en el directorio</h2>
+        </div>
+        <MetricasPerfil
+          panorama={panorama}
+          puedeWhatsapp={capacidades(profesional.plan, profesional.planHasta).whatsapp}
+          tieneFoto={Boolean(profesional.fotografia)}
+        />
       </section>
 
       <section className="envoltura seccion">

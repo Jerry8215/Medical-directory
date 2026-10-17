@@ -2358,6 +2358,47 @@ a.chip:hover {
   }
 }
 
+/* Dos campos cortos uno al lado del otro; en celular, uno debajo del otro. */
+.rejilla-campos {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 14px;
+}
+
+/* ---------- métricas del perfil ---------- */
+
+/* Un vistazo al mes, no un tablero: sin ejes ni leyenda, solo la forma. */
+.barras {
+  display: flex;
+  align-items: flex-end;
+  gap: 3px;
+  height: 64px;
+  margin-top: 16px;
+  padding: 8px 10px;
+  background: var(--papel-2);
+  border: 1px solid var(--borde);
+  border-radius: var(--radio);
+}
+
+.barra {
+  flex: 1;
+  min-width: 3px;
+  border-radius: 3px 3px 0 0;
+  background: var(--azul);
+  opacity: 0.75;
+}
+
+.consejo {
+  margin-top: 14px;
+  padding: 12px 15px;
+  border-radius: var(--radio);
+  background: var(--verde-tenue);
+  border: 1px solid #bfe8d3;
+  color: #17603f;
+  font-size: 0.92rem;
+  line-height: 1.5;
+}
+
 /* ---------- cobros del panel ---------- */
 
 /* Un depósito por aprobar detiene a alguien: el médico ya pagó y todavía

@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 
+import { AjustesCobro } from "@/componentes/AjustesCobro";
 import { TablaCobros, type FilaPago } from "@/componentes/TablaCobros";
+import { datosBancarios, precios } from "@/lib/precios";
 import { prisma } from "@/lib/prisma";
 import { sesionActual } from "@/lib/sesion-actual";
 import {
@@ -48,7 +50,7 @@ export default async function Cobros() {
     Date.UTC(ahora.getUTCFullYear(), ahora.getUTCMonth(), 1),
   );
 
-  const [pagos, delMes, suscriptores] = await Promise.all([
+  const [pagos, delMes, suscriptores, tarifa, banco] = await Promise.all([
     prisma.pago.findMany({
       orderBy: { creadoEn: "desc" },
       take: 80,
@@ -63,6 +65,8 @@ export default async function Cobros() {
       select: { id: true, slug: true, nombre: true, plan: true, planHasta: true },
       orderBy: { planHasta: "asc" },
     }),
+    precios(),
+    datosBancarios(),
   ]);
 
   const filas: FilaPago[] = pagos.map((p) => ({
@@ -165,6 +169,23 @@ export default async function Cobros() {
       <section className="envoltura seccion">
         <TablaCobros pagos={filas} />
       </section>
+
+      {sesion.rol === "ADMINISTRADOR" ? (
+        <section className="envoltura seccion">
+          <div className="seccion-cabeza">
+            <h2>Precios y datos de depósito</h2>
+          </div>
+          <p className="meta" style={{ marginBottom: 14 }}>
+            Lo que se cobra por cada plan y a dónde deposita el médico. Cambiarlo
+            aquí no requiere tocar el programa.
+          </p>
+          <AjustesCobro
+            gold={tarifa.GOLD}
+            premium={tarifa.PREMIUM}
+            bancarios={banco}
+          />
+        </section>
+      ) : null}
     </main>
   );
 }

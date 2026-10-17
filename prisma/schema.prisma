@@ -144,6 +144,7 @@ model Profesional {
   consultorios   Consultorio[]
   verificaciones Verificacion[]
   pagos          Pago[]
+  metricas       MetricaDiaria[]
   citas          Cita[]
   opiniones      Opinion[]
   usuarios       Usuario[]
@@ -348,6 +349,27 @@ model Opinion {
   fecha         DateTime    @default(now())
 
   @@index([profesionalId, publicada])
+}
+
+/// Lo que pasó con un perfil en un día, ya sumado.
+///
+/// Se guarda agregado por día y no un renglón por visita: al médico le
+/// sirve «cuántos me buscaron este mes», no la hora exacta de cada una, y
+/// así la tabla crece un renglón diario por perfil en lugar de uno por
+/// visita. Las citas no se cuentan acá porque ya están en su propia tabla
+/// y contarlas dos veces es garantizar que algún día no cuadren.
+model MetricaDiaria {
+  id            String      @id @default(cuid())
+  profesionalId String
+  profesional   Profesional @relation(fields: [profesionalId], references: [id], onDelete: Cascade)
+  /// Medianoche del día, en hora de Chihuahua.
+  dia           DateTime
+  vistas        Int         @default(0)
+  telefono      Int         @default(0)
+  whatsapp      Int         @default(0)
+
+  @@unique([profesionalId, dia])
+  @@index([dia])
 }
 
 // ----------------------------------------------------------------------

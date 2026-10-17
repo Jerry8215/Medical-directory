@@ -3,6 +3,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
+import { ContadorDeVisitas } from "@/componentes/ContadorDeVisitas";
 import { FormularioOpinion } from "@/componentes/FormularioOpinion";
 import {
   Calendario,
@@ -178,6 +179,10 @@ export default async function PaginaProfesional({ params }: Props) {
 
   return (
     <main>
+      {/* Cuenta la visita desde el navegador: esta página se sirve
+          cacheada y el servidor no se entera de cada una. */}
+      <ContadorDeVisitas slug={p.slug} />
+
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(datosEstructurados) }}
@@ -264,6 +269,7 @@ export default async function PaginaProfesional({ params }: Props) {
                   {telefono && p.puede.whatsapp ? (
                     <a
                       className="boton-whatsapp"
+                      data-metrica="whatsapp"
                       href={`https://wa.me/52${telefono}?text=${encodeURIComponent(
                         `Hola, lo contacto desde ${sitio.nombre} para agendar una consulta.`,
                       )}`}
@@ -276,7 +282,7 @@ export default async function PaginaProfesional({ params }: Props) {
                   ) : null}
 
                   {telefono && !p.puede.whatsapp ? (
-                    <a className="boton-suave num" href={`tel:+52${telefono}`}>
+                    <a className="boton-suave num" data-metrica="telefono" href={`tel:+52${telefono}`}>
                       {telefono}
                     </a>
                   ) : null}
@@ -497,6 +503,7 @@ export default async function PaginaProfesional({ params }: Props) {
                   {p.puede.whatsapp ? (
                     <a
                       className="boton-lleno"
+                      data-metrica="whatsapp"
                       style={{ width: "100%", marginTop: 12 }}
                       href={`https://wa.me/52${telefono}?text=${encodeURIComponent(
                         `Hola, lo contacto desde ${sitio.nombre} para agendar una consulta.`,
