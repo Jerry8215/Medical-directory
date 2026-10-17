@@ -7,6 +7,7 @@ import { MetricasPerfil } from "@/componentes/MetricasPerfil";
 import { capacidades } from "@/lib/planes";
 import { panoramaDelMes } from "@/lib/metricas-datos";
 import { prisma } from "@/lib/prisma";
+import { sesionActual } from "@/lib/sesion-actual";
 
 export const metadata: Metadata = {
   title: "Editar profesional",
@@ -32,6 +33,13 @@ export default async function EditarProfesional({ params }: Props) {
   ]);
 
   if (!profesional) notFound();
+
+  // Un médico solo entra a su propio perfil. Las acciones de guardado ya
+  // lo comprobaban, pero la página se dejaba ver, y con ella el correo y
+  // el teléfono de un colega.
+  const sesion = await sesionActual();
+  const esEquipo = sesion?.rol === "ADMINISTRADOR" || sesion?.rol === "RECEPCION";
+  if (!esEquipo && sesion?.profesionalId !== profesional.id) notFound();
 
   const panorama = await panoramaDelMes(profesional.id);
 

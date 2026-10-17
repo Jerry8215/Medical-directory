@@ -113,6 +113,7 @@ export function huecos({
   franjas,
   duracionMin,
   ocupados = [],
+  bloqueados = [],
   desde,
   dias = 14,
   horaActual,
@@ -122,6 +123,8 @@ export function huecos({
   franjas: Franja[];
   duracionMin: number;
   ocupados?: Ocupado[];
+  /** Días que el médico cerró: vacaciones, congresos, ausencias. */
+  bloqueados?: string[];
   desde: string;
   dias?: number;
   horaActual?: string;
@@ -133,6 +136,10 @@ export function huecos({
 
   for (let i = 0; i < dias && resultado.length < maximo; i += 1) {
     const fecha = sumarDias(desde, i);
+    // Un día bloqueado no ofrece nada, aunque tenga franjas cargadas: el
+    // médico lo cerró y el horario no existe para el paciente.
+    if (bloqueados.includes(fecha)) continue;
+
     const delDia = franjas.filter((f) => f.dia === diaDeLaSemana(fecha));
     if (delDia.length === 0) continue;
 
@@ -214,4 +221,22 @@ export function disponible({
     }));
 
   return !seEmpalma(inicio, duracionMin, ocupadosDelDia);
+}
+
+/**
+ * Los días que cubre un periodo cerrado, uno por uno.
+ *
+ * El médico piensa en «del 20 al 28 de diciembre» y el generador de
+ * huecos trabaja día por día, así que el rango se expande acá. Un rango
+ * al revés no devuelve nada en lugar de ciclar sin fin.
+ */
+export function diasDelPeriodo(desde: string, hasta: string, tope = 400): string[] {
+  if (hasta < desde) return [];
+  const dias: string[] = [];
+  let actual = desde;
+  while (actual <= hasta && dias.length < tope) {
+    dias.push(actual);
+    actual = sumarDias(actual, 1);
+  }
+  return dias;
 }

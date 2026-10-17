@@ -32,6 +32,32 @@ export const dynamic = "force-dynamic";
  * esperan profesionales y cuántos faltan en cada una. Las acciones de alta
  * y edición llegan sobre esta misma base.
  */
+/**
+ * Qué puede abrir cada quien desde el panel.
+ *
+ * El médico administra lo suyo: su perfil y su agenda. El equipo del
+ * consultorio lleva el directorio completo, la caja y las solicitudes
+ * sobre datos personales.
+ */
+function enlacesDelPanel(rol: string | undefined) {
+  const propios = [
+    { href: "/panel/mi-agenda", texto: "Agenda" },
+    { href: "/panel/mi-perfil", texto: "Mi perfil" },
+  ];
+  const delEquipo = [
+    { href: "/panel/catalogos", texto: "Catálogos" },
+    { href: "/panel/opiniones", texto: "Opiniones" },
+    { href: "/panel/cobros", texto: "Cobros" },
+    { href: "/panel/datos-personales", texto: "Datos personales" },
+  ];
+  const clave = [{ href: "/panel/mi-clave", texto: "Mi contraseña" }];
+
+  if (rol === "ADMINISTRADOR" || rol === "RECEPCION") {
+    return [propios[0], ...delEquipo, ...clave];
+  }
+  return [...propios, ...clave];
+}
+
 export default async function Panel() {
   const sesion = await sesionActual();
   const [
@@ -94,29 +120,16 @@ export default async function Panel() {
         </p>
         <p className="meta" style={{ marginTop: 10 }}>
           Sesión de {sesion?.nombre ?? "invitado"} · {sesion?.rol.toLowerCase()} ·{" "}
-          <Link href="/panel/mi-agenda" className="enlace-acento">
-            Agenda
-          </Link>{" "}
-          ·{" "}
-          <Link href="/panel/catalogos" className="enlace-acento">
-            Catálogos
-          </Link>{" "}
-          ·{" "}
-          <Link href="/panel/opiniones" className="enlace-acento">
-            Opiniones
-          </Link>{" "}
-          ·{" "}
-          <Link href="/panel/cobros" className="enlace-acento">
-            Cobros
-          </Link>{" "}
-          ·{" "}
-          <Link href="/panel/datos-personales" className="enlace-acento">
-            Datos personales
-          </Link>{" "}
-          ·{" "}
-          <Link href="/panel/mi-clave" className="enlace-acento">
-            Mi contraseña
-          </Link>{" "}
+          {/* Cada quien ve lo que puede abrir. Mostrarle «Cobros» a un
+              médico solo le ofrece una puerta que se le va a cerrar. */}
+          {enlacesDelPanel(sesion?.rol).map((e) => (
+            <span key={e.href}>
+              <Link href={e.href} className="enlace-acento">
+                {e.texto}
+              </Link>{" "}
+              ·{" "}
+            </span>
+          ))}
           <BotonSalir />
         </p>
       </section>

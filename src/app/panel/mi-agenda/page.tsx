@@ -3,6 +3,7 @@ import Link from "next/link";
 
 import { FilaCita } from "@/componentes/FilaCita";
 import { FiltroMedico } from "@/componentes/FiltroMedico";
+import { PeriodosCerrados, type PeriodoFila } from "@/componentes/PeriodosCerrados";
 import { enHoraLocal } from "@/lib/panel-datos";
 import { prisma } from "@/lib/prisma";
 import { sesionActual } from "@/lib/sesion-actual";
@@ -37,6 +38,39 @@ export default async function MiAgenda({
     : { profesionalId: sesion?.profesionalId ?? "sin-perfil" };
 
   const ahora = new Date();
+  const hoy = ahora.toISOString().slice(0, 10);
+
+  // Los días cerrados son de un médico concreto: se muestran cuando la
+  // pantalla está mirando a uno solo, no la agenda entera del directorio.
+  const perfilEnFoco = esEquipo
+    ? medico
+      ? (await prisma.profesional.findUnique({
+          where: { slug: medico },
+          select: { id: true, nombre: true },
+        })) ?? null
+      : null
+    : sesion?.profesionalId
+      ? await prisma.profesional.findUnique({
+          where: { id: sesion.profesionalId },
+          select: { id: true, nombre: true },
+        })
+      : null;
+
+  const cerrados: PeriodoFila[] = perfilEnFoco
+    ? (
+        await prisma.periodoCerrado.findMany({
+          where: { profesionalId: perfilEnFoco.id },
+          orderBy: { desde: "desc" },
+          take: 20,
+        })
+      ).map((c) => ({
+        id: c.id,
+        desde: c.desde,
+        hasta: c.hasta,
+        motivo: c.motivo,
+        pasado: c.hasta < hoy,
+      }))
+    : [];
 
   const [proximas, recientes, profesionales] = await Promise.all([
     prisma.cita.findMany({
@@ -129,6 +163,20 @@ export default async function MiAgenda({
               />
             ))}
           </div>
+        </section>
+      ) : null}
+
+      {perfilEnFoco ? (
+        <section className="envoltura seccion">
+          <div className="seccion-cabeza">
+            <h2>Días cerrados</h2>
+          </div>
+          <p className="meta" style={{ marginBottom: 14 }}>
+            Vacaciones, congresos o ausencias de {perfilEnFoco.nombre}. Esos días
+            dejan de ofrecerse a pacientes nuevos; las citas ya agendadas no se
+            cancelan solas.
+          </p>
+          <PeriodosCerrados profesionalId={perfilEnFoco.id} periodos={cerrados} />
         </section>
       ) : null}
     </main>

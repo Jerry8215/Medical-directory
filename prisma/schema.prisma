@@ -145,6 +145,7 @@ model Profesional {
   verificaciones Verificacion[]
   pagos          Pago[]
   metricas       MetricaDiaria[]
+  cerrados       PeriodoCerrado[]
   citas          Cita[]
   opiniones      Opinion[]
   usuarios       Usuario[]
@@ -349,6 +350,25 @@ model Opinion {
   fecha         DateTime    @default(now())
 
   @@index([profesionalId, publicada])
+}
+
+/// Un periodo que el médico cerró: vacaciones, un congreso, una ausencia.
+///
+/// Se guarda como rango y no como un renglón por día porque así lo piensa
+/// el médico —«del 20 al 28»— y porque corregir un periodo es tocar un
+/// solo registro. El generador de huecos lo expande a días al leerlo.
+model PeriodoCerrado {
+  id            String      @id @default(cuid())
+  profesionalId String
+  profesional   Profesional @relation(fields: [profesionalId], references: [id], onDelete: Cascade)
+  /// Días en formato AAAA-MM-DD: la agenda razona en fechas locales, y un
+  /// instante UTC movería el corte del día seis horas.
+  desde         String
+  hasta         String
+  motivo        String?
+  creadoEn      DateTime    @default(now())
+
+  @@index([profesionalId, desde])
 }
 
 /// Lo que pasó con un perfil en un día, ya sumado.

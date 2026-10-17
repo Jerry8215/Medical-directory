@@ -26,6 +26,7 @@ import {
   type Ciudad,
   type Especialidad,
 } from "@/lib/catalogo";
+import { cerradosDe } from "@/lib/cerrados-lectura";
 import { ocupadosDe } from "@/lib/citas-lectura";
 import { opinionesDe, telefonoDe } from "@/lib/opiniones-lectura";
 
@@ -97,6 +98,10 @@ export default async function PaginaProfesional({ params }: Props) {
 
   const hoy = new Date().toISOString().slice(0, 10);
 
+  // Vacaciones y ausencias: valen para todos sus consultorios, así que se
+  // leen una vez y no uno por uno.
+  const cerrados = p.puede.agenda ? await cerradosDe(p.slug) : [];
+
   // Cada consultorio tiene su propia agenda: un médico que atiende en dos
   // ciudades no comparte horarios entre ellas, y ofrecer solo la del
   // primero deja sin cita al paciente de la otra.
@@ -113,6 +118,7 @@ export default async function PaginaProfesional({ params }: Props) {
                   franjas: c.franjas,
                   duracionMin: c.duracionCitaMin,
                   ocupados: await ocupadosDe(c.id),
+                  bloqueados: cerrados,
                   desde: hoy,
                   dias: 21,
                   maximo: 24,
