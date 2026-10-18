@@ -14,8 +14,11 @@
 
 import { revalidatePath } from "next/cache";
 
+import { altaDeAcceso } from "@/lib/accesos";
+import { enviarCorreo } from "@/lib/avisos";
 import { prisma } from "@/lib/prisma";
 import { sesionActual } from "@/lib/sesion-actual";
+import { sitio, urlAbsoluta } from "@/config/sitio";
 
 export type Resultado = { ok: true; mensaje: string } | { ok: false; mensaje: string };
 
@@ -123,9 +126,10 @@ export async function aprobarSolicitud(id: string): Promise<Resultado> {
   }
 
   const slug = await slugLibre(slugDe(solicitud.nombre));
+  let creado = "";
 
   try {
-    await prisma.$transaction(async (tx) => {
+    creado = await prisma.$transaction(async (tx) => {
       const profesional = await tx.profesional.create({
         data: {
           nombre: solicitud.nombre,
@@ -196,17 +200,49 @@ export async function aprobarSolicitud(id: string): Promise<Resultado> {
           detalle: `${solicitud.nombre} · cédula ${solicitud.cedula}`,
         },
       });
+
+      return profesional.id;
     });
   } catch (error) {
     console.error("[verificacion] no se pudo publicar", error);
     return { ok: false, mensaje: "No se pudo publicar el perfil. Intente de nuevo." };
   }
 
+  // Verificada la cédula, el acceso del médico nace solo. Hasta ahora
+  // alguien tenía que acordarse de crearlo a mano, y mientras no lo hacía
+  // el médico no podía tocar su propio perfil.
+  const acceso = await altaDeAcceso(creado, solicitud.correo);
+  if (acceso.ok) {
+    await enviarCorreo({
+      para: acceso.correo,
+      asunto: `Su perfil ya está publicado en ${sitio.nombre}`,
+      cuerpo: [
+        `Doctor(a) ${solicitud.nombre}:`,
+        "",
+        "Su cédula quedó verificada y su perfil ya aparece en el directorio.",
+        "",
+        "Desde su acceso puede editar su semblanza, sus consultorios, sus horarios",
+        "y sus precios, y ver cuántos pacientes lo buscaron.",
+        "",
+        `Entre aquí: ${urlAbsoluta("/panel/acceso")}`,
+        `Correo: ${acceso.correo}`,
+        `Contraseña: ${acceso.clave}`,
+        "",
+        "Le recomendamos cambiarla desde «Mi contraseña» en cuanto entre.",
+      ].join("\n"),
+    }).catch(() => {
+      // El perfil ya quedó publicado: que no salga el correo no puede
+      // deshacerlo. El administrador puede reemitir el acceso a mano.
+    });
+  }
+
   revalidatePath("/panel");
   revalidatePath("/");
   return {
     ok: true,
-    mensaje: `Perfil publicado. Ya aparece en el directorio con su cédula verificada.`,
+    mensaje: acceso.ok
+      ? "Perfil publicado y acceso enviado al médico por correo."
+      : `Perfil publicado. No se pudo crear su acceso: ${acceso.mensaje}`,
   };
 }
 
