@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { manana } from "@/lib/avisos";
+import { ayer, manana } from "@/lib/avisos";
 
 /**
  * La ventana del recordatorio.
@@ -45,5 +45,30 @@ describe("manana", () => {
   it("cruza el fin de año", () => {
     const { desde } = manana(new Date("2026-12-31T14:00:00.000Z"));
     expect(desde.toISOString()).toBe("2027-01-01T06:00:00.000Z");
+  });
+});
+
+describe("ayer", () => {
+  it("toma el día anterior completo en hora de Chihuahua", () => {
+    // 06-10-2026, 08:00 en Chihuahua.
+    const { desde, hasta } = ayer(new Date("2026-10-06T14:00:00.000Z"));
+    expect(desde.toISOString()).toBe("2026-10-05T06:00:00.000Z");
+    expect(hasta.toISOString()).toBe("2026-10-06T06:00:00.000Z");
+  });
+
+  it("dura exactamente un día", () => {
+    const { desde, hasta } = ayer(new Date("2026-10-06T14:00:00.000Z"));
+    expect(hasta.getTime() - desde.getTime()).toBe(24 * 60 * 60 * 1000);
+  });
+
+  it("de madrugada todavía apunta al día anterior correcto", () => {
+    // 05-10-2026, 23:00 local, que en UTC ya es día 6.
+    const { desde } = ayer(new Date("2026-10-06T05:00:00.000Z"));
+    expect(desde.toISOString()).toBe("2026-10-04T06:00:00.000Z");
+  });
+
+  it("cruza el fin de mes hacia atrás", () => {
+    const { desde } = ayer(new Date("2026-11-01T14:00:00.000Z"));
+    expect(desde.toISOString()).toBe("2026-10-31T06:00:00.000Z");
   });
 });

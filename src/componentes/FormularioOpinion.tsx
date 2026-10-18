@@ -15,13 +15,19 @@ export function FormularioOpinion({
   slug,
   profesional,
   token,
+  autorSugerido = "",
+  abiertoDeInicio = false,
 }: {
   slug: string;
   profesional: string;
   token?: string;
+  /** El nombre con el que agendó, para no pedírselo otra vez. */
+  autorSugerido?: string;
+  /** Abierto cuando el paciente llegó justamente a opinar. */
+  abiertoDeInicio?: boolean;
 }) {
-  const [abierto, setAbierto] = useState(false);
-  const [autor, setAutor] = useState("");
+  const [abierto, setAbierto] = useState(abiertoDeInicio);
+  const [autor, setAutor] = useState(autorSugerido);
   const [texto, setTexto] = useState("");
   const [calificacion, setCalificacion] = useState(5);
   const [aviso, setAviso] = useState("");

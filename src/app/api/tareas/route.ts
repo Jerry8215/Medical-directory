@@ -3,6 +3,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import {
   avisarNovedades,
   avisarVencimientos,
+  pedirOpiniones,
   procesarAvisos,
   recordarCitasDeManana,
 } from "@/lib/avisos";
@@ -26,6 +27,7 @@ export async function GET(peticion: NextRequest) {
   const avisos = await procesarAvisos();
   const novedades = await avisarNovedades();
   const vencimientos = await avisarVencimientos();
+  const opiniones = await pedirOpiniones();
 
   return NextResponse.json({
     ...recordatorios,
@@ -35,6 +37,8 @@ export async function GET(peticion: NextRequest) {
     novedadesMotivo: novedades.motivo,
     planesAvisados: vencimientos.avisados,
     planesPendientes: vencimientos.pendientes,
+    opinionesPedidas: opiniones.pedidas,
+    opinionesPendientes: opiniones.pendientes,
     remitente: process.env.CORREO_REMITENTE ?? "onboarding@resend.dev",
     cuando: new Date().toISOString(),
   });

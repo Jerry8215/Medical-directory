@@ -405,6 +405,113 @@ export async function avisarVencimientos(): Promise<{
 }
 
 /**
+ * Le pide su opinión a quien se atendió ayer.
+ *
+ * Es lo que hace crecer al directorio: una ficha sin opiniones pesa poco
+ * para el paciente que compara y para Google, que ordena los resultados
+ * locales en buena medida por eso. Pedirla a mano no escala y pedírsela a
+ * cualquiera la vuelve sospechosa; pedírsela sola a quien sí tuvo cita es
+ * lo que la hace creíble.
+ *
+ * Tres cuidados. Se pide una sola vez por cita, y queda asentado para que
+ * correr la tarea dos veces no mande dos correos. No se le pide a quien
+ * ejerció su derecho de oposición. Y no se le pide a quien no se presentó:
+ * invitar a opinar a alguien que faltó a su cita es pedir una mala reseña.
+ */
+export async function pedirOpiniones(limite = 40): Promise<{
+  pedidas: number;
+  pendientes: number;
+}> {
+  const ahora = new Date();
+  const { desde, hasta } = ayer(ahora);
+
+  const citas = await prisma.cita.findMany({
+    where: {
+      inicio: { gte: desde, lt: hasta },
+      estado: { in: ["ATENDIDA", "CONFIRMADA"] },
+      paciente: { bajaEn: null },
+    },
+    take: limite,
+    include: {
+      paciente: { select: { nombre: true, correo: true } },
+      profesional: { select: { nombre: true } },
+    },
+  });
+
+  let pedidas = 0;
+  let pendientes = 0;
+
+  for (const cita of citas) {
+    const yaPedida = await prisma.registroAuditoria.findFirst({
+      where: { accion: "opinion.solicitada", entidadId: cita.id },
+      select: { id: true },
+    });
+    if (yaPedida) continue;
+
+    const yaOpino = await prisma.opinion.findUnique({ where: { citaId: cita.id } });
+    if (yaOpino) continue;
+
+    if (!cita.paciente.correo) {
+      pendientes += 1;
+      continue;
+    }
+
+    try {
+      const salio = await enviarCorreo({
+        para: cita.paciente.correo,
+        asunto: `¿Cómo le fue con ${cita.profesional.nombre}?`,
+        cuerpo: [
+          `${cita.paciente.nombre ?? "Hola"}:`,
+          "",
+          `Ayer tuvo su consulta con ${cita.profesional.nombre}. Si tiene un`,
+          "minuto, su opinión le sirve al siguiente paciente que esté decidiendo.",
+          "",
+          `Dejar su opinión: ${urlAbsoluta(`/opinar/${cita.token}`)}`,
+          "",
+          "Se publica después de una revisión. Si prefiere no recibir estos",
+          "mensajes, respóndanos y lo damos de baja.",
+        ].join("\n"),
+      });
+      if (!salio) {
+        pendientes += 1;
+        continue;
+      }
+    } catch (error) {
+      console.error("[opiniones] no se pudo pedir", error);
+      pendientes += 1;
+      continue;
+    }
+
+    await prisma.registroAuditoria.create({
+      data: {
+        actor: "sistema",
+        accion: "opinion.solicitada",
+        entidad: "cita",
+        entidadId: cita.id,
+        detalle: `Se le pidió su opinión sobre ${cita.profesional.nombre}.`,
+      },
+    });
+    pedidas += 1;
+  }
+
+  return { pedidas, pendientes };
+}
+
+/** El día de ayer completo, en hora de Chihuahua. */
+export function ayer(ahora: Date): { desde: Date; hasta: Date } {
+  const local = new Date(ahora.getTime() - ZONA);
+  const inicio = Date.UTC(
+    local.getUTCFullYear(),
+    local.getUTCMonth(),
+    local.getUTCDate() - 1,
+  );
+  return {
+    desde: new Date(inicio + ZONA),
+    hasta: new Date(inicio + ZONA + 24 * 60 * 60_000),
+  };
+}
+
+/**
  * Entrega lo pendiente en el momento, sin esperar a la tarea diaria.
  *
  * El plan de alojamiento solo admite una tarea programada por día, así que
