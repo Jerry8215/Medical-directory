@@ -45,11 +45,11 @@ export function MetricasPerfil({
       ) : null}
 
       {porDia.length > 0 ? (
-        <div className="barras" aria-hidden="true">
+        <div className="barras-dias" aria-hidden="true">
           {porDia.map((d) => (
             <span
               key={d.dia}
-              className="barra"
+              className="barra-dia"
               style={{ height: `${Math.max(4, (d.vistas / tope) * 100)}%` }}
               title={`${d.dia}: ${d.vistas}`}
             />

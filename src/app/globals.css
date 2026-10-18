@@ -2368,7 +2368,10 @@ a.chip:hover {
 /* ---------- métricas del perfil ---------- */
 
 /* Un vistazo al mes, no un tablero: sin ejes ni leyenda, solo la forma. */
-.barras {
+/* `barras-dias` y no `barras`: esa clase ya era la del desglose de
+   estrellas del perfil, y esta le estaba cambiando el alto y la
+   dirección a las barras de las opiniones. */
+.barras-dias {
   display: flex;
   align-items: flex-end;
   gap: 3px;
@@ -2380,7 +2383,9 @@ a.chip:hover {
   border-radius: var(--radio);
 }
 
-.barra {
+/* `barra-dia` y no `barra`: esa clase ya era la de la barra de navegación,
+   y el fondo azul al 75% de esta se lo estaba pintando encima. */
+.barra-dia {
   flex: 1;
   min-width: 3px;
   border-radius: 3px 3px 0 0;
