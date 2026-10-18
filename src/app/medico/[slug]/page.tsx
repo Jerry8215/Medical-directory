@@ -3,6 +3,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
+import { AnotarseEnEspera } from "@/componentes/AnotarseEnEspera";
 import { ContadorDeVisitas } from "@/componentes/ContadorDeVisitas";
 import { FormularioOpinion } from "@/componentes/FormularioOpinion";
 import {
@@ -182,6 +183,10 @@ export default async function PaginaProfesional({ params }: Props) {
         `${primera.nombre} ${primera.direccion} ${nombreDeCiudad(primera.ciudad)} Chihuahua`,
       )}`
     : null;
+
+  // Si ningún consultorio tiene horarios libres, se ofrece la lista.
+  const sinHuecos =
+    reservables.length > 0 && reservables.every((c) => c.dias.length === 0);
 
   return (
     <main>
@@ -482,6 +487,15 @@ export default async function PaginaProfesional({ params }: Props) {
               <div style={{ marginTop: 12 }}>
                 <Reserva consultorios={reservables} profesional={p.nombre} />
               </div>
+
+              {/* Solo cuando no queda nada que ofrecer: con horarios
+                  libres, apuntarse competiría con agendar, que es lo que
+                  el paciente de verdad quiere hacer. */}
+              {sinHuecos ? (
+                <div style={{ marginTop: 14 }}>
+                  <AnotarseEnEspera slug={p.slug} profesional={p.nombre} />
+                </div>
+              ) : null}
             </div>
           ) : (
             <div className="ficha reserva" id="contacto">

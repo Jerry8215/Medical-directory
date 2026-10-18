@@ -14,6 +14,7 @@
 import { revalidatePath } from "next/cache";
 
 import { disponible } from "@/lib/agenda";
+import { ofrecerHueco } from "@/lib/espera";
 import { anotar } from "@/lib/novedades";
 import { prisma } from "@/lib/prisma";
 
@@ -66,6 +67,10 @@ export async function cancelarPorToken(
       detalle: "Cancelación del paciente",
     },
   });
+
+  // El hueco se le ofrece a quien ya estaba esperando a ese médico, antes
+  // de que se quede ahí esperando a que alguien lo encuentre de casualidad.
+  await ofrecerHueco(cita.profesionalId, cita.inicio);
 
   await anotar({
     tipo: "CITA_CANCELADA",

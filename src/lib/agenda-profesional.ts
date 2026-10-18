@@ -11,6 +11,7 @@
 import { revalidatePath } from "next/cache";
 
 import { cancelarEvento } from "@/lib/google-calendar";
+import { ofrecerHueco } from "@/lib/espera";
 import { prisma } from "@/lib/prisma";
 import { sesionActual } from "@/lib/sesion-actual";
 
@@ -59,6 +60,9 @@ export async function cancelarCita(id: string, motivo: string): Promise<Resultad
   if (cita.eventoGoogleId && cita.consultorio.calendarioGoogleId) {
     await cancelarEvento(cita.consultorio.calendarioGoogleId, cita.eventoGoogleId);
   }
+
+  // Y que el hueco se le ofrezca al siguiente de la lista.
+  await ofrecerHueco(cita.profesionalId, cita.inicio);
 
   // El horario vuelve a ofrecerse en cuanto se regenere el perfil.
   revalidatePath("/panel/mi-agenda");

@@ -146,6 +146,7 @@ model Profesional {
   pagos          Pago[]
   metricas       MetricaDiaria[]
   cerrados       PeriodoCerrado[]
+  espera         EnEspera[]
   citas          Cita[]
   opiniones      Opinion[]
   usuarios       Usuario[]
@@ -293,6 +294,7 @@ model Paciente {
   consentimiento DateTime?
   bajaEn         DateTime?
   citas          Cita[]
+  espera         EnEspera[]
   creadoEn       DateTime @default(now())
 }
 
@@ -350,6 +352,31 @@ model Opinion {
   fecha         DateTime    @default(now())
 
   @@index([profesionalId, publicada])
+}
+
+/// Un paciente esperando que se libere un horario con un médico.
+///
+/// Existe porque una agenda llena hoy es un paciente perdido mañana: sin
+/// esto, el hueco que deja una cancelación no lo ocupa nadie y el médico
+/// se queda con la hora vacía y el paciente sin consulta.
+model EnEspera {
+  id            String      @id @default(cuid())
+  profesionalId String
+  profesional   Profesional @relation(fields: [profesionalId], references: [id], onDelete: Cascade)
+  pacienteId    String
+  paciente      Paciente    @relation(fields: [pacienteId], references: [id], onDelete: Cascade)
+  /// Desde cuándo le sirve, en AAAA-MM-DD. Vacío: cualquier fecha.
+  desde         String?
+  hasta         String?
+  nota          String?
+  /// Cuándo se le ofreció un hueco, para no ofrecerle dos seguidos ni
+  /// saltárselo si todavía no contesta.
+  avisadoEn     DateTime?
+  /// Se atendió, se cansó de esperar o ya agendó por otro lado.
+  cerradoEn     DateTime?
+  creadoEn      DateTime    @default(now())
+
+  @@index([profesionalId, cerradoEn, creadoEn])
 }
 
 /// Un periodo que el médico cerró: vacaciones, un congreso, una ausencia.
