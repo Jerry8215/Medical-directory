@@ -150,6 +150,19 @@ export async function reportarComprobante(
 export async function acreditarPago(pagoId: string): Promise<Resultado> {
   const quien = await equipo();
   if (!quien) return { ok: false, mensaje: "Solo el equipo del consultorio puede acreditar pagos." };
+  return acreditar(pagoId, quien.nombre);
+}
+
+/**
+ * El acreditamiento en sí, ya comprobado el permiso por quien llama.
+ *
+ * Va aparte porque hay dos puertas legítimas: la del consultorio que
+ * aprueba un depósito, y la del médico que estrena su mes de prueba. Las
+ * dos terminan acá, que es el único punto donde se mueve la fecha de
+ * vencimiento, y así no hay dos maneras distintas de calcularla.
+ */
+async function acreditar(pagoId: string, porQuien: string): Promise<Resultado> {
+  const quien = { nombre: porQuien };
 
   const pago = await prisma.pago.findUnique({
     where: { id: pagoId },
@@ -247,7 +260,54 @@ export async function darCortesia(
   const pago = await prisma.pago.create({
     data: { profesionalId, plan, meses, importe: 0, medio: "CORTESIA", estado: "PENDIENTE" },
   });
-  return acreditarPago(pago.id);
+  return acreditar(pago.id, quien.nombre);
+}
+
+/**
+ * El primer mes, de regalo.
+ *
+ * Es lo que permite que un médico estrene su plan completo antes de pagar
+ * nada, que es la única forma de pedir dinero por algo que todavía no le
+ * ha traído pacientes. Se concede una sola vez por perfil: se comprueba
+ * que nunca haya tenido un periodo acreditado, de modo que nadie encadene
+ * meses gratis cancelando y volviendo a empezar.
+ *
+ * Al vencer no hay cobro automático ni tarjeta guardada. El perfil vuelve
+ * al básico y el médico decide si paga, que es lo honesto cuando quien
+ * prueba no dejó un medio de pago.
+ */
+export async function estrenarMesGratis(
+  profesionalId: string,
+  plan: Plan,
+): Promise<Resultado> {
+  const quien = await dueñoOEquipo(profesionalId);
+  if (!quien) return { ok: false, mensaje: "No tiene permiso para esta operación." };
+  if (plan === "BASICO") {
+    return { ok: false, mensaje: "El plan básico ya es gratuito y no necesita prueba." };
+  }
+
+  const yaTuvo = await prisma.pago.count({
+    where: { profesionalId, estado: "ACREDITADO" },
+  });
+  if (yaTuvo > 0) {
+    return {
+      ok: false,
+      mensaje: "Este perfil ya estrenó su mes de prueba. Elija un plan para continuar.",
+    };
+  }
+
+  const pago = await prisma.pago.create({
+    data: {
+      profesionalId,
+      plan,
+      meses: 1,
+      importe: 0,
+      medio: "CORTESIA",
+      estado: "PENDIENTE",
+      detalle: "Primer mes de prueba, sin costo.",
+    },
+  });
+  return acreditar(pago.id, quien.nombre);
 }
 
 /** El recibo que se le manda al médico cuando su pago queda acreditado. */
