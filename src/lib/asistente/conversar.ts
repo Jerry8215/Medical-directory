@@ -26,6 +26,20 @@ export type Respuesta = {
   texto: string;
   /** Perfiles que el paciente puede abrir desde el chat. */
   sugerencias: { slug: string; nombre: string; especialidad: string }[];
+  /**
+   * Horarios que el paciente puede tomar sin salir de la conversación.
+   *
+   * Van con su fecha exacta y el consultorio al que pertenecen, de modo
+   * que al elegir uno se agende contra la agenda real del sitio y no
+   * contra una interpretación de «el martes».
+   */
+  agenda?: {
+    slug: string;
+    profesional: string;
+    consultorioId: string;
+    consultorio: string;
+    opciones: { fecha: string; hora: string; dia: string; etiqueta: string }[];
+  };
   /** De dónde salió: sirve para medir cuánto se resuelve sin pagar modelo. */
   origen: "barrera" | "catalogo" | "ia";
 };
@@ -99,14 +113,29 @@ async function conCatalogo(mensaje: string): Promise<Respuesta | null> {
   if (/horario|disponib|cuando (?:atiende|puede)|agendar con/.test(t) && porNombre[0]) {
     const agenda = await consultarDisponibilidad(porNombre[0].slug);
     if (agenda && agenda.dias.length > 0) {
+      // Con horarios que se pueden pulsar, repetirlos en el texto sería
+      // decir dos veces lo mismo y dejaría al paciente dudando de cuál de
+      // las dos listas vale. Sin ellos, el texto es lo único que hay.
       const proximos = agenda.dias
         .slice(0, 3)
         .map((d) => `${d.etiqueta}: ${d.horas.slice(0, 4).join(", ")}`)
         .join("\n");
+      const sePuedenPulsar = agenda.opciones.length > 0;
       return {
-        texto:
-          `${porNombre[0].nombre} tiene estos horarios libres en ${agenda.consultorio}:\n${proximos}\n\n` +
-          "Puede elegir el suyo desde su perfil y la cita queda confirmada al instante.",
+        texto: sePuedenPulsar
+          ? `${porNombre[0].nombre} tiene horarios libres en ${agenda.consultorio}. ` +
+            "Elija uno y le dejo la cita agendada aquí mismo."
+          : `${porNombre[0].nombre} tiene estos horarios libres en ${agenda.consultorio}:\n${proximos}`,
+        agenda:
+          agenda.opciones.length > 0
+            ? {
+                slug: porNombre[0].slug,
+                profesional: porNombre[0].nombre,
+                consultorioId: agenda.consultorioId,
+                consultorio: agenda.consultorio,
+                opciones: agenda.opciones,
+              }
+            : undefined,
         sugerencias: [
           {
             slug: porNombre[0].slug,

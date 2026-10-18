@@ -4,8 +4,23 @@ import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 
+import { AgendarEnElChat } from "@/componentes/AgendarEnElChat";
+
 type Sugerencia = { slug: string; nombre: string; especialidad: string };
-type Turno = { quien: "paciente" | "asistente"; texto: string; sugerencias?: Sugerencia[] };
+type Agenda = {
+  slug: string;
+  profesional: string;
+  consultorioId: string;
+  consultorio: string;
+  opciones: { fecha: string; hora: string; dia: string; etiqueta: string }[];
+};
+
+type Turno = {
+  quien: "paciente" | "asistente";
+  texto: string;
+  sugerencias?: Sugerencia[];
+  agenda?: Agenda;
+};
 
 const PRIMERAS = [
   "Busco un cirujano para vesícula",
@@ -55,6 +70,7 @@ export function Asistente() {
             datos.error ??
             "No pude responderle en este momento. Intente de nuevo.",
           sugerencias: datos.sugerencias ?? [],
+          agenda: datos.agenda,
         },
       ]);
     } catch {
@@ -159,6 +175,8 @@ export function Asistente() {
                     ))}
                   </div>
                 ) : null}
+
+                {t.agenda ? <AgendarEnElChat agenda={t.agenda} /> : null}
               </div>
             ))}
             {/* Tres puntos en lugar de «Un momento…»: ocupa el lugar que va a

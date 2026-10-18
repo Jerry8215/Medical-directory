@@ -7,7 +7,8 @@
  * dirección que no existe.
  */
 
-import { huecos, porDia } from "@/lib/agenda";
+import { etiquetaDe, huecos, porDia } from "@/lib/agenda";
+import { cerradosDe } from "@/lib/cerrados-lectura";
 import { prisma } from "@/lib/prisma";
 
 export type ProfesionalEncontrado = {
@@ -196,11 +197,29 @@ export async function buscarProfesionales({
   });
 }
 
+export type HoraOfrecida = {
+  /** AAAA-MM-DD, tal como lo espera agendarCita. */
+  fecha: string;
+  hora: string;
+  /** «martes 21 de octubre», para agrupar las horas del mismo día. */
+  dia: string;
+  /** «martes 21 de octubre a las 09:00», para confirmar sin ambigüedad. */
+  etiqueta: string;
+};
+
+export type Disponibilidad = {
+  consultorioId: string;
+  consultorio: string;
+  dias: { etiqueta: string; horas: string[] }[];
+  /** Los primeros huecos, ya listos para agendar sin volver a buscar. */
+  opciones: HoraOfrecida[];
+};
+
 /** Los próximos horarios libres de un profesional. */
 export async function consultarDisponibilidad(
   slug: string,
   dias = 14,
-): Promise<{ consultorio: string; dias: { etiqueta: string; horas: string[] }[] } | null> {
+): Promise<Disponibilidad | null> {
   const profesional = await prisma.profesional.findUnique({
     where: { slug },
     include: { consultorios: { include: { franjas: true } } },
@@ -228,25 +247,63 @@ export async function consultarDisponibilidad(
     };
   });
 
-  const libres = porDia(
-    huecos({
+  // Los días que el médico cerró no existen para el paciente. Sin esto,
+  // el asistente ofrecería horas de unas vacaciones ya avisadas.
+  const bloqueados = await cerradosDe(slug);
+
+  const sueltos = huecos({
       franjas: consultorio.franjas.map((f) => ({
         dia: f.dia,
         desde: f.desde,
         hasta: f.hasta,
       })),
       duracionMin: consultorio.duracionCitaMin,
-      ocupados,
-      desde,
-      dias,
-      maximo: 12,
-    }),
-  );
+    ocupados,
+    bloqueados,
+    desde,
+    dias,
+    maximo: 12,
+  });
+
+  const libres = porDia(sueltos);
 
   return {
+    consultorioId: consultorio.id,
     consultorio: consultorio.nombre,
     dias: libres.map((d) => ({ etiqueta: d.etiqueta, horas: d.horas })),
+    // Se acompañan los huecos con su fecha exacta: el paciente elige uno y
+    // se agenda sin tener que adivinar a qué día se refería «martes 21».
+    opciones: repartidas(sueltos),
   };
+}
+
+/**
+ * Unas pocas horas de cada día, no todas las de mañana.
+ *
+ * Seis huecos seguidos son la misma mañana repetida: al paciente que no
+ * puede en la mañana no le sirve ninguno. Repartirlos entre los próximos
+ * días es lo que convierte la lista en una elección.
+ */
+export function repartidas(
+  sueltos: { fecha: string; hora: string }[],
+  porDiaMaximo = 3,
+  diasMaximo = 3,
+): HoraOfrecida[] {
+  const agrupadas = new Map<string, { fecha: string; hora: string }[]>();
+  for (const h of sueltos) {
+    const delDia = agrupadas.get(h.fecha) ?? [];
+    if (delDia.length < porDiaMaximo) delDia.push(h);
+    agrupadas.set(h.fecha, delDia);
+  }
+  return [...agrupadas.values()]
+    .slice(0, diasMaximo)
+    .flat()
+    .map((h) => ({
+      fecha: h.fecha,
+      hora: h.hora,
+      dia: etiquetaDe(h.fecha),
+      etiqueta: `${etiquetaDe(h.fecha)} a las ${h.hora}`,
+    }));
 }
 
 /** Ciudades y especialidades vigentes, para que el asistente no las invente. */

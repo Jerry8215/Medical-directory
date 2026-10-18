@@ -2404,6 +2404,51 @@ a.chip:hover {
   line-height: 1.5;
 }
 
+/* Agendar desde la conversación: el formulario va dentro de la burbuja,
+   así que respira menos que el del perfil. */
+.agendar-chat .formulario {
+  gap: 8px;
+}
+
+.agendar-chat .campo label {
+  font-size: 0.82rem;
+}
+
+.agendar-chat .chip[aria-pressed="true"] {
+  background: var(--azul);
+  color: #fff;
+}
+
+/* El día una vez, sus horas debajo: en la ventana del chat cada hora
+   completa ocuparía un renglón y la elección quedaría fuera de pantalla. */
+.dia-ofrecido {
+  margin-top: 10px;
+}
+
+.dia-rotulo {
+  display: block;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--suave);
+  margin-bottom: 5px;
+}
+
+/* Solo la inicial: «capitalize» escribiría «Lunes 19 De Octubre». */
+.dia-rotulo::first-letter {
+  text-transform: uppercase;
+}
+
+.horas-ofrecidas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.horas-ofrecidas .chip {
+  font-variant-numeric: tabular-nums;
+  padding: 5px 11px;
+}
+
 /* ---------- cobros del panel ---------- */
 
 /* Un depósito por aprobar detiene a alguien: el médico ya pagó y todavía
