@@ -2465,6 +2465,37 @@ a.chip:hover {
   font-weight: 600;
 }
 
+/* El editor del texto de una ciudad se despliega bajo su renglón y ocupa
+   el ancho entero de la tabla, que es donde cabe un párrafo. */
+.editor-ciudad {
+  grid-column: 1 / -1;
+  padding: 12px 0 4px;
+  border-top: 1px dashed var(--borde);
+  margin-top: 10px;
+}
+
+.editor-ciudad label {
+  display: block;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--navy);
+  margin-bottom: 6px;
+}
+
+.editor-ciudad textarea {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--borde);
+  border-radius: 10px;
+  font: inherit;
+  color: var(--tinta);
+  resize: vertical;
+}
+
+.editor-ciudad .boton-suave {
+  margin-top: 10px;
+}
+
 .precio-plan {
   font-size: 1.5rem;
   font-weight: 600;

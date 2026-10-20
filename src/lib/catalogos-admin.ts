@@ -87,7 +87,7 @@ export async function crearCiudad(
 
 export async function ajustarCiudad(
   slug: string,
-  cambios: { umbral?: number | null; activa?: boolean },
+  cambios: { umbral?: number | null; activa?: boolean; descripcion?: string },
 ): Promise<Resultado> {
   const actor = await soloAdministrador();
   if (!actor) return { ok: false, mensaje: "Solo el administrador puede cambiar esto." };
@@ -99,6 +99,9 @@ export async function ajustarCiudad(
         ? { umbralMinimo: cambios.umbral && cambios.umbral > 0 ? cambios.umbral : null }
         : {}),
       ...(cambios.activa !== undefined ? { activa: cambios.activa } : {}),
+      ...(cambios.descripcion !== undefined
+        ? { descripcion: cambios.descripcion.trim() }
+        : {}),
     },
   });
 

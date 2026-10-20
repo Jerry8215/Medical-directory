@@ -14,7 +14,12 @@ import {
 type Opcion = { slug: string; nombre: string };
 
 type Props = {
-  ciudades: (Opcion & { umbral: number | null; activa: boolean; profesionales: number })[];
+  ciudades: (Opcion & {
+    umbral: number | null;
+    activa: boolean;
+    descripcion: string;
+    profesionales: number;
+  })[];
   especialidades: (Opcion & { padecimientos: number })[];
   profesiones: (Opcion & { exigeConsejo: boolean })[];
   umbralGeneral: number;
@@ -40,6 +45,11 @@ export function PanelCatalogos({
   const [ciudadNombre, setCiudadNombre] = useState("");
   const [ciudadTexto, setCiudadTexto] = useState("");
   const [ciudadUmbral, setCiudadUmbral] = useState("");
+  // Qué ciudad se está reescribiendo y con qué texto. El texto de una
+  // ciudad ya abierta solo se podía poner al crearla, de modo que
+  // corregir una errata obligaba a borrarla y volver a empezar.
+  const [editando, setEditando] = useState<string | null>(null);
+  const [textoCiudad, setTextoCiudad] = useState("");
 
   // especialidad
   const [espNombre, setEspNombre] = useState("");
@@ -121,7 +131,49 @@ export function PanelCatalogos({
                 >
                   {c.activa ? "Abierta · cerrar" : "Cerrada · abrir"}
                 </button>
+                {" · "}
+                <button
+                  type="button"
+                  className="enlace-boton"
+                  disabled={trabajando}
+                  onClick={() => {
+                    setEditando(editando === c.slug ? null : c.slug);
+                    setTextoCiudad(c.descripcion);
+                  }}
+                >
+                  {editando === c.slug ? "cancelar" : "texto"}
+                </button>
               </span>
+
+              {editando === c.slug ? (
+                <div className="editor-ciudad">
+                  <label htmlFor={`texto-${c.slug}`}>
+                    Descripción que encabeza la página de {c.nombre}
+                  </label>
+                  <textarea
+                    id={`texto-${c.slug}`}
+                    rows={3}
+                    value={textoCiudad}
+                    onChange={(e) => setTextoCiudad(e.target.value)}
+                  />
+                  <button
+                    type="button"
+                    className="boton-suave"
+                    disabled={trabajando || textoCiudad.trim().length < 20}
+                    onClick={() =>
+                      ejecutar(async () => {
+                        const r = await ajustarCiudad(c.slug, {
+                          descripcion: textoCiudad,
+                        });
+                        if (r.ok) setEditando(null);
+                        return r;
+                      })
+                    }
+                  >
+                    Guardar el texto
+                  </button>
+                </div>
+              ) : null}
             </div>
           ))}
         </div>

@@ -50,6 +50,7 @@ export default async function Catalogos() {
             nombre: c.nombre,
             umbral: c.umbralMinimo,
             activa: c.activa,
+            descripcion: c.descripcion ?? "",
             profesionales: c._count.consultorios,
           }))}
           especialidades={especialidades.map((e) => ({
