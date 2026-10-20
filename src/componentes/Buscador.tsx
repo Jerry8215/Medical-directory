@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import { TarjetaProfesional } from "@/componentes/TarjetaProfesional";
 import type { Profesional } from "@/lib/tipos";
@@ -18,7 +18,6 @@ export function Buscador({
   etiquetas,
   especialidades,
   ciudad,
-  inicial = "",
 }: {
   profesionales: Profesional[];
   /** slug de padecimiento -> nombre legible, para poder buscar por texto */
@@ -26,10 +25,20 @@ export function Buscador({
   /** slug de especialidad -> nombre legible */
   especialidades: Record<string, string>;
   ciudad: string;
-  /** Lo que el paciente escribió en la portada. */
-  inicial?: string;
 }) {
-  const [consulta, setConsulta] = useState(inicial);
+  const [consulta, setConsulta] = useState("");
+
+  // Lo que el paciente escribió en la portada llega en «?q=». Lo lee el
+  // navegador y no el servidor a propósito: en cuanto la página de ciudad
+  // mira la dirección completa deja de poder guardarse en caché y vuelve a
+  // consultar la base de datos en cada visita, que es justo lo que agotó la
+  // cuota de cómputo. El primer dibujo es idéntico en servidor y navegador,
+  // así que la hidratación no se rompe, y el filtrado es instantáneo porque
+  // la lista ya venía con la página.
+  useEffect(() => {
+    const q = new URLSearchParams(window.location.search).get("q");
+    if (q) setConsulta(q);
+  }, []);
 
   const encontrados = useMemo(() => {
     const q = consulta.trim().toLowerCase();

@@ -24,7 +24,6 @@ export const revalidate = 1800;
 
 type Props = {
   params: Promise<{ ciudad: string }>;
-  searchParams: Promise<{ q?: string }>;
 };
 
 export async function generateStaticParams() {
@@ -48,9 +47,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   };
 }
 
-export default async function PaginaCiudad({ params, searchParams }: Props) {
+export default async function PaginaCiudad({ params }: Props) {
   const { ciudad: slug } = await params;
-  const { q } = await searchParams;
   const c = await ciudad(slug);
   if (!c) notFound();
 
@@ -128,7 +126,6 @@ export default async function PaginaCiudad({ params, searchParams }: Props) {
             etiquetas={etiquetas}
             especialidades={nombreDeEspecialidad}
             ciudad={c.nombre}
-            inicial={q ?? ""}
           />
         ) : (
           <div className="nota-umbral">
