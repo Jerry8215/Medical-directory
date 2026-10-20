@@ -121,10 +121,17 @@ export default async function PaginaEspecialidad({ params }: Props) {
           <h2>Padecimientos que atiende esta especialidad</h2>
         </div>
         <div className="chips">
+          {/* Cada padecimiento tiene su propia página; dejarlos como texto
+              las convertía en páginas huérfanas, a las que el buscador
+              llega por el mapa del sitio pero sin nada que las respalde. */}
           {e.padecimientos.map((p) => (
-            <span key={p.slug} className="chip">
+            <Link
+              key={p.slug}
+              href={`/${c.slug}/padecimiento/${p.slug}`}
+              className="chip"
+            >
               {p.nombre}
-            </span>
+            </Link>
           ))}
         </div>
       </section>
