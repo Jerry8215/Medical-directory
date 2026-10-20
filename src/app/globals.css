@@ -2449,6 +2449,22 @@ a.chip:hover {
   padding: 5px 11px;
 }
 
+/* Una opinión que viene del enlace posterior a la consulta trae prueba
+   de que la consulta ocurrió. Decirlo vale más que pedirle el teléfono a
+   quien escribe, porque un teléfono se inventa y una cita no. */
+.sello-opinion {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-left: 8px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--verde-tenue);
+  color: var(--verde-fuerte);
+  font-size: 0.72rem;
+  font-weight: 600;
+}
+
 /* ---------- fotografía del perfil ---------- */
 
 .subir-foto {

@@ -39,7 +39,7 @@ export const dynamic = "force-dynamic";
  * consultorio lleva el directorio completo, la caja y las solicitudes
  * sobre datos personales.
  */
-function enlacesDelPanel(rol: string | undefined) {
+function enlacesDelPanel(rol: string | undefined, tienePerfil: boolean) {
   const propios = [
     { href: "/panel/mi-agenda", texto: "Agenda" },
     { href: "/panel/mi-perfil", texto: "Mi perfil" },
@@ -53,7 +53,12 @@ function enlacesDelPanel(rol: string | undefined) {
   const clave = [{ href: "/panel/mi-clave", texto: "Mi contraseña" }];
 
   if (rol === "ADMINISTRADOR" || rol === "RECEPCION") {
-    return [propios[0], ...delEquipo, ...clave];
+    // El titular del sitio también pasa consulta. Esconderle «Mi perfil»
+    // por ser administrador lo dejaba sin forma de editar lo suyo, con la
+    // página existiendo y sin un solo enlace que llevara hasta ella.
+    return tienePerfil
+      ? [...propios, ...delEquipo, ...clave]
+      : [propios[0], ...delEquipo, ...clave];
   }
   return [...propios, ...clave];
 }
@@ -122,7 +127,7 @@ export default async function Panel() {
           Sesión de {sesion?.nombre ?? "invitado"} · {sesion?.rol.toLowerCase()} ·{" "}
           {/* Cada quien ve lo que puede abrir. Mostrarle «Cobros» a un
               médico solo le ofrece una puerta que se le va a cerrar. */}
-          {enlacesDelPanel(sesion?.rol).map((e) => (
+          {enlacesDelPanel(sesion?.rol, Boolean(sesion?.profesionalId)).map((e) => (
             <span key={e.href}>
               <Link href={e.href} className="enlace-acento">
                 {e.texto}

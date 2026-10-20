@@ -24,6 +24,10 @@ export async function opinionesDe(slug: string) {
     autor: o.autor,
     texto: o.texto,
     calificacion: o.calificacion,
+    // Quien opina desde el enlace que se envía después de la consulta
+    // trae consigo la prueba de que la consulta existió. Quien escribe
+    // desde el perfil, no. El paciente que lee merece saber cuál es cuál.
+    verificada: Boolean(o.citaId),
     cuando: `${o.fecha.getUTCDate()} de ${MESES[o.fecha.getUTCMonth()]} de ${o.fecha.getUTCFullYear()}`,
   }));
 }

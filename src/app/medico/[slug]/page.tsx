@@ -445,6 +445,12 @@ export default async function PaginaProfesional({ params }: Props) {
                       <p>«{o.texto}»</p>
                       <p className="quien">
                         {o.autor} · {o.cuando}
+                        {o.verificada ? (
+                          <span className="sello-opinion">
+                            <Escudo size={12} />
+                            Paciente verificado
+                          </span>
+                        ) : null}
                       </p>
                     </div>
                   ))}
