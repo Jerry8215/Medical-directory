@@ -3,15 +3,16 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-import { Calendario, Casa, Estetoscopio, Maletin } from "@/componentes/Iconos";
-
-type Enlace = { href: string; texto: string; icono: "casa" | "medicos" | "medico" };
+import { Calendario, Casa, Estetoscopio, Maletin, Puerta } from "@/componentes/Iconos";
 
 const ICONOS = {
   casa: Casa,
   medicos: Estetoscopio,
   medico: Maletin,
+  acceso: Puerta,
 } as const;
+
+type Enlace = { href: string; texto: string; icono: keyof typeof ICONOS };
 
 /**
  * Los enlaces de la barra.

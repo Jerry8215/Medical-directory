@@ -64,6 +64,21 @@ export function cedulaVerificada(p: Profesional): boolean {
   return p.credenciales.some((c) => c.tipo === "CEDULA_PROFESIONAL" && Boolean(c.numero));
 }
 
+/**
+ * ¿Este perfil, por sí solo, responde la búsqueda del paciente?
+ *
+ * Es la pregunta que decide si una página se le ofrece al buscador, y no
+ * cuántos médicos la habitan. Un alergólogo único en la ciudad con su
+ * cédula verificada, su consultorio y su semblanza responde «alergólogo en
+ * Delicias» mejor que cinco perfiles a medio llenar. Lo que Google castiga
+ * es la página vacía, no la página breve.
+ */
+export function perfilCompleto(p: Profesional): boolean {
+  if (p.ejemplo) return false;
+  if (!cedulaVerificada(p)) return false;
+  return p.consultorios.some((c) => Boolean(c.direccion));
+}
+
 /** La certificación de consejo caduca; el distintivo no debe sobrevivirla. */
 export function consejoVigente(p: Profesional): boolean {
   const consejo = p.credenciales.find((c) => c.tipo === "CONSEJO_ESPECIALIDAD");

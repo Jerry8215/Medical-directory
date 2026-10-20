@@ -22,6 +22,7 @@ import type {
   Especialidad,
   Profesional,
 } from "@/lib/tipos";
+import { perfilCompleto } from "@/lib/tipos";
 
 export type { Ciudad, Consultorio, Credencial, Especialidad, Profesional } from "@/lib/tipos";
 export { cedulaVerificada, consejoVigente } from "@/lib/tipos";
@@ -283,11 +284,12 @@ export async function publicable(
   ciudadSlug: string,
   especialidadSlug?: string,
 ): Promise<{ publicada: boolean; cuantos: number; faltan: number; minimo: number }> {
-  // Los perfiles de muestra no cuentan para publicar una página. Sirven
-  // para que el sitio no se vea vacío ante un visitante, no para
-  // convencer al buscador de que la ciudad ya tiene especialistas.
+  // Cuentan los perfiles que responden la búsqueda por sí solos: ni los de
+  // muestra, ni los que están a medio llenar. Así una especialidad con un
+  // único médico en la ciudad se publica, que es lo correcto, y una con
+  // cinco perfiles incompletos no.
   const cuantos = (await profesionalesEn(ciudadSlug, especialidadSlug)).filter(
-    (p) => !p.ejemplo,
+    perfilCompleto,
   ).length;
   const minimo = await umbral(ciudadSlug);
   return {

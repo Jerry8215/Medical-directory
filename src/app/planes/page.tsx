@@ -3,6 +3,7 @@ import Link from "next/link";
 
 import { sitio } from "@/config/sitio";
 import { CAPACIDADES, DESCRIPCIONES, NOMBRES, type Plan } from "@/lib/planes";
+import { precios } from "@/lib/precios";
 
 export const metadata: Metadata = {
   title: "Planes para profesionales",
@@ -40,7 +41,16 @@ const INCLUYE: Record<Plan, string[]> = {
   ],
 };
 
-export default function Planes() {
+export default async function Planes() {
+  const lista = await precios();
+
+  /** El precio de cada plan, en pesos y como lo lee un médico. */
+  const mensual: Record<Plan, string> = {
+    BASICO: "Sin costo",
+    GOLD: `$${Math.round(lista.GOLD / 100)} al mes`,
+    PREMIUM: `$${Math.round(lista.PREMIUM / 100)} al mes`,
+  };
+
   return (
     <main>
       <section className="envoltura" style={{ paddingBlock: "44px 8px" }}>
@@ -69,6 +79,9 @@ export default function Planes() {
               }
             >
               <h3 style={{ fontSize: "1.3rem" }}>{NOMBRES[plan]}</h3>
+              {/* Una página de planes sin precio obliga a escribir para
+                  preguntarlo, y la mayoría no escribe. */}
+              <p className="precio-plan">{mensual[plan]}</p>
               <p className="meta" style={{ marginTop: 6 }}>
                 {DESCRIPCIONES[plan]}
               </p>
@@ -102,9 +115,10 @@ export default function Planes() {
 
       <section className="envoltura seccion">
         <div className="nota-umbral">
-          Durante el lanzamiento, aparecer en el directorio no tiene costo. Si
-          le interesa el Gold o el Premium, solicite su alta y el equipo del
-          directorio le comparte las condiciones vigentes.
+          Aparecer en el directorio con su cédula verificada no tiene costo y
+          no caduca. El Gold y el Premium se pagan por mes, sin permanencia y
+          sin tarjeta guardada: al terminar el periodo el perfil vuelve al
+          básico y usted decide si continúa.
         </div>
         <p style={{ marginTop: 16 }}>
           <Link href="/alta" className="boton-lleno" style={{ display: "inline-block", width: "auto" }}>

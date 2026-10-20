@@ -32,6 +32,16 @@ export function Casa({ size = 18 }: Props) {
   );
 }
 
+export function Puerta({ size = 18 }: Props) {
+  return (
+    <svg {...base(size)}>
+      <path d="M14 4h4a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1h-4" />
+      <path d="M10 8l4 4-4 4" />
+      <path d="M14 12H4" />
+    </svg>
+  );
+}
+
 export function Lupa({ size = 18 }: Props) {
   return (
     <svg {...base(size)}>
