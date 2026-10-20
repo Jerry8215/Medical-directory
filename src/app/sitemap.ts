@@ -47,12 +47,16 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.9,
   }));
 
-  const paginasDePerfil = perfiles.map((p) => ({
-    url: urlAbsoluta(`/medico/${p.slug}`),
-    lastModified: ahora,
-    changeFrequency: "monthly" as const,
-    priority: 0.7,
-  }));
+  // Los perfiles de muestra quedan fuera: anunciarlos sería pedirle al
+  // buscador que indexe médicos que no existen.
+  const paginasDePerfil = perfiles
+    .filter((p) => !p.ejemplo)
+    .map((p) => ({
+      url: urlAbsoluta(`/medico/${p.slug}`),
+      lastModified: ahora,
+      changeFrequency: "monthly" as const,
+      priority: 0.7,
+    }));
 
   return [inicio, ...porCiudad, ...porEspecialidad, ...paginasDePerfil];
 }

@@ -65,6 +65,10 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     title: `${p.nombre} · ${especialidad?.nombre} en ${nombresDeCiudad}`,
     description: `${p.nombre}, ${especialidad?.nombre.toLowerCase()} con cédula verificada en ${nombresDeCiudad}. Consulte horarios, precio de consulta y agende su cita en línea.`,
     alternates: { canonical: `/medico/${p.slug}` },
+    // Un perfil de muestra no entra al buscador. Está para que el sitio no
+    // se vea vacío mientras se llena, no para que alguien lo encuentre
+    // buscando un cardiólogo y aterrice en un médico que no existe.
+    robots: p.ejemplo ? { index: false, follow: false } : undefined,
   };
 }
 
