@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { Buscador } from "@/componentes/Buscador";
+import { fichas, listaDeProfesionales, migasDeNavegacion } from "@/lib/schema";
 import { sitio } from "@/config/sitio";
 import {
   ciudad,
@@ -62,8 +63,24 @@ export default async function PaginaCiudad({ params, searchParams }: Props) {
     listaEspecialidades.map((e) => [e.slug, e.nombre]),
   );
 
+  // La ciudad es una página de listado, no un consultorio: lleva la lista
+  // de quienes atienden ahí y el rastro de migas, no una ficha de negocio
+  // con dirección y horario que no le corresponden.
+  const datosEstructurados = fichas(
+    listaDeProfesionales(`Médicos en ${c.nombre}`, profesionales, c),
+    migasDeNavegacion([
+      { nombre: "Inicio", ruta: "/" },
+      { nombre: c.nombre, ruta: `/${c.slug}` },
+    ]),
+  );
+
   return (
     <main>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: datosEstructurados }}
+      />
+
       <div className="envoltura migas">
         <Link href="/">Inicio</Link> / {c.nombre}
       </div>

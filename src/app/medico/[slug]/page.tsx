@@ -18,6 +18,7 @@ import {
 import { Reserva } from "@/componentes/Reserva";
 import { sitio, urlAbsoluta } from "@/config/sitio";
 import { huecos, porDia } from "@/lib/agenda";
+import { fichas, migasDeNavegacion } from "@/lib/schema";
 import {
   cedulaVerificada,
   ciudades,
@@ -39,6 +40,17 @@ type Props = { params: Promise<{ slug: string }> };
  * horarios de la semana pasada.
  */
 export const revalidate = 3600;
+
+/** Los días como los nombra schema.org, en el mismo orden que DIAS. */
+const DIAS_SCHEMA = [
+  "Monday",
+  "Tuesday",
+  "Wednesday",
+  "Thursday",
+  "Friday",
+  "Saturday",
+  "Sunday",
+];
 
 const DIAS = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"];
 
@@ -155,7 +167,19 @@ export default async function PaginaProfesional({ params }: Props) {
     }),
   }));
 
-  const datosEstructurados = {
+  // El horario de atención, en el formato que Google entiende. Sale de las
+  // mismas franjas que el paciente ve en pantalla, no de un texto aparte
+  // que alguien tendría que recordar actualizar.
+  const atencion = p.consultorios.flatMap((c) =>
+    c.franjas.map((f) => ({
+      "@type": "OpeningHoursSpecification",
+      dayOfWeek: DIAS_SCHEMA.at(f.dia),
+      opens: f.desde,
+      closes: f.hasta,
+    })),
+  );
+
+  const perfilDelMedico = {
     "@context": "https://schema.org",
     "@type": "Physician",
     name: p.nombre,
@@ -180,7 +204,27 @@ export default async function PaginaProfesional({ params }: Props) {
       addressRegion: listaCiudades.find((x: Ciudad) => x.slug === c.ciudad)?.estado,
       addressCountry: "MX",
     })),
+    ...(atencion.length > 0 ? { openingHoursSpecification: atencion } : {}),
   };
+
+  const datosEstructurados = fichas(
+    perfilDelMedico,
+    migasDeNavegacion([
+      { nombre: "Inicio", ruta: "/" },
+      ...(primera
+        ? [{ nombre: nombreDeCiudad(primera.ciudad), ruta: `/${primera.ciudad}` }]
+        : []),
+      ...(listaEspecialidades[0] && primera
+        ? [
+            {
+              nombre: listaEspecialidades[0].nombre,
+              ruta: `/${primera.ciudad}/${listaEspecialidades[0].slug}`,
+            },
+          ]
+        : []),
+      { nombre: p.nombre, ruta: `/medico/${p.slug}` },
+    ]),
+  );
 
   const comoLlegar = primera
     ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
@@ -200,7 +244,7 @@ export default async function PaginaProfesional({ params }: Props) {
 
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(datosEstructurados) }}
+        dangerouslySetInnerHTML={{ __html: datosEstructurados }}
       />
 
       <div className="envoltura migas">

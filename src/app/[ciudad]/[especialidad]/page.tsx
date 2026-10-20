@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 
 import { TarjetaProfesional } from "@/componentes/TarjetaProfesional";
 import { urlAbsoluta } from "@/config/sitio";
+import { fichas, listaDeProfesionales, migasDeNavegacion } from "@/lib/schema";
 import {
   ciudad,
   ciudades,
@@ -54,34 +55,22 @@ export default async function PaginaEspecialidad({ params }: Props) {
     ciudades(),
   ]);
 
-  // Lo que Google necesita para mostrar la ficha con los especialistas.
-  const datosEstructurados = {
-    "@context": "https://schema.org",
-    "@type": "ItemList",
-    name: `${e.nombre} en ${c.nombre}`,
-    itemListElement: profesionales.map((p, i) => ({
-      "@type": "ListItem",
-      position: i + 1,
-      item: {
-        "@type": "Physician",
-        name: p.nombre,
-        medicalSpecialty: e.nombre,
-        url: urlAbsoluta(`/medico/${p.slug}`),
-        address: {
-          "@type": "PostalAddress",
-          addressLocality: c.nombre,
-          addressRegion: c.estado,
-          addressCountry: "MX",
-        },
-      },
-    })),
-  };
+  // La lista de especialistas y el rastro de migas, que es lo que Google
+  // dibuja bajo el título en lugar de la dirección cruda.
+  const datosEstructurados = fichas(
+    listaDeProfesionales(`${e.nombre} en ${c.nombre}`, profesionales, c, e.nombre),
+    migasDeNavegacion([
+      { nombre: "Inicio", ruta: "/" },
+      { nombre: c.nombre, ruta: `/${c.slug}` },
+      { nombre: e.nombre, ruta: `/${c.slug}/${e.slug}` },
+    ]),
+  );
 
   return (
     <main>
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(datosEstructurados) }}
+        dangerouslySetInnerHTML={{ __html: datosEstructurados }}
       />
 
       <div className="envoltura migas">

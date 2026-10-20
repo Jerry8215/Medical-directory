@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { TarjetaProfesional } from "@/componentes/TarjetaProfesional";
+import { fichas, listaDeProfesionales, migasDeNavegacion } from "@/lib/schema";
 import {
   ciudad,
   ciudades,
@@ -49,8 +50,28 @@ export default async function PaginaPadecimiento({ params }: Props) {
 
   const profesionales = await profesionalesPorPadecimiento(c.slug, p.slug);
 
+  const datosEstructurados = fichas(
+    listaDeProfesionales(
+      `${p.nombre} en ${c.nombre}`,
+      profesionales,
+      c,
+      p.especialidad.nombre,
+    ),
+    migasDeNavegacion([
+      { nombre: "Inicio", ruta: "/" },
+      { nombre: c.nombre, ruta: `/${c.slug}` },
+      { nombre: p.especialidad.nombre, ruta: `/${c.slug}/${p.especialidad.slug}` },
+      { nombre: p.nombre, ruta: `/${c.slug}/padecimiento/${p.slug}` },
+    ]),
+  );
+
   return (
     <main>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: datosEstructurados }}
+      />
+
       <div className="envoltura migas">
         <Link href="/">Inicio</Link> / <Link href={`/${c.slug}`}>{c.nombre}</Link> /{" "}
         <Link href={`/${c.slug}/${p.especialidad.slug}`}>{p.especialidad.nombre}</Link>{" "}
