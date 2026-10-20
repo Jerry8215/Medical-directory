@@ -19,6 +19,9 @@ const inter = Inter({
 
 export const metadata: Metadata = {
   metadataBase: new URL(urlAbsoluta("/")),
+  // Lo que Google pide para aceptar que el dominio es nuestro. Va en el
+  // código y no en un archivo suelto para que sobreviva a los despliegues.
+  verification: { google: "2G06i0uhh3N3mKWcfoSy7kh_F5cbW54vW5etBjkT6mY" },
   title: {
     default: `${sitio.nombre} · Médicos verificados con cita en línea`,
     template: `%s · ${sitio.nombre}`,
