@@ -44,6 +44,7 @@ function enlacesDelPanel(rol: string | undefined, tienePerfil: boolean) {
     { href: "/panel/mi-agenda", texto: "Agenda" },
     { href: "/panel/mi-perfil", texto: "Mi perfil" },
   ];
+  const soloAdmin = [{ href: "/panel/usuarios", texto: "Accesos" }];
   const delEquipo = [
     { href: "/panel/catalogos", texto: "Catálogos" },
     { href: "/panel/opiniones", texto: "Opiniones" },
@@ -56,9 +57,11 @@ function enlacesDelPanel(rol: string | undefined, tienePerfil: boolean) {
     // El titular del sitio también pasa consulta. Esconderle «Mi perfil»
     // por ser administrador lo dejaba sin forma de editar lo suyo, con la
     // página existiendo y sin un solo enlace que llevara hasta ella.
+    const equipo =
+      rol === "ADMINISTRADOR" ? [...delEquipo, ...soloAdmin] : delEquipo;
     return tienePerfil
-      ? [...propios, ...delEquipo, ...clave]
-      : [propios[0], ...delEquipo, ...clave];
+      ? [...propios, ...equipo, ...clave]
+      : [propios[0], ...equipo, ...clave];
   }
   return [...propios, ...clave];
 }

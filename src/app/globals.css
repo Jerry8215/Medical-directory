@@ -2496,6 +2496,36 @@ a.chip:hover {
   margin-top: 10px;
 }
 
+/* La contraseña se muestra una sola vez: si se pierde, hay que reemitir.
+   Por eso se ve grande y con su propio recuadro, no como un aviso más. */
+.credencial-nueva {
+  background: var(--verde-tenue);
+  border: 1px solid var(--verde);
+  border-radius: var(--radio);
+  padding: 16px 18px;
+}
+
+.credencial-nueva .rotulo {
+  font-size: 0.78rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.6pt;
+  color: var(--verde-fuerte);
+  margin-bottom: 8px;
+}
+
+.credencial-nueva code {
+  font-size: 1.15rem;
+  letter-spacing: 0.5px;
+  background: var(--papel);
+  padding: 2px 8px;
+  border-radius: 6px;
+}
+
+.credencial-nueva .boton-suave {
+  margin-top: 12px;
+}
+
 .precio-plan {
   font-size: 1.5rem;
   font-weight: 600;
