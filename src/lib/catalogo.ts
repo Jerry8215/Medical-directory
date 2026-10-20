@@ -283,7 +283,12 @@ export async function publicable(
   ciudadSlug: string,
   especialidadSlug?: string,
 ): Promise<{ publicada: boolean; cuantos: number; faltan: number; minimo: number }> {
-  const cuantos = (await profesionalesEn(ciudadSlug, especialidadSlug)).length;
+  // Los perfiles de muestra no cuentan para publicar una página. Sirven
+  // para que el sitio no se vea vacío ante un visitante, no para
+  // convencer al buscador de que la ciudad ya tiene especialistas.
+  const cuantos = (await profesionalesEn(ciudadSlug, especialidadSlug)).filter(
+    (p) => !p.ejemplo,
+  ).length;
   const minimo = await umbral(ciudadSlug);
   return {
     publicada: cuantos >= minimo,
