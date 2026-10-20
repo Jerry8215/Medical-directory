@@ -5,6 +5,14 @@ import { sitio } from "@/config/sitio";
 import { CAPACIDADES, DESCRIPCIONES, NOMBRES, type Plan } from "@/lib/planes";
 import { precios } from "@/lib/precios";
 
+/**
+ * El catálogo cambia sin que nadie despliegue: se abre una ciudad, se
+ * publica un médico, se corrige un texto. Sin esta línea la página
+ * quedaba congelada en el momento de compilar y el cambio no llegaba
+ * nunca al visitante ni al buscador.
+ */
+export const revalidate = 3600;
+
 export const metadata: Metadata = {
   title: "Planes para profesionales",
   description:

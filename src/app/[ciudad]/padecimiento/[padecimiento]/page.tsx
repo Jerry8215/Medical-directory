@@ -13,6 +13,14 @@ import {
   umbral,
 } from "@/lib/catalogo";
 
+/**
+ * El catálogo cambia sin que nadie despliegue: se abre una ciudad, se
+ * publica un médico, se corrige un texto. Sin esta línea la página
+ * quedaba congelada en el momento de compilar y el cambio no llegaba
+ * nunca al visitante ni al buscador.
+ */
+export const revalidate = 1800;
+
 type Props = { params: Promise<{ ciudad: string; padecimiento: string }> };
 
 export async function generateStaticParams() {

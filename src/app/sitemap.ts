@@ -13,6 +13,16 @@ import { ciudades, paginasPublicadas, profesionalesPublicados, publicable } from
  * Cada alta nueva aparece acá automáticamente, sin que nadie recuerde
  * actualizar una lista.
  */
+/**
+ * Se rehace cada hora.
+ *
+ * Sin esto el mapa quedaba fijado al momento de compilar: una ciudad que
+ * se abre, un médico que completa su perfil o una especialidad que
+ * alcanza el mínimo no entraban hasta el siguiente despliegue, y el
+ * buscador seguía viendo el sitio de la semana pasada.
+ */
+export const revalidate = 3600;
+
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const ahora = new Date();
   const [listaCiudades, publicadas, perfiles] = await Promise.all([
