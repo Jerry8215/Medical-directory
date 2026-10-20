@@ -11,6 +11,7 @@
 
 import { revalidatePath } from "next/cache";
 
+import { puedeEditarPerfil } from "@/lib/permiso-perfil";
 import { prisma } from "@/lib/prisma";
 import { sesionActual } from "@/lib/sesion-actual";
 
@@ -44,26 +45,11 @@ export type DatosConsultorio = {
 
 const HORA = /^([01]\d|2[0-3]):([0-5]\d)$/;
 
-/** Quien edita: el administrador, la recepción, o el propio profesional. */
-async function permiso(slug: string): Promise<{ nombre: string } | null> {
-  const sesion = await sesionActual();
-  if (!sesion) return null;
-  if (sesion.rol === "ADMINISTRADOR" || sesion.rol === "RECEPCION") {
-    return { nombre: sesion.nombre };
-  }
-
-  const profesional = await prisma.profesional.findUnique({ where: { slug } });
-  if (profesional && sesion.profesionalId === profesional.id) {
-    return { nombre: sesion.nombre };
-  }
-  return null;
-}
-
 export async function guardarPerfil(
   slug: string,
   datos: DatosPerfil,
 ): Promise<Resultado> {
-  const quien = await permiso(slug);
+  const quien = await puedeEditarPerfil(slug);
   if (!quien) return { ok: false, mensaje: "No tiene permiso para editar este perfil." };
 
   if (datos.nombre.trim().length < 5) {
@@ -114,7 +100,7 @@ export async function guardarConsultorio(
   slug: string,
   datos: DatosConsultorio,
 ): Promise<Resultado> {
-  const quien = await permiso(slug);
+  const quien = await puedeEditarPerfil(slug);
   if (!quien) return { ok: false, mensaje: "No tiene permiso para editar este perfil." };
 
   if (datos.nombre.trim().length < 3 || datos.direccion.trim().length < 5) {
@@ -200,7 +186,7 @@ export async function probarConexionGoogle(
   slug: string,
   calendarioId: string,
 ): Promise<Resultado> {
-  const quien = await permiso(slug);
+  const quien = await puedeEditarPerfil(slug);
   if (!quien) return { ok: false, mensaje: "No tiene permiso para este perfil." };
   if (!calendarioId.trim()) {
     return { ok: false, mensaje: "Pegue primero el identificador del calendario." };
@@ -226,7 +212,7 @@ export async function eliminarConsultorio(
   slug: string,
   id: string,
 ): Promise<Resultado> {
-  const quien = await permiso(slug);
+  const quien = await puedeEditarPerfil(slug);
   if (!quien) return { ok: false, mensaje: "No tiene permiso para editar este perfil." };
 
   const citas = await prisma.cita.count({

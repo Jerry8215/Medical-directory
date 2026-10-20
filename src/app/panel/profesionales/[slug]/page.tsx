@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 
 import { EditorProfesional } from "@/componentes/EditorProfesional";
 import { MetricasPerfil } from "@/componentes/MetricasPerfil";
+import { SubirFoto } from "@/componentes/SubirFoto";
 import { capacidades } from "@/lib/planes";
 import { panoramaDelMes } from "@/lib/metricas-datos";
 import { prisma } from "@/lib/prisma";
@@ -79,6 +80,17 @@ export default async function EditarProfesional({ params }: Props) {
           puedeWhatsapp={capacidades(profesional.plan, profesional.planHasta).whatsapp}
           tieneFoto={Boolean(profesional.fotografia)}
         />
+      </section>
+
+      <section className="envoltura seccion">
+        <div className="ficha formulario">
+          <h2>Fotografía</h2>
+          <SubirFoto
+            slug={slug}
+            fotografia={profesional.fotografia}
+            nombre={profesional.nombre}
+          />
+        </div>
       </section>
 
       <section className="envoltura seccion">
