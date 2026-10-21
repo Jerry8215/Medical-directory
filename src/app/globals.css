@@ -14,38 +14,77 @@
 :root {
   color-scheme: light;
 
-  --navy: #123b59;
+  /* El lienzo es blanco y las secciones se separan con bandas apenas
+     teñidas, no al revés. Pintar la página entera de azul y hacer flotar
+     tarjetas encima es lo que hacía que todo se viera del mismo peso: sin
+     blanco de por medio, nada destaca porque todo destaca. */
+  --fondo: #ffffff;
+  --papel: #ffffff;
+  --papel-2: #f7f9fc;
+  --banda-fria: #f2f6fb;
+  --banda-tibia: #f7f9fc;
+  --banda-calida: #fff5f7;
+
+  --navy: #0f2f4a;
   --navy-claro: #1d5074;
   --azul: #176a98;
-  --azul-tenue: #e3eef7;
+  --azul-tenue: #e8f1f9;
   --verde: #20be70;
   --verde-fuerte: #189c5b;
   --verde-tenue: #e4f7ed;
   --estrella: #f5a623;
 
-  --fondo: #ebf4fb;
-  --papel: #ffffff;
-  --papel-2: #f7fafd;
-  --tinta: #10263a;
-  --suave: #5b7183;
-  --borde: #dbe7f2;
+  --tinta: #0f2233;
+  --suave: #647587;
+  --borde: #e6edf5;
 
-  /* El degradado de la marca, el mismo cian y azul del logotipo y del
-     panel del asistente. Es lo que distingue una acción principal de un
-     enlace, sin tener que subrayar nada. */
+  /* El degradado de la marca, el mismo cian y azul del logotipo. Es lo
+     que distingue una acción principal, sin tener que subrayar nada ni
+     encerrarla en un borde. */
   --marca-a: #18b9d1;
   --marca-b: #1d4e9b;
   --deg-marca: linear-gradient(135deg, var(--marca-a), var(--marca-b));
 
-  --sombra: 0 1px 2px rgba(18, 59, 89, 0.05), 0 10px 28px rgba(18, 59, 89, 0.07);
-  --sombra-suave: 0 1px 3px rgba(18, 59, 89, 0.08);
-  --radio: 14px;
+  /* Sombras de aire, no de relieve: casi sin color y muy difusas. Las
+     sombras duras son lo que envejece un sitio. */
+  --sombra-suave: 0 1px 2px rgba(15, 34, 51, 0.04);
+  --sombra: 0 1px 2px rgba(15, 34, 51, 0.04), 0 14px 32px -16px rgba(15, 34, 51, 0.2);
+  --sombra-alta: 0 1px 2px rgba(15, 34, 51, 0.05), 0 26px 54px -24px rgba(15, 34, 51, 0.28);
+
+  --radio: 16px;
+  --radio-l: 24px;
+  --pastilla: 999px;
   --ancho: 1140px;
 
   /* La barra flota: no ocupa todo el ancho ni se pega al borde de arriba.
      El alto y ese aire se usan también para meter la portada por debajo. */
   --barra-alto: 84px;
   --barra-aire: 16px;
+}
+
+/* ------------------------------------------------- bandas de sección */
+
+/* El ritmo del sitio: blanco, una banda fría, blanco. La banda no es un
+   color de fondo cualquiera, es lo que le dice al ojo dónde termina un
+   tema y empieza el siguiente sin tener que dibujar una línea. */
+.banda {
+  background: var(--banda-fria);
+}
+
+.banda-tibia {
+  background: var(--banda-tibia);
+}
+
+.banda-calida {
+  background: var(--banda-calida);
+}
+
+/* Una banda respira más que una sección suelta: el aire de arriba y
+   abajo es lo que la vuelve una banda y no un rectángulo de color. */
+.banda,
+.banda-tibia,
+.banda-calida {
+  padding-block: clamp(48px, 7vw, 88px);
 }
 
 * {
@@ -293,15 +332,22 @@ img {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
-  border-radius: 10px;
-  padding: 11px 18px;
+  gap: 9px;
+  border-radius: var(--pastilla);
+  padding: 12px 22px;
   font: inherit;
-  font-weight: 600;
+  font-weight: 650;
   font-size: 0.94rem;
   cursor: pointer;
   border: 1px solid transparent;
-  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease,
+    filter 0.15s ease, transform 0.1s ease;
+}
+
+.boton-lleno:active:not(:disabled),
+.boton-suave:active:not(:disabled),
+.boton-azul:active:not(:disabled) {
+  transform: translateY(1px);
 }
 
 .boton-lleno {
@@ -366,26 +412,24 @@ img {
   display: inline-flex;
   align-items: center;
   gap: 7px;
-  border: 1px solid transparent;
+  /* Sin borde: un borde sobre un degradado solo ensucia el canto. */
+  border: 0;
   background-image: var(--deg-marca);
   color: #fff;
   font: inherit;
   font-weight: 650;
   font-size: 0.86rem;
   cursor: pointer;
-  padding: 8px 15px;
-  border-radius: 10px;
+  padding: 9px 17px;
+  border-radius: var(--pastilla);
   text-decoration: none;
-  box-shadow: 0 1px 2px rgba(18, 59, 89, 0.12),
-    0 8px 18px -12px rgba(29, 78, 155, 0.75);
+  box-shadow: none;
   transition: filter 0.15s ease, transform 0.1s ease, box-shadow 0.15s ease;
 }
 
 .enlace-boton:hover:not(:disabled) {
   filter: brightness(1.07) saturate(1.04);
   color: #fff;
-  box-shadow: 0 1px 2px rgba(18, 59, 89, 0.14),
-    0 12px 24px -12px rgba(29, 78, 155, 0.8);
 }
 
 .enlace-boton:active:not(:disabled) {
@@ -403,7 +447,7 @@ img {
 .enlace-boton.callado {
   background-image: none;
   background: var(--papel);
-  border-color: var(--borde);
+  border: 1px solid var(--borde);
   color: var(--navy);
   box-shadow: none;
 }
@@ -418,7 +462,7 @@ img {
 .enlace-boton.peligro {
   background-image: none;
   background: var(--papel);
-  border-color: #f0cdc8;
+  border: 1px solid #f0cdc8;
   color: #b4332a;
   box-shadow: none;
 }
@@ -1869,9 +1913,10 @@ a.chip:hover {
 
 /* ---------- síntomas ---------- */
 
+/* Una banda más del ritmo, no un degradado propio: un tono distinto por
+   sección es lo que vuelve una página un muestrario. */
 .franja-sintomas {
-  background: linear-gradient(180deg, var(--papel-2) 0%, #eaf4fb 100%);
-  border-block: 1px solid var(--borde);
+  background: var(--banda-fria);
 }
 
 .sintomas {

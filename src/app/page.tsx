@@ -401,7 +401,8 @@ export default async function Inicio() {
         </section>
       ) : null}
 
-      <section className="envoltura seccion">
+      <div className="banda">
+  <section className="envoltura">
         <div className="ciudades">
           <div>
             <p className="rotulo">En tu ciudad y alrededores</p>
@@ -446,7 +447,8 @@ export default async function Inicio() {
               }))}
           />
         </div>
-      </section>
+        </section>
+      </div>
 
       <section className="envoltura seccion">
         <div className="verificacion">
@@ -493,7 +495,8 @@ export default async function Inicio() {
         </div>
       </section>
 
-      <section className="envoltura seccion">
+      <div className="banda">
+  <section className="envoltura">
         <p className="rotulo">Así de fácil</p>
         <h2 className="titulo-seccion">Tu próxima consulta, en tres pasos</h2>
 
@@ -563,7 +566,8 @@ export default async function Inicio() {
             </div>
           </div>
         </div>
-      </section>
+        </section>
+      </div>
 
       <section className="envoltura seccion" id="preguntas">
         <div className="faq">
@@ -634,7 +638,8 @@ export default async function Inicio() {
           }),
         }}
       />
-      <section className="envoltura seccion">
+      <div className="banda-tibia">
+  <section className="envoltura">
         <div className="banda">
           <div>
             <h2>¿Eres médico en la región?</h2>
@@ -649,7 +654,8 @@ export default async function Inicio() {
             Crear mi perfil
           </Link>
         </div>
-      </section>
+        </section>
+      </div>
     </main>
   );
 }
