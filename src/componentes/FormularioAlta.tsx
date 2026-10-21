@@ -39,7 +39,7 @@ export function FormularioAlta({
   plan?: "BASICO" | "GOLD" | "PREMIUM";
   periodicidad?: string;
   /** Si lo recibe, en vez de pintar el acuse avisa y deja que lo pinte quien lo abrió. */
-  alTerminar?: () => void;
+  alTerminar?: (duplicada: boolean) => void;
 }) {
   const [datos, setDatos] = useState<Solicitud>(VACIO);
   const [errores, setErrores] = useState<Partial<Record<keyof Solicitud, string>>>({});
@@ -76,7 +76,7 @@ export function FormularioAlta({
             setErrores(r.errores);
             return;
           }
-          if (alTerminar) alTerminar();
+          if (alTerminar) alTerminar(Boolean(r.duplicada));
           else setEnviada(true);
         });
       }}

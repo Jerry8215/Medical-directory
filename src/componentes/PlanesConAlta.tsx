@@ -48,6 +48,7 @@ export function PlanesConAlta({
   const [cobrando, setCobrando] = useState<Plan | null>(null);
   const [registrando, setRegistrando] = useState(false);
   const [listo, setListo] = useState(false);
+  const [repetida, setRepetida] = useState(false);
 
   const ficha = fichas.find((f) => f.plan === elegido);
 
@@ -197,8 +198,9 @@ export function PlanesConAlta({
           especialidades={especialidades}
           ciudades={ciudades}
           plan={elegido}
-          alTerminar={() => {
+          alTerminar={(duplicada) => {
             setRegistrando(false);
+            setRepetida(duplicada);
             setListo(true);
           }}
         />
@@ -207,8 +209,12 @@ export function PlanesConAlta({
       <Modal
         abierta={listo}
         alCerrar={() => setListo(false)}
-        titulo="¡Registro exitoso!"
-        descripcion="Su solicitud quedó recibida."
+        titulo={repetida ? "Su solicitud ya estaba en revisión" : "¡Registro exitoso!"}
+        descripcion={
+          repetida
+            ? "No hizo falta volver a enviarla."
+            : "Su solicitud quedó recibida."
+        }
         pie={
           <button
             type="button"
@@ -219,11 +225,19 @@ export function PlanesConAlta({
           </button>
         }
       >
+        {/* Lo primero y en negritas, porque es exactamente lo que faltaba
+            decir: alguien se registra, no ve su perfil en el directorio y
+            concluye que el registro falló. */}
         <p>
-          El siguiente paso es la verificación de su cédula contra el Registro
-          Nacional de Profesionistas. En cuanto quede aprobada le escribimos al
-          correo que nos dejó y su perfil se publica con el distintivo de
-          cédula verificada.
+          <b>Su perfil todavía no aparece en el directorio.</b> Falta un paso,
+          y no es suyo: cotejamos su cédula contra el Registro Nacional de
+          Profesionistas antes de publicarlo. Es lo que sostiene el distintivo
+          de cédula verificada que llevan todos los perfiles.
+        </p>
+        <p style={{ marginTop: 12 }}>
+          En cuanto quede aprobada le escribimos al correo que nos dejó, con su
+          acceso al panel, y su perfil se publica. Normalmente el mismo día
+          hábil.
         </p>
       </Modal>
     </>

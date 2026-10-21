@@ -39,7 +39,8 @@ export type Solicitud = {
 };
 
 export type Resultado =
-  | { ok: true }
+  /** `duplicada` cuando ya había una solicitud suya esperando revisión. */
+  | { ok: true; duplicada?: boolean }
   | { ok: false; errores: Partial<Record<keyof Solicitud, string>> };
 
 export async function registrarSolicitud(datos: Solicitud): Promise<Resultado> {
@@ -79,6 +80,27 @@ export async function registrarSolicitud(datos: Solicitud): Promise<Resultado> {
     return {
       ok: false,
       errores: { especialidad: "Esa especialidad ya no está disponible." },
+    };
+  }
+
+  // Una misma persona registrándose cuatro veces en tres minutos no está
+  // insistiendo: está comprobando si funcionó, porque la pantalla no se
+  // lo dejó claro. El panel no tiene por qué llenarse de copias por eso.
+  const yaEstaba = await prisma.solicitudAlta.findFirst({
+    where: {
+      estado: { in: ["RECIBIDA", "EN_VERIFICACION"] },
+      OR: [
+        { cedula: cedula.ok ? cedula.valor : datos.cedula.trim() },
+        { correo: correo.ok ? correo.valor : datos.correo.trim() },
+      ],
+    },
+    select: { id: true },
+  });
+
+  if (yaEstaba) {
+    return {
+      ok: true,
+      duplicada: true,
     };
   }
 
