@@ -16,6 +16,8 @@
 import { del, put } from "@vercel/blob";
 import { revalidatePath } from "next/cache";
 
+import { refrescarDirectorio } from "@/lib/refrescar";
+
 import { puedeEditarPerfil } from "@/lib/permiso-perfil";
 import { prisma } from "@/lib/prisma";
 
@@ -98,6 +100,7 @@ export async function subirFotografia(
 
   revalidatePath(`/medico/${slug}`);
   revalidatePath(`/panel/profesionales/${slug}`);
+  refrescarDirectorio(slug);
   return { ok: true, url: subida.url, mensaje: "Fotografía actualizada." };
 }
 
@@ -131,5 +134,6 @@ export async function quitarFotografia(slug: string): Promise<Resultado> {
 
   revalidatePath(`/medico/${slug}`);
   revalidatePath(`/panel/profesionales/${slug}`);
+  refrescarDirectorio(slug);
   return { ok: true, url: "", mensaje: "Fotografía quitada." };
 }

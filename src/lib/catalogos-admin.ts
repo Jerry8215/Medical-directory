@@ -16,6 +16,8 @@
 
 import { revalidatePath } from "next/cache";
 
+import { refrescarDirectorio } from "@/lib/refrescar";
+
 import { prisma } from "@/lib/prisma";
 import { sesionActual } from "@/lib/sesion-actual";
 
@@ -44,7 +46,10 @@ async function auditar(actor: string, accion: string, detalle: string) {
 function refrescar() {
   revalidatePath("/panel/catalogos");
   revalidatePath("/panel");
-  revalidatePath("/");
+  // Abrir una ciudad, agregar un padecimiento o mover el umbral cambia lo
+  // que el directorio lista y lo que le ofrece al buscador, no solo la
+  // portada.
+  refrescarDirectorio();
 }
 
 // ----------------------------------------------------------------------

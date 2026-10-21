@@ -14,6 +14,8 @@
 
 import { revalidatePath } from "next/cache";
 
+import { refrescarDirectorio } from "@/lib/refrescar";
+
 import { altaDeAcceso } from "@/lib/accesos";
 import { enviarCorreo } from "@/lib/avisos";
 import { prisma } from "@/lib/prisma";
@@ -238,6 +240,7 @@ export async function aprobarSolicitud(id: string): Promise<Resultado> {
 
   revalidatePath("/panel");
   revalidatePath("/");
+  refrescarDirectorio();
   return {
     ok: true,
     mensaje: acceso.ok
@@ -272,5 +275,6 @@ export async function cambiarEstadoPerfil(
 
   revalidatePath("/panel");
   revalidatePath(`/medico/${slug}`);
+  refrescarDirectorio(slug);
   return { ok: true, mensaje: publicar ? "Perfil publicado." : "Perfil suspendido." };
 }

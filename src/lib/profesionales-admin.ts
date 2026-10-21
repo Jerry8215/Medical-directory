@@ -11,6 +11,8 @@
 
 import { revalidatePath } from "next/cache";
 
+import { refrescarDirectorio } from "@/lib/refrescar";
+
 import { puedeEditarPerfil } from "@/lib/permiso-perfil";
 import { prisma } from "@/lib/prisma";
 import { sesionActual } from "@/lib/sesion-actual";
@@ -93,6 +95,7 @@ export async function guardarPerfil(
 
   revalidatePath(`/medico/${slug}`);
   revalidatePath("/panel");
+  refrescarDirectorio(slug);
   return { ok: true, mensaje: "Perfil guardado." };
 }
 
@@ -169,6 +172,7 @@ export async function guardarConsultorio(
 
   revalidatePath(`/medico/${slug}`);
   revalidatePath("/panel");
+  refrescarDirectorio(slug);
   return {
     ok: true,
     mensaje: datos.id ? "Consultorio actualizado." : "Consultorio agregado.",
@@ -238,6 +242,7 @@ export async function eliminarConsultorio(
 
   revalidatePath(`/medico/${slug}`);
   revalidatePath("/panel");
+  refrescarDirectorio(slug);
   return { ok: true, mensaje: "Consultorio eliminado." };
 }
 
@@ -281,6 +286,7 @@ export async function cambiarPlan(
 
   revalidatePath(`/medico/${slug}`);
   revalidatePath("/panel");
+  refrescarDirectorio(slug);
   return {
     ok: true,
     mensaje:
@@ -374,6 +380,7 @@ export async function eliminarProfesional(slug: string): Promise<Resultado> {
 
   revalidatePath("/panel");
   revalidatePath("/");
+  refrescarDirectorio();
   return { ok: true, mensaje: `${profesional.nombre} quedó fuera del directorio.` };
 }
 
@@ -404,6 +411,7 @@ export async function suspenderProfesional(
   revalidatePath("/panel");
   revalidatePath(`/medico/${slug}`);
   revalidatePath("/");
+  refrescarDirectorio(slug);
   return {
     ok: true,
     mensaje: suspender

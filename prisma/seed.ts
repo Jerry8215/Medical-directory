@@ -200,12 +200,32 @@ async function cargarProfesional(p: Profesional) {
  * La contraseña sale del entorno; si no está, se genera una al azar y se
  * imprime una sola vez. Nunca queda una clave conocida escrita en el
  * código, que es como terminan abiertos los paneles.
+ *
+ * `ADMIN_PERFIL` liga la cuenta a un profesional. Importa más de lo que
+ * parece: el panel ofrece «Mi perfil» solo a quien tiene uno ligado, de
+ * modo que un administrador que además es médico y entra sin esa liga no
+ * encuentra por dónde editar su propia ficha.
  */
 async function crearAdministrador() {
   const correo = (process.env.ADMIN_CORREO ?? "admin@medicosdedelicias.com").toLowerCase();
+  const perfil = process.env.ADMIN_PERFIL
+    ? await prisma.profesional.findUnique({
+        where: { slug: process.env.ADMIN_PERFIL },
+        select: { id: true },
+      })
+    : null;
+
   const existente = await prisma.usuario.findUnique({ where: { correo } });
   if (existente) {
-    console.log(`Administrador ya existente: ${correo}`);
+    if (perfil && !existente.profesionalId) {
+      await prisma.usuario.update({
+        where: { correo },
+        data: { profesionalId: perfil.id },
+      });
+      console.log(`Administrador ligado a ${process.env.ADMIN_PERFIL}: ${correo}`);
+    } else {
+      console.log(`Administrador ya existente: ${correo}`);
+    }
     return;
   }
 
@@ -216,6 +236,7 @@ async function crearAdministrador() {
       correo,
       hashClave: cifrarClave(clave),
       rol: "ADMINISTRADOR",
+      profesionalId: perfil?.id ?? null,
     },
   });
 
@@ -225,9 +246,29 @@ async function crearAdministrador() {
   }
 }
 
-async function principal() {
-  await crearAdministrador();
+/**
+ * Ajustes acordados con el consultorio.
+ *
+ * Solo se escriben si faltan. El panel es la fuente de estos valores una
+ * vez que el sitio anda, así que una recarga no puede pisar lo que el
+ * consultorio haya cambiado desde entonces; lo que sí tiene que hacer es
+ * no dejarlos vacíos, porque entonces el sitio cobra el precio de lista
+ * en lugar del convenido.
+ */
+async function cargarAjustes() {
+  const acordados: Record<string, string> = {
+    // En centavos, como todo el dinero del sistema: $190 y $390.
+    precio_gold_mensual: "19000",
+    precio_premium_mensual: "39000",
+  };
 
+  for (const [clave, valor] of Object.entries(acordados)) {
+    const existente = await prisma.ajuste.findUnique({ where: { clave } });
+    if (!existente) await prisma.ajuste.create({ data: { clave, valor } });
+  }
+}
+
+async function principal() {
   console.log("Cargando catálogos…");
   await cargarCatalogos();
 
@@ -235,6 +276,11 @@ async function principal() {
   for (const p of [...PROFESIONALES, ...EJEMPLOS]) {
     await cargarProfesional(p);
   }
+
+  await cargarAjustes();
+
+  // Al final: ligar la cuenta a su perfil exige que el perfil ya exista.
+  await crearAdministrador();
 
   const cuenta = await prisma.profesional.count();
   console.log(`Listo: ${cuenta} profesionales en la base.`);
