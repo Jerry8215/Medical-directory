@@ -47,7 +47,13 @@ async function cargarCatalogos() {
   for (const [orden, c] of CIUDADES.entries()) {
     await prisma.ciudad.upsert({
       where: { slug: c.slug },
-      update: { nombre: c.nombre, estado: c.estado, descripcion: c.descripcion, orden },
+      update: {
+        nombre: c.nombre,
+        estado: c.estado,
+        descripcion: c.descripcion,
+        umbralMinimo: c.umbralMinimo ?? null,
+        orden,
+      },
       create: {
         slug: c.slug,
         nombre: c.nombre,
@@ -101,6 +107,7 @@ async function cargarProfesional(p: Profesional) {
       convenios: p.convenios,
       telefono: p.telefono,
       fotografia: p.fotografia,
+      plan: p.plan ?? "BASICO",
     },
     create: {
       slug: p.slug,
@@ -109,6 +116,7 @@ async function cargarProfesional(p: Profesional) {
       convenios: p.convenios,
       telefono: p.telefono,
       fotografia: p.fotografia,
+      plan: p.plan ?? "BASICO",
       // La calificación no se siembra: sale de las opiniones que los
       // pacientes dejen y el directorio publique. Un promedio inventado
       // vuelve inútil el que de verdad se gane.

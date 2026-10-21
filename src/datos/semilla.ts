@@ -55,6 +55,13 @@ export type Profesional = {
   padecimientos: string[];
   telefono?: string;
   fotografia?: string;
+  /**
+   * Lo que el profesional tiene contratado. Decide qué se le muestra al
+   * paciente —fotografía, WhatsApp, agenda en línea—, así que vive aquí
+   * para que una recarga desde cero devuelva el perfil tal como estaba y
+   * no una versión recortada.
+   */
+  plan?: "BASICO" | "GOLD" | "PREMIUM";
   consultorios: Consultorio[];
   credenciales: Credencial[];
   convenios?: string;
@@ -77,6 +84,11 @@ export const CIUDADES: Ciudad[] = [
     estado: "Chihuahua",
     descripcion:
       "Delicias concentra la mayor oferta hospitalaria de la región centro-sur del estado, con consultorios alrededor del centro y de los hospitales privados.",
+    // Delicias es la ciudad de arranque y se publica desde el primer
+    // perfil completo, no al reunir cuatro. El resto conserva el umbral
+    // general: una ciudad con un solo médico y sin más oferta alrededor es
+    // una página delgada, y eso perjudica al directorio entero.
+    umbralMinimo: 1,
   },
   {
     slug: "meoqui",
@@ -197,6 +209,7 @@ export const PROFESIONALES: Profesional[] = [
       "diverticulitis",
     ],
     telefono: "6391127780",
+    plan: "PREMIUM",
     fotografia:
       "https://wpet3qsq7vcwuash.public.blob.vercel-storage.com/medicos/jose-guadalupe-padilla-mUQSs92aDUsE09drc9BVidipkLbWFx.jpg",
     consultorios: [
