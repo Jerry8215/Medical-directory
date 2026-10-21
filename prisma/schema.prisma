@@ -229,6 +229,7 @@ model Consultorio {
   duracionCitaMin   Int         @default(30)
   activo            Boolean     @default(true)
   franjas           Franja[]
+  horasCerradas     HoraCerrada[]
   citas             Cita[]
 
   @@index([ciudadId, activo])
@@ -384,6 +385,26 @@ model EnEspera {
 /// Se guarda como rango y no como un renglón por día porque así lo piensa
 /// el médico —«del 20 al 28»— y porque corregir un periodo es tocar un
 /// solo registro. El generador de huecos lo expande a días al leerlo.
+/// Una hora suelta que el médico aparta porque ya la comprometió por
+/// otro medio: una llamada, un WhatsApp, alguien que llegó al
+/// consultorio. Sin esto el sitio seguía ofreciendo ese hueco y lo podía
+/// tomar un segundo paciente.
+model HoraCerrada {
+  id            String      @id @default(cuid())
+  consultorioId String
+  consultorio   Consultorio @relation(fields: [consultorioId], references: [id], onDelete: Cascade)
+  /// AAAA-MM-DD, el día local del consultorio.
+  fecha         String
+  /// HH:MM, el inicio del hueco apartado.
+  hora          String
+  motivo        String?
+  creadaPor     String?
+  creadaEn      DateTime    @default(now())
+
+  @@unique([consultorioId, fecha, hora])
+  @@index([consultorioId, fecha])
+}
+
 model PeriodoCerrado {
   id            String      @id @default(cuid())
   profesionalId String

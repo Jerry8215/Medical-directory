@@ -4448,3 +4448,39 @@ a.enlace-peligro {
   color: #b4332a;
   background: #fdecea;
 }
+
+/* -------------------------------------------------- apartar una hora */
+
+.apartar {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+/* El hueco se toca, no se escribe: el médico no tiene por qué deducir
+   que atender de 16:00 a 17:20 con citas de cuarenta minutos le da las
+   16:00 y las 16:40. */
+.chip-hora {
+  border: 1px solid var(--borde);
+  background: var(--papel);
+  color: var(--navy);
+  font: inherit;
+  font-weight: 650;
+  font-size: 0.9rem;
+  padding: 10px 18px;
+  border-radius: var(--pastilla);
+  cursor: pointer;
+  transition: border-color 0.15s ease, color 0.15s ease, background 0.15s ease;
+}
+
+.chip-hora:hover:not(:disabled) {
+  border-color: var(--azul);
+  color: var(--azul);
+  background: var(--azul-tenue);
+}
+
+.chip-hora:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}

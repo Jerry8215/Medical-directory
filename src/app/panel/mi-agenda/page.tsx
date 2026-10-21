@@ -3,7 +3,14 @@ import Link from "next/link";
 
 import { FilaCita } from "@/componentes/FilaCita";
 import { FiltroMedico } from "@/componentes/FiltroMedico";
+import {
+  HorasApartadas,
+  type ConsultorioConHuecos,
+  type HoraFila,
+} from "@/componentes/HorasApartadas";
 import { PeriodosCerrados, type PeriodoFila } from "@/componentes/PeriodosCerrados";
+import { diasDelPeriodo, huecos, porDia } from "@/lib/agenda";
+import { ocupadosDe } from "@/lib/citas-lectura";
 import { enHoraLocal } from "@/lib/panel-datos";
 import { prisma } from "@/lib/prisma";
 import { sesionActual } from "@/lib/sesion-actual";
@@ -69,6 +76,60 @@ export default async function MiAgenda({
         hasta: c.hasta,
         motivo: c.motivo,
         pasado: c.hasta < hoy,
+      }))
+    : [];
+
+  // Los huecos que el sitio todavía ofrece, para poder apartar de un clic
+  // el que acaba de comprometerse por teléfono.
+  const consultoriosConHuecos: ConsultorioConHuecos[] = perfilEnFoco
+    ? await Promise.all(
+        (
+          await prisma.consultorio.findMany({
+            where: { profesionalId: perfilEnFoco.id, activo: true },
+            include: { franjas: true },
+            orderBy: { nombre: "asc" },
+          })
+        ).map(async (c) => ({
+          id: c.id,
+          nombre: c.nombre,
+          dias: porDia(
+            huecos({
+              franjas: c.franjas,
+              duracionMin: c.duracionCitaMin,
+              ocupados: await ocupadosDe(c.id, 60),
+              // Los días de vacaciones tampoco se ofrecen aquí: apartar
+              // una hora de un día ya cerrado no tendría sentido.
+              bloqueados: cerrados
+                .filter((p) => !p.pasado)
+                .flatMap((p) => diasDelPeriodo(p.desde, p.hasta)),
+              desde: hoy,
+              dias: 60,
+              maximo: 400,
+            }),
+          ),
+        })),
+      )
+    : [];
+
+  const horasApartadas: HoraFila[] = perfilEnFoco
+    ? (
+        await prisma.horaCerrada.findMany({
+          where: {
+            consultorio: { profesionalId: perfilEnFoco.id },
+            fecha: { gte: hoy },
+          },
+          include: { consultorio: { select: { nombre: true } } },
+          orderBy: [{ fecha: "asc" }, { hora: "asc" }],
+          take: 60,
+        })
+      ).map((h) => ({
+        id: h.id,
+        consultorioId: h.consultorioId,
+        consultorio: h.consultorio.nombre,
+        fecha: h.fecha,
+        hora: h.hora,
+        motivo: h.motivo,
+        pasada: h.fecha < hoy,
       }))
     : [];
 
@@ -177,6 +238,23 @@ export default async function MiAgenda({
             cancelan solas.
           </p>
           <PeriodosCerrados profesionalId={perfilEnFoco.id} periodos={cerrados} />
+        </section>
+      ) : null}
+
+      {perfilEnFoco ? (
+        <section className="envoltura seccion">
+          <div className="seccion-cabeza">
+            <h2>Horas apartadas</h2>
+          </div>
+          <p className="meta" style={{ marginBottom: 14 }}>
+            Cuando le agenden por teléfono, por WhatsApp o en el mostrador,
+            aparte aquí ese hueco. Deja de ofrecerse al instante en el sitio y
+            en el asistente, de modo que nadie más lo pueda tomar.
+          </p>
+          <HorasApartadas
+            consultorios={consultoriosConHuecos}
+            apartadas={horasApartadas}
+          />
         </section>
       ) : null}
     </main>

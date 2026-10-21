@@ -20,7 +20,14 @@ export async function ocupadosDe(
   const desde = new Date();
   const hasta = new Date(desde.getTime() + dias * 24 * 60 * 60_000);
 
-  const [citas, consultorio] = await Promise.all([
+  const hoy = new Date(desde.getTime() - ZONA_HORARIA_MINUTOS * 60_000)
+    .toISOString()
+    .slice(0, 10);
+  const tope = new Date(hasta.getTime() - ZONA_HORARIA_MINUTOS * 60_000)
+    .toISOString()
+    .slice(0, 10);
+
+  const [citas, apartadas, consultorio] = await Promise.all([
     prisma.cita.findMany({
       where: {
         consultorioId,
@@ -29,9 +36,19 @@ export async function ocupadosDe(
       },
       select: { inicio: true, fin: true },
     }),
+    // Las horas que el médico apartó porque ya las comprometió por otro
+    // medio cuentan igual que una cita: el hueco no está libre.
+    prisma.horaCerrada.findMany({
+      where: { consultorioId, fecha: { gte: hoy, lte: tope } },
+      select: { fecha: true, hora: true },
+    }),
     prisma.consultorio.findUnique({
       where: { id: consultorioId },
-      select: { calendarioGoogleId: true, profesional: { select: { plan: true } } },
+      select: {
+        calendarioGoogleId: true,
+        duracionCitaMin: true,
+        profesional: { select: { plan: true } },
+      },
     }),
   ]);
 
@@ -44,6 +61,12 @@ export async function ocupadosDe(
       ? await ocupadoEnGoogle(consultorio.calendarioGoogleId, desde, hasta)
       : null;
 
+  const bloqueadas: Ocupado[] = apartadas.map((h) => ({
+    fecha: h.fecha,
+    hora: h.hora,
+    duracionMin: consultorio?.duracionCitaMin ?? 30,
+  }));
+
   const propios = citas.map((c) => {
     const local = new Date(c.inicio.getTime() - ZONA_HORARIA_MINUTOS * 60_000);
     return {
@@ -53,5 +76,6 @@ export async function ocupadosDe(
     };
   });
 
-  return deGoogle ? [...propios, ...comoOcupado(deGoogle)] : propios;
+  const todo = [...propios, ...bloqueadas];
+  return deGoogle ? [...todo, ...comoOcupado(deGoogle)] : todo;
 }
