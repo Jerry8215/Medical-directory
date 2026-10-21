@@ -10,9 +10,9 @@ import {
   Engrane,
   Escudo,
   Estrella,
-  Maletin,
+  Fichas,
   Persona,
-  Puerta,
+  Personas,
   Tarjeta,
 } from "@/componentes/Iconos";
 import type { EnlaceDelPanel } from "@/lib/navegacion-panel";
@@ -22,11 +22,11 @@ const ICONOS: Record<string, (p: { size?: number }) => React.JSX.Element> = {
   calendario: Calendario,
   persona: Persona,
   documento: Documento,
-  maletin: Maletin,
+  maletin: Fichas,
   estrella: Estrella,
   tarjeta: Tarjeta,
   escudo: Escudo,
-  puerta: Puerta,
+  puerta: Personas,
   engrane: Engrane,
 };
 
@@ -47,12 +47,15 @@ export function RailDelPanel({
   nombre,
   rol,
   pendientes,
+  pie,
 }: {
   enlaces: EnlaceDelPanel[];
   nombre: string;
   rol: string;
   /** Solicitudes por revisar, para el punto del rail. */
   pendientes: number;
+  /** Lo de la cuenta —contraseña, salir—, dentro de la misma tarjeta. */
+  pie?: React.ReactNode;
 }) {
   const ruta = usePathname();
 
@@ -104,6 +107,11 @@ export function RailDelPanel({
           );
         })}
       </ul>
+
+      {/* Dentro de la tarjeta y no debajo: fuera parecían dos piezas
+          sueltas flotando bajo el menú, y una de ellas era un botón de
+          degradado que competía con la sección abierta. */}
+      {pie ? <div className="rail-pie">{pie}</div> : null}
     </nav>
   );
 }

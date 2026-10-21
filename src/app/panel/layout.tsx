@@ -2,7 +2,7 @@ import { BotonSalir } from "@/componentes/BotonSalir";
 import { RailDelPanel } from "@/componentes/RailDelPanel";
 import Link from "next/link";
 
-import { Engrane } from "@/componentes/Iconos";
+import { Llave } from "@/componentes/Iconos";
 import { enlacesDelPanel, esEquipo } from "@/lib/navegacion-panel";
 import { prisma } from "@/lib/prisma";
 import { sesionActual } from "@/lib/sesion-actual";
@@ -46,18 +46,22 @@ export default async function ArmazonDelPanel({
           nombre={sesion.nombre}
           rol={ROLES[sesion.rol] ?? sesion.rol}
           pendientes={pendientes}
+          pie={
+            <>
+              {/* La contraseña es de la cuenta, no una sección de gestión:
+                  queda a mano sin ocupar un lugar en el menú. */}
+              {esEquipo(sesion.rol) ? (
+                <Link href="/panel/mi-clave" className="rail-enlace rail-cuenta">
+                  <span className="rail-icono" aria-hidden="true">
+                    <Llave size={17} />
+                  </span>
+                  Contraseña
+                </Link>
+              ) : null}
+              <BotonSalir />
+            </>
+          }
         />
-        <div className="rail-pie">
-          {/* La contraseña es de la cuenta, no una sección de gestión: queda
-              a mano junto a «Salir» sin ocupar un lugar en el menú. */}
-          {esEquipo(sesion.rol) ? (
-            <Link href="/panel/mi-clave" className="rail-clave" title="Cambiar contraseña">
-              <Engrane size={15} />
-              <span>Contraseña</span>
-            </Link>
-          ) : null}
-          <BotonSalir />
-        </div>
       </aside>
 
       <div className="panel-contenido">{children}</div>

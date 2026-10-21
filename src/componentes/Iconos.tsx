@@ -153,6 +153,27 @@ export function Borrar({ size = 18 }: Props) {
   );
 }
 
+export function Personas({ size = 18 }: Props) {
+  return (
+    <svg {...base(size)}>
+      <circle cx="9.3" cy="8.4" r="3.2" />
+      <path d="M3.4 19.4c0-3.2 2.6-5.2 5.9-5.2s5.9 2 5.9 5.2" />
+      <path d="M16.2 6.2a3 3 0 0 1 0 5.8" />
+      <path d="M17.6 14.6c1.9.5 3 1.9 3 3.9" />
+    </svg>
+  );
+}
+
+export function Fichas({ size = 18 }: Props) {
+  return (
+    <svg {...base(size)}>
+      <rect x="3.2" y="8.5" width="13.5" height="11.5" rx="2" />
+      <path d="M6.4 5.6h11a2 2 0 0 1 2 2v9.2" />
+      <path d="M6.6 12.3h6.7M6.6 15.8h4.2" />
+    </svg>
+  );
+}
+
 export function Tarjeta({ size = 18 }: Props) {
   return (
     <svg {...base(size)}>

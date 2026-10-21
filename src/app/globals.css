@@ -3769,11 +3769,18 @@ a.enlace-peligro {
   padding-block: 26px 48px;
 }
 
+/* La barra ocupa su alto más el aire de arriba y el de abajo. Anclar el
+   rail a menos que eso lo metía por debajo de ella al subir, y sin un
+   z-index propio quedaba además en el orden de pintado equivocado. */
 .panel-lado {
   position: sticky;
-  top: calc(var(--barra-alto) + var(--barra-aire) + 14px);
+  top: calc(var(--barra-alto) + var(--barra-aire) * 2 + 10px);
+  z-index: 10;
   display: grid;
   gap: 10px;
+  /* Si el menú no cabe en la pantalla, se desplaza dentro de sí mismo en
+     lugar de empujar el anclaje. */
+  max-height: calc(100vh - var(--barra-alto) - var(--barra-aire) * 2 - 24px);
 }
 
 /* `min-width: 0` y `overflow: hidden`: dentro de una rejilla, una caja
@@ -3895,8 +3902,52 @@ a.enlace-peligro {
   font-weight: 700;
 }
 
+/* El pie de la tarjeta: lo de la cuenta, separado del menú por una línea
+   y con el mismo aire que los demás renglones. */
 .rail-pie {
   display: grid;
+  gap: 2px;
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid var(--borde);
+}
+
+.rail-cuenta {
+  color: var(--suave);
+}
+
+/* «Salir» con el aspecto de un renglón del menú, no un botón de
+   degradado: ahí dentro competía con la sección abierta, que es la única
+   que debe llevar color. */
+.rail-pie .enlace-boton {
+  justify-content: flex-start;
+  gap: 10px;
+  background-image: none;
+  background: none;
+  border: 0;
+  color: var(--suave);
+  font-size: 0.88rem;
+  font-weight: 600;
+  padding: 9px 10px;
+  border-radius: 10px;
+  box-shadow: none;
+}
+
+.rail-pie .enlace-boton::before {
+  content: "";
+  flex: 0 0 auto;
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  background: var(--papel-2)
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23647587' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M10 4H6a1 1 0 0 0-1 1v14a1 1 0 0 0 1 1h4'/%3E%3Cpath d='M15 8l4 4-4 4'/%3E%3Cpath d='M19 12H9'/%3E%3C/svg%3E")
+    center / 17px no-repeat;
+}
+
+.rail-pie .enlace-boton:hover:not(:disabled) {
+  background: var(--papel-2);
+  color: #b4332a;
+  filter: none;
 }
 
 .panel-contenido {
@@ -4667,24 +4718,3 @@ a.enlace-peligro {
   padding-top: 0;
 }
 
-/* El acceso a la contraseña, junto a «Salir»: es de la cuenta, no una
-   sección de gestión, así que no ocupa lugar en el menú. */
-.rail-clave {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  padding: 9px 12px;
-  border: 1px solid var(--borde);
-  border-radius: 12px;
-  background: var(--papel);
-  color: var(--suave);
-  font-size: 0.84rem;
-  font-weight: 600;
-  transition: border-color 0.15s ease, color 0.15s ease;
-}
-
-.rail-clave:hover {
-  border-color: var(--azul);
-  color: var(--azul);
-}
