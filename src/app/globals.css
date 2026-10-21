@@ -4204,14 +4204,12 @@ a.enlace-peligro {
 
 /* El retrato llega cuadrado del recorte de subida; en vertical pierde los
    costados y gana el encuadre de retrato que la tarjeta pide. */
-/* 1 : 1.8 y la fotografía completa. `contain` y no `cover` porque lo que
-   se pidió es que no se corte nada: el retrato cuadrado que deja el
-   recorte de subida se asienta dentro y el degradado llena el resto. Las
-   que se suban de ahora en adelante vienen ya en esta proporción y lo
-   llenan solas. */
+/* El alto es 1.2 veces el ancho. El marco no se mueve: lo llena la
+   fotografía, venga como venga, y así una fila de tarjetas queda pareja
+   en lugar de escalonada. */
 .retratada-foto {
   position: relative;
-  aspect-ratio: 1 / 1.8;
+  aspect-ratio: 1 / 1.2;
   /* El degradado solo se ve cuando el médico todavía no sube fotografía:
      es el fondo de sus iniciales, no un marco alrededor de la foto. */
   background: linear-gradient(160deg, #eef7f2 0%, #dcefe6 55%, #cfe8dd 100%);

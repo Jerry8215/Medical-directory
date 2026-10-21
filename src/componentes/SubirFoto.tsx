@@ -8,8 +8,8 @@ import { quitarFotografia, subirFotografia } from "@/lib/fotografia";
 
 /** Un retrato de perfil no necesita más que esto, ni en pantalla ni impreso. */
 const ANCHO_MAXIMO = 760;
-/** La tarjeta del directorio muestra el retrato en 1 : 1.8. */
-const PROPORCION = 1.8;
+/** La tarjeta del directorio muestra el retrato en 1 : 1.2. */
+const PROPORCION = 1.2;
 
 /**
  * Reducir la imagen en el navegador, antes de enviarla.
