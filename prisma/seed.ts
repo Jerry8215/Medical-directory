@@ -99,12 +99,16 @@ async function cargarProfesional(p: Profesional) {
       nombre: p.nombre,
       semblanza: p.semblanza,
       convenios: p.convenios,
+      telefono: p.telefono,
+      fotografia: p.fotografia,
     },
     create: {
       slug: p.slug,
       nombre: p.nombre,
       semblanza: p.semblanza,
       convenios: p.convenios,
+      telefono: p.telefono,
+      fotografia: p.fotografia,
       // La calificación no se siembra: sale de las opiniones que los
       // pacientes dejen y el directorio publique. Un promedio inventado
       // vuelve inútil el que de verdad se gane.

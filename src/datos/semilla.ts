@@ -53,6 +53,8 @@ export type Profesional = {
   especialidades: string[];
   semblanza: string;
   padecimientos: string[];
+  telefono?: string;
+  fotografia?: string;
   consultorios: Consultorio[];
   credenciales: Credencial[];
   convenios?: string;
@@ -118,6 +120,11 @@ export const ESPECIALIDADES: Especialidad[] = [
       { slug: "hernias", nombre: "Hernias" },
       { slug: "apendicitis", nombre: "Apendicitis" },
       { slug: "lipomas", nombre: "Lipomas y tumores de piel" },
+      { slug: "hemorroides", nombre: "Hemorroides" },
+      { slug: "quiste-pilonidal", nombre: "Quiste pilonidal" },
+      { slug: "hernia-hiatal-reflujo", nombre: "Hernia hiatal y reflujo" },
+      { slug: "nodulos-tiroideos", nombre: "Nódulos tiroideos" },
+      { slug: "diverticulitis", nombre: "Diverticulitis" },
     ],
   },
   {
@@ -178,14 +185,34 @@ export const PROFESIONALES: Profesional[] = [
     especialidades: ["cirugia-general"],
     semblanza:
       "Cirujano General y Laparoscópico. Atiende padecimientos de vesícula y vías biliares, hernias, apéndice y cirugía del aparato digestivo, con abordaje laparoscópico o abierto según el caso.",
-    padecimientos: ["vesicula", "hernias", "apendicitis", "lipomas"],
+    padecimientos: [
+      "vesicula",
+      "hernias",
+      "apendicitis",
+      "lipomas",
+      "hemorroides",
+      "quiste-pilonidal",
+      "hernia-hiatal-reflujo",
+      "nodulos-tiroideos",
+      "diverticulitis",
+    ],
+    telefono: "6391127780",
+    fotografia:
+      "https://wpet3qsq7vcwuash.public.blob.vercel-storage.com/medicos/jose-guadalupe-padilla-mUQSs92aDUsE09drc9BVidipkLbWFx.jpg",
     consultorios: [
       {
         ciudad: "delicias",
         nombre: "Hospital Vistas del Sol",
-        direccion: "Consultorio 125",
-        horario: "Lunes, miércoles y viernes de 9:00 a 14:00",
-        franjas: [{ dia: 0, desde: "09:00", hasta: "14:00" }, { dia: 2, desde: "09:00", hasta: "14:00" }, { dia: 4, desde: "09:00", hasta: "14:00" }],
+        direccion: "Ave. 12a y C. Novena Sur s/n, Consultorio 125, 33000 Delicias, Chih.",
+        horario: "Lunes a viernes de 16:00 a 17:20",
+        franjas: [
+          { dia: 0, desde: "16:00", hasta: "17:20" },
+          { dia: 1, desde: "16:00", hasta: "17:20" },
+          { dia: 2, desde: "16:00", hasta: "17:20" },
+          { dia: 3, desde: "16:00", hasta: "17:20" },
+          { dia: 4, desde: "16:00", hasta: "17:20" },
+        ],
+        duracionCitaMin: 40,
         precioValoracion: 800,
       },
     ],
