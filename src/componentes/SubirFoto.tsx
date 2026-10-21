@@ -7,7 +7,9 @@ import { BotonConfirmar } from "@/componentes/BotonConfirmar";
 import { quitarFotografia, subirFotografia } from "@/lib/fotografia";
 
 /** Un retrato de perfil no necesita más que esto, ni en pantalla ni impreso. */
-const LADO_MAXIMO = 800;
+const ANCHO_MAXIMO = 760;
+/** La tarjeta del directorio muestra el retrato en 1 : 1.8. */
+const PROPORCION = 1.8;
 
 /**
  * Reducir la imagen en el navegador, antes de enviarla.
@@ -26,11 +28,16 @@ function reducir(archivo: File): Promise<Blob> {
       const imagen = new window.Image();
       imagen.onerror = () => falla(new Error("Ese archivo no es una imagen."));
       imagen.onload = () => {
-        const lado = Math.min(imagen.width, imagen.height);
-        const destino = Math.min(lado, LADO_MAXIMO);
+        // Se recorta vertical y no cuadrado: la tarjeta pide un retrato,
+        // y un cuadrado dentro de un retrato deja franjas vacías arriba
+        // y abajo.
+        const anchoCorte = Math.min(imagen.width, imagen.height / PROPORCION);
+        const altoCorte = anchoCorte * PROPORCION;
+        const ancho = Math.min(Math.round(anchoCorte), ANCHO_MAXIMO);
+        const alto = Math.round(ancho * PROPORCION);
         const lienzo = document.createElement("canvas");
-        lienzo.width = destino;
-        lienzo.height = destino;
+        lienzo.width = ancho;
+        lienzo.height = alto;
 
         const pincel = lienzo.getContext("2d");
         if (!pincel) {
@@ -39,14 +46,16 @@ function reducir(archivo: File): Promise<Blob> {
         }
         pincel.drawImage(
           imagen,
-          (imagen.width - lado) / 2,
-          (imagen.height - lado) / 2,
-          lado,
-          lado,
+          (imagen.width - anchoCorte) / 2,
+          // Hacia arriba y no por el centro: en un retrato de pie, el
+          // centro cae en la bata y la cara se queda fuera.
+          Math.max(0, (imagen.height - altoCorte) * 0.18),
+          anchoCorte,
+          altoCorte,
           0,
           0,
-          destino,
-          destino,
+          ancho,
+          alto,
         );
 
         lienzo.toBlob(

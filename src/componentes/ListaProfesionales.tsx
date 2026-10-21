@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useMemo, useState, useTransition } from "react";
 
 import { BotonConfirmar } from "@/componentes/BotonConfirmar";
-import { Lupa } from "@/componentes/Iconos";
+import { Borrar, Corregir, Lupa, Suspender } from "@/componentes/Iconos";
 import {
   eliminarProfesional,
   suspenderProfesional,
@@ -133,19 +133,32 @@ export function ListaProfesionales({
             <span>{p.especialidad}</span>
             <span>{p.ciudades}</span>
             <span className="acciones-fila">
-              <Link href={`/panel/profesionales/${p.slug}`} className="enlace-boton">
-                Editar
+              <Link
+                href={`/panel/profesionales/${p.slug}`}
+                className="boton-icono"
+                title="Corregir la ficha"
+                aria-label={`Corregir la ficha de ${p.nombre}`}
+              >
+                <Corregir size={18} />
               </Link>
               <button
                 type="button"
-                className="enlace-boton"
+                className="boton-icono"
                 disabled={trabajando}
+                title={p.publicado ? "Quitar del directorio" : "Devolver al directorio"}
+                aria-label={
+                  p.publicado
+                    ? `Quitar del directorio a ${p.nombre}`
+                    : `Devolver al directorio a ${p.nombre}`
+                }
                 onClick={() => ejecutar(() => suspenderProfesional(p.slug, p.publicado))}
               >
-                {p.publicado ? "Suspender" : "Publicar"}
+                <Suspender size={18} />
               </button>
               <BotonConfirmar
-                etiqueta="Eliminar"
+                className="boton-icono peligro"
+                etiqueta={<Borrar size={18} />}
+                rotulo={`Borrar del directorio a ${p.nombre}`}
                 peligro
                 disabled={trabajando}
                 titulo={`¿Eliminar el perfil de ${p.nombre}?`}

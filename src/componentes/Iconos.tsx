@@ -113,6 +113,46 @@ export function Persona({ size = 18 }: Props) {
   );
 }
 
+/*
+ * Los tres de las acciones del padrón.
+ *
+ * A propósito no son el lápiz, el bote de basura y el candado de
+ * siempre. Esos tres dibujos los lleva cualquier plantilla, y lo que
+ * tienen de malo no es que se repitan sino que no dicen nada de lo que
+ * aquí ocurre: no se edita un papel, se corrige la ficha de un médico;
+ * no se tira a la basura, se borra de un directorio.
+ */
+
+export function Corregir({ size = 18 }: Props) {
+  return (
+    <svg {...base(size)}>
+      <path d="M19.5 11V6a2 2 0 0 0-2-2h-11a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h5" />
+      <path d="M8.5 8.5h7M8.5 12h4" />
+      <path d="m14.5 19.5 5-5" />
+    </svg>
+  );
+}
+
+export function Suspender({ size = 18 }: Props) {
+  return (
+    <svg {...base(size)}>
+      <path d="M15.6 4.4a8.2 8.2 0 1 1-7.2 0" />
+      <path d="M10.4 9.5v5M13.6 9.5v5" />
+    </svg>
+  );
+}
+
+export function Borrar({ size = 18 }: Props) {
+  return (
+    <svg {...base(size)}>
+      <path d="M6 4.5h8.5a2 2 0 0 1 2 2v4" />
+      <path d="M6 10.5h7" />
+      <path d="M6 15h4.5" />
+      <path d="M6 19.5h2" />
+    </svg>
+  );
+}
+
 export function Tarjeta({ size = 18 }: Props) {
   return (
     <svg {...base(size)}>

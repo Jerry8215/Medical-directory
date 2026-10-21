@@ -27,6 +27,7 @@ export function BotonConfirmar({
   className,
   disabled = false,
   icono,
+  rotulo,
 }: {
   etiqueta: React.ReactNode;
   titulo: string;
@@ -38,6 +39,8 @@ export function BotonConfirmar({
   className?: string;
   disabled?: boolean;
   icono?: React.ReactNode;
+  /** Qué hace el botón, cuando la etiqueta es solo un icono. */
+  rotulo?: string;
 }) {
   const [abierta, setAbierta] = useState(false);
   const [trabajando, iniciar] = useTransition();
@@ -49,6 +52,8 @@ export function BotonConfirmar({
         className={className ?? `enlace-boton${peligro ? " peligro" : ""}`}
         disabled={disabled || trabajando}
         onClick={() => setAbierta(true)}
+        title={rotulo}
+        aria-label={rotulo}
       >
         {icono}
         {etiqueta}

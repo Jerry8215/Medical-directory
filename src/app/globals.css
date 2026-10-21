@@ -97,6 +97,12 @@ body {
   margin: 0;
 }
 
+html,
+body {
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
 body {
   background: var(--fondo);
   color: var(--tinta);
@@ -3765,12 +3771,22 @@ a.enlace-peligro {
   gap: 10px;
 }
 
+/* `min-width: 0` y `overflow: hidden`: dentro de una rejilla, una caja
+   no baja de su contenido mínimo salvo que se le diga, y con once
+   secciones en fila ese mínimo es el doble de un teléfono. Es por donde
+   se desbordaba el panel entero. */
 .rail {
+  min-width: 0;
+  overflow: hidden;
   background: var(--papel);
   border: 1px solid var(--borde);
   border-radius: 16px;
   padding: 14px 12px;
   box-shadow: var(--sombra-suave);
+}
+
+.panel-armazon > * {
+  min-width: 0;
 }
 
 .rail-identidad {
@@ -3944,22 +3960,52 @@ a.enlace-peligro {
 @media (max-width: 900px) {
   .panel-armazon {
     grid-template-columns: minmax(0, 1fr);
+    padding-block: 16px 36px;
   }
 
   .panel-lado {
     position: static;
+    /* `min-width: 0` o la rejilla le deja a la columna el ancho de su
+       contenido, y con once secciones en fila eso es el doble de la
+       pantalla: por ahí se desbordaba el panel entero en el teléfono. */
+    min-width: 0;
+  }
+
+  .rail {
+    padding: 12px 10px;
   }
 
   .rail-lista {
-    grid-auto-flow: column;
-    grid-auto-columns: max-content;
+    display: flex;
+    flex-wrap: nowrap;
     overflow-x: auto;
     gap: 6px;
+    /* Sin esto, los elementos se encogen hasta volverse ilegibles en
+       lugar de desplazarse. */
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .rail-lista::-webkit-scrollbar {
+    display: none;
+  }
+
+  .rail-lista li {
+    flex: 0 0 auto;
+  }
+
+  .rail-enlace {
+    white-space: nowrap;
   }
 
   .rail-identidad {
     border-bottom: 0;
-    margin-bottom: 4px;
+    margin-bottom: 8px;
+    padding-bottom: 0;
+  }
+
+  .rail-punto {
+    margin-left: 4px;
   }
 }
 
@@ -4132,9 +4178,9 @@ a.enlace-peligro {
 }
 
 .retratada-cabeza {
-  padding: 22px 20px 14px;
+  padding: 22px 20px 16px;
   text-align: center;
-  background: linear-gradient(180deg, #f3f8fd, var(--papel));
+  background: var(--papel);
 }
 
 .retratada-especialidad {
@@ -4158,21 +4204,28 @@ a.enlace-peligro {
 
 /* El retrato llega cuadrado del recorte de subida; en vertical pierde los
    costados y gana el encuadre de retrato que la tarjeta pide. */
+/* 1 : 1.8 y la fotografía completa. `contain` y no `cover` porque lo que
+   se pidió es que no se corte nada: el retrato cuadrado que deja el
+   recorte de subida se asienta dentro y el degradado llena el resto. Las
+   que se suban de ahora en adelante vienen ya en esta proporción y lo
+   llenan solas. */
 .retratada-foto {
   position: relative;
-  aspect-ratio: 4 / 5;
-  background:
-    radial-gradient(120% 120% at 25% 10%, rgba(255, 255, 255, 0.92), transparent 58%),
-    radial-gradient(110% 110% at 85% 95%, rgba(32, 190, 112, 0.35), transparent 62%),
-    var(--verde-tenue);
+  aspect-ratio: 1 / 1.8;
+  background: linear-gradient(180deg, var(--papel) 0%, var(--verde-tenue) 72%);
   display: grid;
   place-items: center;
   overflow: hidden;
 }
 
+/* Asentada abajo, no centrada: con la fotografía cuadrada que dejó el
+   recorte viejo, centrarla parte el hueco en dos franjas y parece un
+   error. Abajo, el hueco queda arriba y se lee como aire bajo el nombre.
+   Las que se suban ya vienen en 1 : 1.8 y no dejan hueco. */
 .retratada-imagen {
-  object-fit: cover;
-  object-position: 50% 18%;
+  object-fit: contain;
+  object-position: 50% 100%;
+  align-self: end;
 }
 
 .retratada-iniciales {
@@ -4182,14 +4235,11 @@ a.enlace-peligro {
   letter-spacing: 0.02em;
 }
 
-/* Deja leer el nombre sobre cualquier fotografía, clara u oscura, sin
-   tener que pedirle al médico una con el fondo correcto. */
+/* Sin velo. Desvanecer la parte alta del retrato no se lee como un
+   degradado elegante: se lee como una fotografía mal hecha. El nombre va
+   arriba, sobre fondo propio, y la foto se queda entera. */
 .retratada-velo {
-  position: absolute;
-  inset: 0 0 auto 0;
-  height: 26%;
-  background: linear-gradient(180deg, var(--papel) 2%, rgba(255, 255, 255, 0));
-  pointer-events: none;
+  display: none;
 }
 
 .retratada-sello {
@@ -4209,10 +4259,8 @@ a.enlace-peligro {
   display: grid;
   gap: 14px;
   padding: 16px 18px 18px;
-  margin-top: -18px;
-  position: relative;
   background: var(--papel);
-  border-radius: 20px 20px 0 0;
+  border-top: 1px solid var(--borde);
 }
 
 .retratada-datos {
@@ -4361,4 +4409,43 @@ a.enlace-peligro {
   bottom: 12px;
   display: grid;
   place-items: center;
+}
+
+
+/* ---------------------------------------------------- botón de un icono */
+
+/* Tres verbos en fila —corregir, suspender, borrar— ocupaban más que el
+   nombre del médico al que se le aplican. Con el icono solo, la fila
+   vuelve a tratarse de la persona y no de lo que se le puede hacer. El
+   rótulo vive en `title` y en `aria-label`, que es donde lo encuentran
+   tanto el ratón como el lector de pantalla. */
+.boton-icono {
+  display: inline-grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  flex: 0 0 auto;
+  border: 1px solid var(--borde);
+  border-radius: 12px;
+  background: var(--papel);
+  color: var(--suave);
+  cursor: pointer;
+  transition: border-color 0.15s ease, color 0.15s ease, background 0.15s ease;
+}
+
+.boton-icono:hover:not(:disabled) {
+  border-color: var(--azul);
+  color: var(--azul);
+  background: var(--azul-tenue);
+}
+
+.boton-icono:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.boton-icono.peligro:hover:not(:disabled) {
+  border-color: #e0a79f;
+  color: #b4332a;
+  background: #fdecea;
 }
