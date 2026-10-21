@@ -105,7 +105,8 @@ export async function registrarSolicitud(datos: Solicitud): Promise<Resultado> {
     detalle: `${especialidad.nombre} · ${datos.ciudad} · cédula ${
       cedula.ok ? cedula.valor : ""
     }`,
-    enlace: "/panel/solicitudes",
+    // Las solicitudes se revisan en el panel mismo; no hay pantalla aparte.
+    enlace: "/panel#solicitudes",
   });
 
   revalidatePath("/panel");

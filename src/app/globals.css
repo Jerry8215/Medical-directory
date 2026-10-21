@@ -3558,3 +3558,71 @@ a.chip:hover {
     min-height: 0;
   }
 }
+
+/* ------------------------------------------------------ pantalla de error */
+
+/* Sin esto el sitio caía en la pantalla del armazón: fondo negro y un
+   «This page could not be found» en inglés. A un paciente que buscaba a su
+   médico eso le dice que el sitio está roto. */
+
+.pantalla-error {
+  display: grid;
+  place-items: center;
+  min-height: 62vh;
+  padding-block: 56px;
+}
+
+.error-caja {
+  max-width: 540px;
+  width: 100%;
+  text-align: center;
+  background: var(--papel);
+  border: 1px solid var(--borde);
+  border-radius: 20px;
+  padding: 44px 34px 34px;
+  box-shadow: 0 10px 30px -18px rgba(18, 59, 89, 0.4);
+}
+
+.error-marca {
+  display: grid;
+  place-items: center;
+  width: 58px;
+  height: 58px;
+  margin: 0 auto 18px;
+  border-radius: 50%;
+  background:
+    radial-gradient(120% 120% at 25% 10%, rgba(255, 255, 255, 0.95), transparent 60%),
+    var(--azul-tenue);
+  color: var(--azul);
+}
+
+.error-caja h1 {
+  font-size: clamp(1.35rem, 3vw, 1.7rem);
+  line-height: 1.25;
+}
+
+.error-cuerpo {
+  margin-top: 12px;
+  color: var(--suave);
+  line-height: 1.6;
+}
+
+.error-espera {
+  margin-top: 10px;
+  color: var(--navy);
+  font-weight: 600;
+}
+
+.error-acciones {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-top: 24px;
+}
+
+.error-cuenta {
+  margin-top: 18px;
+  color: var(--suave);
+  font-size: 0.82rem;
+}

@@ -321,7 +321,9 @@ export default async function Panel() {
         )}
       </section>
 
-      <section className="envoltura seccion">
+      {/* El aviso de «solicitud de alta» trae aquí: las solicitudes se
+          revisan en esta misma pantalla y no en una propia. */}
+      <section className="envoltura seccion" id="solicitudes">
         <div className="seccion-cabeza">
           <h2>Solicitudes de alta</h2>
           <span>{solicitudes.length} por revisar</span>
