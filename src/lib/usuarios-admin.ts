@@ -59,7 +59,10 @@ export async function cambiarMiClave(
 ): Promise<Resultado> {
   const sesion = await sesionActual();
   if (!sesion) return { ok: false, mensaje: "Su sesión expiró. Entre otra vez." };
-  if (nueva.length < 10) {
+  // Se recorta al fijarla y al entrar, en las dos puntas: una contraseña
+  // que empieza o termina en espacio es un candado que se cierra solo.
+  const limpia = nueva.trim();
+  if (limpia.length < 10) {
     return { ok: false, mensaje: "La contraseña nueva debe tener al menos diez caracteres." };
   }
 
@@ -67,13 +70,13 @@ export async function cambiarMiClave(
   if (!usuario) return { ok: false, mensaje: "No encontramos su usuario." };
 
   const { cifrarClave, claveCoincide } = await import("@/lib/auth");
-  if (!claveCoincide(actual, usuario.hashClave)) {
+  if (!claveCoincide(actual.trim(), usuario.hashClave)) {
     return { ok: false, mensaje: "La contraseña actual no coincide." };
   }
 
   await prisma.usuario.update({
     where: { id: usuario.id },
-    data: { hashClave: cifrarClave(nueva) },
+    data: { hashClave: cifrarClave(limpia) },
   });
 
   await prisma.registroAuditoria.create({

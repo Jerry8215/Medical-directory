@@ -20,7 +20,11 @@ export async function entrar(correo: string, clave: string): Promise<Resultado> 
     where: { correo: correo.trim().toLowerCase() },
   });
 
-  if (!usuario || !usuario.activo || !claveCoincide(clave, usuario.hashClave)) {
+  // La contraseña también se recorta. La del médico llega por correo y se
+  // copia de ahí, y copiar una línea de un correo arrastra un espacio o un
+  // salto con una facilidad que no vale la pena pelear. Se recorta igual
+  // al fijarla, de modo que las dos puntas coinciden.
+  if (!usuario || !usuario.activo || !claveCoincide(clave.trim(), usuario.hashClave)) {
     return { ok: false, mensaje: "Correo o contraseña incorrectos." };
   }
 
