@@ -104,6 +104,32 @@ export function Escudo({ size = 18 }: Props) {
   );
 }
 
+export function Persona({ size = 18 }: Props) {
+  return (
+    <svg {...base(size)}>
+      <circle cx="12" cy="8.2" r="3.6" />
+      <path d="M5 20c0-3.6 3.1-5.8 7-5.8s7 2.2 7 5.8" />
+    </svg>
+  );
+}
+
+export function Globo({ size = 18 }: Props) {
+  return (
+    <svg {...base(size)}>
+      <path d="M20 12.4c0 3.6-3.6 6.5-8 6.5-.9 0-1.8-.1-2.6-.35L4 20l1.5-3.5C4.6 15.4 4 14 4 12.4 4 8.8 7.6 6 12 6s8 2.8 8 6.4Z" />
+    </svg>
+  );
+}
+
+export function Flecha({ size = 18 }: Props) {
+  return (
+    <svg {...base(size)}>
+      <path d="M4.5 12h14" />
+      <path d="m13 6.5 5.5 5.5-5.5 5.5" />
+    </svg>
+  );
+}
+
 export function Whatsapp({ size = 18 }: Props) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">

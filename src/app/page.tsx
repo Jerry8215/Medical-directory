@@ -22,8 +22,8 @@ import {
   Flecha,
   MapaRegion,
 } from "@/componentes/Ilustraciones";
+import { MedicosDestacados } from "@/componentes/MedicosDestacados";
 import { PortadaCarrusel } from "@/componentes/PortadaCarrusel";
-import { TarjetaProfesional } from "@/componentes/TarjetaProfesional";
 import {
   ciudades,
   especialidades,
@@ -412,21 +412,16 @@ export default async function Inicio() {
             </div>
             <div className="cabeza-doble-lado">
               <Link href="/delicias" className="enlace-acento">
-                Ver todos los médicos →
+                Ver directorio completo →
               </Link>
             </div>
           </div>
 
-          <div className="rejilla">
-            {destacados.map((p) => (
-              <TarjetaProfesional
-                key={p.slug}
-                profesional={p}
-                especialidad={nombreDeEspecialidad.get(p.especialidades[0])}
-                ciudad={nombreDeCiudad.get(p.consultorios[0]?.ciudad ?? "")}
-              />
-            ))}
-          </div>
+          <MedicosDestacados
+            profesionales={destacados}
+            especialidades={Object.fromEntries(nombreDeEspecialidad)}
+            ciudades={Object.fromEntries(nombreDeCiudad)}
+          />
         </section>
       ) : null}
 

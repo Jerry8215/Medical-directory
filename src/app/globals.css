@@ -3127,3 +3127,323 @@ a.chip:hover {
 .enlace-peligro {
   color: #c0392b;
 }
+
+/* ------------------------------------------- médicos destacados (portada) */
+
+/* Un escaparate de tres, no un listado. La tarjeta compacta sigue
+   sirviendo a las páginas de ciudad y de especialidad, donde lo que
+   importa es comparar muchos de un vistazo; acá lo que importa es que el
+   perfil verificado se vea distinto de los de muestra sin que haga falta
+   leer la insignia. */
+
+.destacados-filtros {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+}
+
+.destacados-pestanas {
+  display: flex;
+  gap: 9px;
+  flex-wrap: wrap;
+}
+
+.destacados-pestana {
+  border: 1px solid var(--borde);
+  background: var(--papel);
+  color: var(--navy);
+  font: inherit;
+  font-size: 0.89rem;
+  font-weight: 600;
+  padding: 9px 18px;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+.destacados-pestana:hover {
+  border-color: var(--azul);
+  color: var(--azul);
+}
+
+.destacados-pestana[data-activa="true"] {
+  background: var(--navy);
+  border-color: var(--navy);
+  color: #fff;
+}
+
+.destacados-cuenta {
+  color: var(--suave);
+  font-size: 0.84rem;
+}
+
+.destacados-rejilla {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(290px, 1fr));
+  gap: 20px;
+}
+
+.destacados-pie {
+  margin-top: 18px;
+  color: var(--suave);
+  font-size: 0.82rem;
+  max-width: 76ch;
+}
+
+.destacado {
+  --tinte: var(--verde-tenue);
+  --anillo: rgba(24, 156, 91, 0.16);
+  --acento: var(--verde-fuerte);
+
+  display: flex;
+  flex-direction: column;
+  background: var(--papel);
+  border: 1px solid var(--borde);
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: 0 10px 30px -20px rgba(18, 59, 89, 0.4);
+  transition: transform 220ms ease, box-shadow 220ms ease;
+}
+
+.destacado:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 20px 44px -24px rgba(18, 59, 89, 0.5);
+}
+
+.destacado[data-tinte="lila"] {
+  --tinte: #ece9f7;
+  --anillo: rgba(98, 76, 170, 0.14);
+  --acento: #5b4b9c;
+}
+
+.destacado[data-tinte="durazno"] {
+  --tinte: #fdeee2;
+  --anillo: rgba(199, 120, 46, 0.14);
+  --acento: #b5701f;
+}
+
+.destacado[data-tinte="cielo"] {
+  --tinte: #e4eff9;
+  --anillo: rgba(23, 106, 152, 0.14);
+  --acento: var(--azul);
+}
+
+/* La tapa de color, con los anillos saliendo de donde está el glifo. */
+.destacado-tapa {
+  position: relative;
+  height: 112px;
+  background: var(--tinte);
+  padding: 16px 18px;
+}
+
+.destacado-tapa::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: repeating-radial-gradient(
+    circle at 88% 14%,
+    transparent 0 25px,
+    var(--anillo) 25px 26.5px
+  );
+}
+
+.destacado-sello {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.82);
+  color: var(--acento);
+  font-size: 0.74rem;
+  font-weight: 600;
+  padding: 5px 12px;
+  border-radius: 999px;
+}
+
+.destacado-glifo {
+  position: absolute;
+  top: 14px;
+  right: 18px;
+  color: var(--acento);
+  opacity: 0.55;
+}
+
+.destacado-cuerpo {
+  display: flex;
+  flex-direction: column;
+  padding: 0 22px 20px;
+}
+
+/* El retrato monta sobre la tapa: es lo que cose las dos mitades. */
+.destacado-foto {
+  position: relative;
+  width: 96px;
+  margin-top: -52px;
+  margin-bottom: 16px;
+}
+
+.destacado-retrato {
+  display: grid;
+  place-items: center;
+  width: 96px;
+  height: 96px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 4px solid var(--papel);
+  background: var(--tinte);
+  color: var(--acento);
+  font-weight: 700;
+  font-size: 1.55rem;
+  letter-spacing: 0.02em;
+}
+
+.destacado-insignia {
+  position: absolute;
+  right: 0;
+  bottom: 4px;
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: #1d82e2;
+  color: #fff;
+  border: 3px solid var(--papel);
+}
+
+.destacado-especialidad {
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--acento);
+}
+
+.destacado-nombre {
+  margin-top: 7px;
+  font-size: 1.24rem;
+  line-height: 1.25;
+}
+
+.destacado-lugar {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin-top: 16px;
+  color: var(--tinta);
+  font-size: 0.89rem;
+}
+
+.destacado-lugar svg {
+  flex: 0 0 auto;
+  margin-top: 2px;
+  color: var(--suave);
+}
+
+.destacado-lugar small {
+  display: block;
+  margin-top: 2px;
+  color: var(--suave);
+  font-size: 0.85rem;
+}
+
+.destacado-raya {
+  height: 1px;
+  background: var(--borde);
+  margin: 16px 0 14px;
+}
+
+.destacado-nota {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--suave);
+  font-size: 0.82rem;
+}
+
+.destacado-nota svg {
+  flex: 0 0 auto;
+  color: var(--acento);
+}
+
+.destacado-opiniones {
+  margin-top: 7px;
+  color: var(--suave);
+  font-size: 0.82rem;
+}
+
+.destacado-estrellas {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.destacado-estrellas svg {
+  color: var(--estrella);
+}
+
+.destacado-estrellas b {
+  color: var(--tinta);
+}
+
+/* El botón se pega abajo para que las tres tarjetas lo alineen aunque el
+   nombre de una ocupe dos renglones. */
+.destacado-boton {
+  margin-top: auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  border: 1px solid var(--borde);
+  border-radius: 12px;
+  background: var(--papel);
+  color: var(--navy);
+  font-weight: 600;
+  font-size: 0.92rem;
+  padding: 13px 18px;
+  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+.destacado-boton:hover {
+  border-color: var(--azul);
+  color: var(--azul);
+}
+
+.destacado-boton[data-realce="true"] {
+  background: var(--navy);
+  border-color: var(--navy);
+  color: #fff;
+}
+
+.destacado-boton[data-realce="true"]:hover {
+  background: var(--navy-claro);
+  border-color: var(--navy-claro);
+  color: #fff;
+}
+
+.destacado-atajo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 12px;
+  color: var(--suave);
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+
+.destacado-atajo:hover {
+  color: var(--azul);
+}
+
+@media (max-width: 560px) {
+  .destacados-filtros {
+    align-items: flex-start;
+  }
+
+  .destacado-tapa {
+    height: 96px;
+  }
+}
