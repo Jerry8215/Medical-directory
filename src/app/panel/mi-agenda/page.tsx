@@ -55,7 +55,16 @@ export default async function MiAgenda({
           where: { slug: medico },
           select: { id: true, nombre: true },
         })) ?? null
-      : null
+      : // El titular del sitio también pasa consulta. Si no eligió a
+        // nadie en el filtro, la pantalla que se llama «Mi agenda» le
+        // muestra la suya, no una en blanco que lo obliga a buscarse a
+        // sí mismo en una lista.
+        sesion?.profesionalId
+        ? await prisma.profesional.findUnique({
+            where: { id: sesion.profesionalId },
+            select: { id: true, nombre: true },
+          })
+        : null
     : sesion?.profesionalId
       ? await prisma.profesional.findUnique({
           where: { id: sesion.profesionalId },
