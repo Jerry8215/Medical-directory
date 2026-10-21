@@ -4590,3 +4590,101 @@ a.enlace-peligro {
 .plan-cuerpo .lista-limpia {
   flex: 1;
 }
+
+/* -------------------------------------------- el tablero, por pestañas */
+
+/* La tira se queda fija al bajar: cambiar de sección no debe obligar a
+   volver arriba cuando la tabla es larga. */
+.pestanas-tira {
+  position: sticky;
+  top: calc(var(--barra-alto) + var(--barra-aire) + 8px);
+  z-index: 20;
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  padding: 6px;
+  margin-bottom: 18px;
+  background: var(--papel);
+  border: 1px solid var(--borde);
+  border-radius: var(--pastilla);
+  box-shadow: var(--sombra-suave);
+}
+
+.pestanas-tira::-webkit-scrollbar {
+  display: none;
+}
+
+.pestana {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border: 0;
+  background: none;
+  font: inherit;
+  font-size: 0.88rem;
+  font-weight: 650;
+  color: var(--suave);
+  padding: 10px 18px;
+  border-radius: var(--pastilla);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.pestana:hover {
+  color: var(--navy);
+  background: var(--papel-2);
+}
+
+.pestana[data-activa="true"] {
+  background: var(--navy);
+  color: #fff;
+}
+
+.pestana-cuenta {
+  display: grid;
+  place-items: center;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
+  border-radius: var(--pastilla);
+  background: var(--azul-tenue);
+  color: var(--azul);
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
+.pestana[data-activa="true"] .pestana-cuenta {
+  background: rgba(255, 255, 255, 0.22);
+  color: #fff;
+}
+
+/* Dentro de una pestaña la sección ya no necesita su propio margen de
+   arriba: la tira se lo da. */
+.pestanas-panel .seccion {
+  padding-top: 0;
+}
+
+/* El acceso a la contraseña, junto a «Salir»: es de la cuenta, no una
+   sección de gestión, así que no ocupa lugar en el menú. */
+.rail-clave {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 9px 12px;
+  border: 1px solid var(--borde);
+  border-radius: 12px;
+  background: var(--papel);
+  color: var(--suave);
+  font-size: 0.84rem;
+  font-weight: 600;
+  transition: border-color 0.15s ease, color 0.15s ease;
+}
+
+.rail-clave:hover {
+  border-color: var(--azul);
+  color: var(--azul);
+}

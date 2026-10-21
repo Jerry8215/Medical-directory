@@ -5,6 +5,7 @@ import Link from "next/link";
 
 import { Asistente } from "@/componentes/Asistente";
 import { BarraNavegacion } from "@/componentes/BarraNavegacion";
+import { ContadorDeSitio } from "@/componentes/ContadorDeSitio";
 import { sitio, urlAbsoluta } from "@/config/sitio";
 import { ciudades, especialidades } from "@/lib/catalogo";
 
@@ -65,6 +66,8 @@ export default async function RootLayout({
             />
           </div>
         </header>
+
+        <ContadorDeSitio />
 
         {children}
 
