@@ -4724,3 +4724,61 @@ a.enlace-peligro {
   padding-top: 0;
 }
 
+
+/* -------------------------------------------- credenciales en pantalla */
+
+/* La contraseña recién creada, a la vista del administrador. Depender
+   solo del correo ponía entre él y el médico un eslabón que puede caer
+   en la carpeta de no deseados. */
+.credencial {
+  margin-top: 14px;
+  padding: 14px 16px;
+  border: 1px solid #cde6d8;
+  background: var(--verde-tenue);
+  border-radius: var(--radio);
+}
+
+.credencial-titulo {
+  font-weight: 650;
+  color: var(--verde-fuerte);
+  font-size: 0.9rem;
+}
+
+.credencial dl {
+  display: grid;
+  gap: 8px;
+  margin: 12px 0 10px;
+}
+
+.credencial dl > div {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.credencial dt {
+  min-width: 92px;
+  color: var(--suave);
+  font-size: 0.84rem;
+}
+
+.credencial dd {
+  margin: 0;
+  font-weight: 650;
+  color: var(--tinta);
+}
+
+/* En monoespaciada y seleccionable: una contraseña se dicta por teléfono
+   o se copia, y en una tipografía proporcional el uno y la ele se
+   confunden. */
+.credencial-clave {
+  font-family: ui-monospace, "Cascadia Mono", Consolas, monospace;
+  font-size: 1.05rem;
+  letter-spacing: 0.04em;
+  user-select: all;
+  background: var(--papel);
+  padding: 4px 10px;
+  border-radius: 8px;
+  border: 1px solid #cde6d8;
+}

@@ -23,7 +23,14 @@ import { prisma } from "@/lib/prisma";
 import { sesionActual } from "@/lib/sesion-actual";
 import { sitio, urlAbsoluta } from "@/config/sitio";
 
-export type Resultado = { ok: true; mensaje: string } | { ok: false; mensaje: string };
+export type Resultado =
+  | {
+      ok: true;
+      mensaje: string;
+      /** Las credenciales recién creadas, para enseñarlas en pantalla. */
+      acceso?: { correo: string; clave: string; porCorreo: boolean };
+    }
+  | { ok: false; mensaje: string };
 
 /** Dirección pública donde se consulta una cédula en el registro de la SEP. */
 export async function consultaSep(cedula: string): Promise<string> {
@@ -216,6 +223,7 @@ export async function aprobarSolicitud(id: string): Promise<Resultado> {
   // alguien tenía que acordarse de crearlo a mano, y mientras no lo hacía
   // el médico no podía tocar su propio perfil.
   const acceso = await altaDeAcceso(creado, solicitud.correo);
+  let salioElCorreo = false;
   if (acceso.ok) {
     await enviarCorreo({
       para: acceso.correo,
@@ -234,21 +242,44 @@ export async function aprobarSolicitud(id: string): Promise<Resultado> {
         "",
         "Le recomendamos cambiarla desde «Mi contraseña» en cuanto entre.",
       ].join("\n"),
-    }).catch(() => {
-      // El perfil ya quedó publicado: que no salga el correo no puede
-      // deshacerlo. El administrador puede reemitir el acceso a mano.
-    });
+    })
+      .then(() => {
+        salioElCorreo = true;
+      })
+      .catch((error) => {
+        // El perfil ya quedó publicado: que no salga el correo no puede
+        // deshacerlo. Pero callarlo sí hacía daño, porque el consultorio
+        // daba por enviada una contraseña que nunca llegó y el médico se
+        // quedaba esperando un correo que no existía.
+        console.error("[acceso] no se pudo enviar la contraseña", error);
+      });
   }
 
   revalidatePath("/panel");
   revalidatePath("/");
   await resolver(id);
   refrescarDirectorio();
+  if (!acceso.ok) {
+    return {
+      ok: true,
+      mensaje: `Perfil publicado. No se pudo crear su acceso: ${acceso.mensaje}`,
+    };
+  }
+
   return {
     ok: true,
-    mensaje: acceso.ok
-      ? "Perfil publicado y acceso enviado al médico por correo."
-      : `Perfil publicado. No se pudo crear su acceso: ${acceso.mensaje}`,
+    // La contraseña se devuelve siempre, salga o no el correo. El
+    // administrador está delante de la pantalla en ese momento: hacerlo
+    // depender de un correo que puede caer en la carpeta de no deseados
+    // es poner entre él y el médico un eslabón que no hace falta.
+    mensaje: salioElCorreo
+      ? "Perfil publicado y acceso enviado por correo. La contraseña va abajo por si no llega."
+      : "Perfil publicado. El correo no salió: dicte usted estos datos al médico.",
+    acceso: {
+      correo: acceso.correo,
+      clave: acceso.clave,
+      porCorreo: salioElCorreo,
+    },
   };
 }
 

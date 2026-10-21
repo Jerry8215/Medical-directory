@@ -48,6 +48,9 @@ export function FilaSolicitud({
   const [motivo, setMotivo] = useState("");
   const [rechazando, setRechazando] = useState(false);
   const [borrada, setBorrada] = useState(false);
+  const [credencial, setCredencial] = useState<
+    { correo: string; clave: string; porCorreo: boolean } | null
+  >(null);
   const [trabajando, iniciar] = useTransition();
 
   // Borrada, la fila desaparece sola: dejarla ahí con un aviso invita a
@@ -103,6 +106,33 @@ export function FilaSolicitud({
         </div>
       ) : null}
 
+      {/* La contraseña, en pantalla y a la vista. Antes solo viajaba por
+          correo, y cuando el correo no llegaba —o caía en no deseados— el
+          médico se quedaba sin entrar y nadie sabía por qué. */}
+      {credencial ? (
+        <div className="credencial">
+          <p className="credencial-titulo">
+            {credencial.porCorreo
+              ? "Datos de acceso, enviados también por correo"
+              : "Datos de acceso. El correo no salió: dicteselos usted"}
+          </p>
+          <dl>
+            <div>
+              <dt>Correo</dt>
+              <dd>{credencial.correo}</dd>
+            </div>
+            <div>
+              <dt>Contraseña</dt>
+              <dd className="credencial-clave">{credencial.clave}</dd>
+            </div>
+          </dl>
+          <p className="meta">
+            No se vuelve a mostrar. Si la pierde, reemita el acceso desde la
+            ficha del médico.
+          </p>
+        </div>
+      ) : null}
+
       <div className="acciones">
         <BotonConfirmar
           className="boton-lleno boton-corto"
@@ -114,6 +144,7 @@ export function FilaSolicitud({
           alConfirmar={async () => {
             const r = await aprobarSolicitud(id);
             setAviso(r.mensaje);
+            if (r.ok && r.acceso) setCredencial(r.acceso);
           }}
         />
 
