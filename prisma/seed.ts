@@ -272,8 +272,14 @@ async function principal() {
   console.log("Cargando catálogos…");
   await cargarCatalogos();
 
-  console.log("Cargando profesionales…");
-  for (const p of [...PROFESIONALES, ...EJEMPLOS]) {
+  // Los perfiles de muestra sirvieron para revisar el diseño con contenido
+  // realista y el consultorio los borró cuando dejaron de hacer falta. Una
+  // recarga no puede devolverlos sin que se los pidan: aparecerían en los
+  // listados junto a los médicos de verdad.
+  const conEjemplos = process.env.SEMBRAR_EJEMPLOS === "si";
+
+  console.log(`Cargando profesionales${conEjemplos ? " y ejemplos" : ""}…`);
+  for (const p of conEjemplos ? [...PROFESIONALES, ...EJEMPLOS] : PROFESIONALES) {
     await cargarProfesional(p);
   }
 
