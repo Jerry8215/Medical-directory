@@ -3,6 +3,7 @@
 import Image from "next/image";
 import { useRef, useState, useTransition } from "react";
 
+import { BotonConfirmar } from "@/componentes/BotonConfirmar";
 import { quitarFotografia, subirFotografia } from "@/lib/fotografia";
 
 /** Un retrato de perfil no necesita más que esto, ni en pantalla ni impreso. */
@@ -156,20 +157,20 @@ export function SubirFoto({
           </button>
 
           {actual ? (
-            <button
-              type="button"
+            <BotonConfirmar
               className="boton-texto"
+              etiqueta="Quitar"
               disabled={trabajando}
-              onClick={() =>
-                iniciar(async () => {
-                  const r = await quitarFotografia(slug);
-                  setAviso({ ok: r.ok, texto: r.mensaje });
-                  if (r.ok) setActual(null);
-                })
-              }
-            >
-              Quitar
-            </button>
+              titulo="¿Quitar la fotografía?"
+              cuerpo="El perfil vuelve a mostrar las iniciales y el archivo se borra del almacén. Para recuperarla habría que volver a subirla."
+              confirmar="Sí, quitarla"
+              peligro
+              alConfirmar={async () => {
+                const r = await quitarFotografia(slug);
+                setAviso({ ok: r.ok, texto: r.mensaje });
+                if (r.ok) setActual(null);
+              }}
+            />
           ) : null}
         </div>
 

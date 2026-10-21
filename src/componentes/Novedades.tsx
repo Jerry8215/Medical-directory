@@ -3,6 +3,8 @@
 import Link from "next/link";
 import { useState, useTransition } from "react";
 
+import { Campana } from "@/componentes/Iconos";
+import { Modal } from "@/componentes/Modal";
 import { marcarComoVistas } from "@/lib/novedades-acciones";
 
 type Novedad = {
@@ -17,82 +19,133 @@ type Novedad = {
 /**
  * Lo que pasó mientras nadie miraba.
  *
- * Va arriba del panel y con su contador porque el consultorio reportó
- * exactamente esto: alguien solicitaba un alta o pedía una cita y no se
- * enteraba por ningún lado. Se marcan como vistas al revisarlas, de modo
- * que la lista se vacía y no se vuelve un adorno permanente.
+ * Antes era una lista encajada arriba del tablero, y lo que ocurría es
+ * que quien entraba a revisar sus cobros pasaba por encima de un alta sin
+ * verla. Ahora se abre sola al entrar y hay que cerrarla: es un aviso, y
+ * un aviso que se puede ignorar sin querer no está avisando nada.
+ *
+ * La campana queda después, con su contador, para volver a abrirla sin
+ * recargar la página.
  */
 export function Novedades({ novedades }: { novedades: Novedad[] }) {
   const [ocultas, setOcultas] = useState<string[]>([]);
+  // Nace abierta si hay algo que atender, y no se abre desde un efecto:
+  // el estado inicial ya sabe la respuesta. Lo que llegue después espera
+  // en la campana en lugar de interrumpir lo que se esté haciendo.
+  const [abierta, setAbierta] = useState(novedades.length > 0);
   const [trabajando, iniciar] = useTransition();
 
   const visibles = novedades.filter((n) => !ocultas.includes(n.id));
 
-  if (visibles.length === 0) {
-    return (
-      <div className="nota-umbral">
-        Sin novedades por revisar. Acá aparecen las solicitudes de alta, las
-        citas nuevas y las opiniones en cuanto llegan.
-      </div>
-    );
-  }
+  const marcar = (ids: string[]) =>
+    iniciar(async () => {
+      await marcarComoVistas(ids);
+      setOcultas((o) => [...o, ...ids]);
+    });
 
   return (
-    <div className="novedades">
-      <div className="novedades-cabeza">
-        <b>
-          {visibles.length === 1
-            ? "1 novedad por revisar"
-            : `${visibles.length} novedades por revisar`}
-        </b>
-        <button
-          type="button"
-          className="enlace-boton"
-          disabled={trabajando}
-          onClick={() =>
-            iniciar(async () => {
-              const ids = visibles.map((n) => n.id);
-              await marcarComoVistas(ids);
-              setOcultas((o) => [...o, ...ids]);
-            })
-          }
-        >
-          Marcar todas como vistas
-        </button>
-      </div>
+    <>
+      <button
+        type="button"
+        className="campana"
+        onClick={() => setAbierta(true)}
+        aria-label={
+          visibles.length === 0
+            ? "Novedades"
+            : `${visibles.length} novedades por revisar`
+        }
+      >
+        <Campana size={19} />
+        {visibles.length > 0 ? (
+          <span className="campana-punto">{visibles.length}</span>
+        ) : null}
+      </button>
 
-      {visibles.map((n) => (
-        <div className="novedad" key={n.id}>
-          <div style={{ minWidth: 0 }}>
-            <span className={`pastilla ${etiqueta(n.tipo)}`}>{nombre(n.tipo)}</span>
-            <p style={{ fontWeight: 600, marginTop: 6 }}>{n.titulo}</p>
-            {n.detalle ? <p className="meta">{n.detalle}</p> : null}
-            <p className="meta">{n.cuando}</p>
-          </div>
-
-          <div className="novedad-acciones">
-            {n.enlace ? (
-              <Link href={n.enlace} className="boton-suave">
-                Revisar
-              </Link>
-            ) : null}
+      <Modal
+        abierta={abierta}
+        alCerrar={() => setAbierta(false)}
+        titulo="Novedades"
+        descripcion={
+          visibles.length === 0
+            ? "Nada pendiente por ahora."
+            : visibles.length === 1
+              ? "1 cosa esperando su revisión."
+              : `${visibles.length} cosas esperando su revisión.`
+        }
+        ancha
+        pie={
+          visibles.length > 0 ? (
+            <>
+              <button
+                type="button"
+                className="enlace-boton callado"
+                disabled={trabajando}
+                onClick={() => marcar(visibles.map((n) => n.id))}
+              >
+                Marcar todas como vistas
+              </button>
+              <button
+                type="button"
+                className="enlace-boton"
+                onClick={() => setAbierta(false)}
+              >
+                Cerrar
+              </button>
+            </>
+          ) : (
             <button
               type="button"
               className="enlace-boton"
-              disabled={trabajando}
-              onClick={() =>
-                iniciar(async () => {
-                  await marcarComoVistas([n.id]);
-                  setOcultas((o) => [...o, n.id]);
-                })
-              }
+              onClick={() => setAbierta(false)}
             >
-              Vista
+              Entendido
             </button>
+          )
+        }
+      >
+        {visibles.length === 0 ? (
+          <div className="nota-umbral">
+            Acá aparecen las solicitudes de alta, las citas nuevas y las
+            opiniones en cuanto llegan. Las que ya resolvió se apagan solas.
           </div>
-        </div>
-      ))}
-    </div>
+        ) : (
+          <ul className="novedades">
+            {visibles.map((n) => (
+              <li className="novedad" key={n.id}>
+                <div style={{ minWidth: 0 }}>
+                  <span className={`pastilla ${etiqueta(n.tipo)}`}>
+                    {nombre(n.tipo)}
+                  </span>
+                  <p className="novedad-titulo">{n.titulo}</p>
+                  {n.detalle ? <p className="meta">{n.detalle}</p> : null}
+                  <p className="meta">{n.cuando}</p>
+                </div>
+
+                <div className="novedad-acciones">
+                  {n.enlace ? (
+                    <Link
+                      href={n.enlace}
+                      className="enlace-boton"
+                      onClick={() => setAbierta(false)}
+                    >
+                      Revisar
+                    </Link>
+                  ) : null}
+                  <button
+                    type="button"
+                    className="enlace-boton callado"
+                    disabled={trabajando}
+                    onClick={() => marcar([n.id])}
+                  >
+                    Vista
+                  </button>
+                </div>
+              </li>
+            ))}
+          </ul>
+        )}
+      </Modal>
+    </>
   );
 }
 

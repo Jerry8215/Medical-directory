@@ -17,6 +17,7 @@ import { revalidatePath } from "next/cache";
 import { refrescarDirectorio } from "@/lib/refrescar";
 
 import { altaDeAcceso } from "@/lib/accesos";
+import { resolver } from "@/lib/novedades";
 import { enviarCorreo } from "@/lib/avisos";
 import { prisma } from "@/lib/prisma";
 import { sesionActual } from "@/lib/sesion-actual";
@@ -93,6 +94,7 @@ export async function rechazarSolicitud(id: string, motivo: string): Promise<Res
   });
 
   revalidatePath("/panel");
+  await resolver(id);
   return { ok: true, mensaje: "Solicitud rechazada." };
 }
 
@@ -240,6 +242,7 @@ export async function aprobarSolicitud(id: string): Promise<Resultado> {
 
   revalidatePath("/panel");
   revalidatePath("/");
+  await resolver(id);
   refrescarDirectorio();
   return {
     ok: true,

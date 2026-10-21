@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from "react";
 
+import { BotonConfirmar } from "@/componentes/BotonConfirmar";
 import { crearAccesoProfesional } from "@/lib/usuarios-admin";
 import { cambiarPlan } from "@/lib/profesionales-admin";
 import {
@@ -354,20 +355,20 @@ export function EditorProfesional({
               Guardar consultorio
             </button>
             {c.id ? (
-              <button
-                type="button"
+              <BotonConfirmar
                 className="boton-suave"
+                etiqueta="Eliminar"
                 disabled={trabajando}
-                onClick={() =>
-                  iniciar(async () => {
-                    const r = await eliminarConsultorio(slug, c.id!);
-                    setAviso(r.mensaje);
-                    if (r.ok) setLocales((cs) => cs.filter((_, n) => n !== i));
-                  })
-                }
-              >
-                Eliminar
-              </button>
+                titulo={`¿Eliminar el consultorio «${c.nombre || "sin nombre"}»?`}
+                cuerpo="Se van con él sus horarios, y con ellos los huecos que el paciente ve para agendar. Las citas ya tomadas se conservan."
+                confirmar="Sí, eliminar el consultorio"
+                peligro
+                alConfirmar={async () => {
+                  const r = await eliminarConsultorio(slug, c.id!);
+                  setAviso(r.mensaje);
+                  if (r.ok) setLocales((cs) => cs.filter((_, n) => n !== i));
+                }}
+              />
             ) : null}
           </div>
         </section>

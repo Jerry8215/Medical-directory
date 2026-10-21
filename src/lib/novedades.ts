@@ -36,6 +36,8 @@ export async function anotar(datos: {
   titulo: string;
   detalle?: string;
   enlace?: string;
+  /** A qué registro apunta, para poder apagar el aviso al resolverlo. */
+  referencia?: string;
   profesionalId?: string;
 }): Promise<void> {
   try {
@@ -45,6 +47,7 @@ export async function anotar(datos: {
         titulo: datos.titulo,
         detalle: datos.detalle,
         enlace: datos.enlace,
+        referencia: datos.referencia,
         profesionalId: datos.profesionalId,
       },
     });
@@ -97,4 +100,25 @@ const NOMBRES: Record<Tipo, string> = {
 
 export function nombreDeTipo(tipo: Tipo): string {
   return NOMBRES[tipo];
+}
+
+/**
+ * Apaga el aviso de algo que ya se resolvió.
+ *
+ * Una solicitud aprobada o rechazada no tiene por qué seguir pidiendo
+ * atención en el panel. Antes había que apagar el aviso a mano, y con dos
+ * solicitudes esperando no había forma de saber cuál apagar.
+ *
+ * Nunca lanza: el alta ya quedó hecha y un aviso de más no puede
+ * deshacerla.
+ */
+export async function resolver(referencia: string): Promise<void> {
+  try {
+    await prisma.novedad.updateMany({
+      where: { referencia, leidaEn: null },
+      data: { leidaEn: new Date() },
+    });
+  } catch (error) {
+    console.error("[novedad] no se pudo apagar el aviso", error);
+  }
 }

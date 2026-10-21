@@ -2,12 +2,10 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 import { sitio } from "@/config/sitio";
-import { BotonSalir } from "@/componentes/BotonSalir";
 import { ListaProfesionales } from "@/componentes/ListaProfesionales";
 import { Novedades } from "@/componentes/Novedades";
 import { sinLeer } from "@/lib/novedades";
 import { enHoraLocal, proximasCitas, solicitudesPendientes } from "@/lib/panel-datos";
-import { sesionActual } from "@/lib/sesion-actual";
 import {
   ciudades,
   especialidades,
@@ -38,36 +36,8 @@ export const dynamic = "force-dynamic";
  * consultorio lleva el directorio completo, la caja y las solicitudes
  * sobre datos personales.
  */
-function enlacesDelPanel(rol: string | undefined, tienePerfil: boolean) {
-  const propios = [
-    { href: "/panel/mi-agenda", texto: "Agenda" },
-    { href: "/panel/mi-perfil", texto: "Mi perfil" },
-  ];
-  const soloAdmin = [{ href: "/panel/usuarios", texto: "Accesos" }];
-  const delEquipo = [
-    { href: "/panel/solicitudes", texto: "Solicitudes" },
-    { href: "/panel/catalogos", texto: "Catálogos" },
-    { href: "/panel/opiniones", texto: "Opiniones" },
-    { href: "/panel/cobros", texto: "Cobros" },
-    { href: "/panel/datos-personales", texto: "Datos personales" },
-  ];
-  const clave = [{ href: "/panel/mi-clave", texto: "Mi contraseña" }];
-
-  if (rol === "ADMINISTRADOR" || rol === "RECEPCION") {
-    // El titular del sitio también pasa consulta. Esconderle «Mi perfil»
-    // por ser administrador lo dejaba sin forma de editar lo suyo, con la
-    // página existiendo y sin un solo enlace que llevara hasta ella.
-    const equipo =
-      rol === "ADMINISTRADOR" ? [...delEquipo, ...soloAdmin] : delEquipo;
-    return tienePerfil
-      ? [...propios, ...equipo, ...clave]
-      : [propios[0], ...equipo, ...clave];
-  }
-  return [...propios, ...clave];
-}
 
 export default async function Panel() {
-  const sesion = await sesionActual();
   const [
     listaCiudades,
     listaEspecialidades,
@@ -118,34 +88,15 @@ export default async function Panel() {
 
   return (
     <main>
-      <section className="envoltura" style={{ paddingBlock: "36px 4px" }}>
-        <p className="eyebrow">Administración</p>
-        <h1 style={{ fontSize: "clamp(1.8rem, 4vw, 2.3rem)", marginBlock: "10px 10px" }}>
-          Panel de {sitio.nombre}
-        </h1>
-        <p className="intro">
-          Estado del directorio en este momento, leído de la base de datos.
-        </p>
-        <p className="meta" style={{ marginTop: 10 }}>
-          Sesión de {sesion?.nombre ?? "invitado"} · {sesion?.rol.toLowerCase()} ·{" "}
-          {/* Cada quien ve lo que puede abrir. Mostrarle «Cobros» a un
-              médico solo le ofrece una puerta que se le va a cerrar. */}
-          {enlacesDelPanel(sesion?.rol, Boolean(sesion?.profesionalId)).map((e) => (
-            <span key={e.href}>
-              <Link href={e.href} className="enlace-acento">
-                {e.texto}
-              </Link>{" "}
-              ·{" "}
-            </span>
-          ))}
-          <BotonSalir />
-        </p>
-      </section>
-
-      <section className="envoltura seccion">
-        <div className="seccion-cabeza">
-          <h2>Novedades</h2>
+      <header className="panel-cabeza">
+        <div>
+          <p className="eyebrow">Administración</p>
+          <h1>Panel de {sitio.nombre}</h1>
+          <p className="intro">
+            Estado del directorio en este momento, leído de la base de datos.
+          </p>
         </div>
+
         <Novedades
           novedades={novedades.map((n) => ({
             id: n.id,
@@ -156,7 +107,7 @@ export default async function Panel() {
             cuando: enHoraLocal(n.creadaEn),
           }))}
         />
-      </section>
+      </header>
 
       <section className="envoltura seccion">
         <div className="cifras">

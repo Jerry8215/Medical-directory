@@ -30,6 +30,13 @@
   --suave: #5b7183;
   --borde: #dbe7f2;
 
+  /* El degradado de la marca, el mismo cian y azul del logotipo y del
+     panel del asistente. Es lo que distingue una acción principal de un
+     enlace, sin tener que subrayar nada. */
+  --marca-a: #18b9d1;
+  --marca-b: #1d4e9b;
+  --deg-marca: linear-gradient(135deg, var(--marca-a), var(--marca-b));
+
   --sombra: 0 1px 2px rgba(18, 59, 89, 0.05), 0 10px 28px rgba(18, 59, 89, 0.07);
   --sombra-suave: 0 1px 3px rgba(18, 59, 89, 0.08);
   --radio: 14px;
@@ -353,15 +360,74 @@ img {
   color: #25d366;
 }
 
+/* Era texto subrayado haciéndose pasar por botón. Un subrayado dice
+   «esto te lleva a otra parte», y estas cosas no llevan: ejecutan. */
 .enlace-boton {
-  border: 0;
-  background: none;
-  color: var(--azul);
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  border: 1px solid transparent;
+  background-image: var(--deg-marca);
+  color: #fff;
   font: inherit;
-  font-weight: 600;
+  font-weight: 650;
+  font-size: 0.86rem;
   cursor: pointer;
-  padding: 0;
-  text-decoration: underline;
+  padding: 8px 15px;
+  border-radius: 10px;
+  text-decoration: none;
+  box-shadow: 0 1px 2px rgba(18, 59, 89, 0.12),
+    0 8px 18px -12px rgba(29, 78, 155, 0.75);
+  transition: filter 0.15s ease, transform 0.1s ease, box-shadow 0.15s ease;
+}
+
+.enlace-boton:hover:not(:disabled) {
+  filter: brightness(1.07) saturate(1.04);
+  color: #fff;
+  box-shadow: 0 1px 2px rgba(18, 59, 89, 0.14),
+    0 12px 24px -12px rgba(29, 78, 155, 0.8);
+}
+
+.enlace-boton:active:not(:disabled) {
+  transform: translateY(1px);
+  filter: brightness(0.97);
+}
+
+.enlace-boton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* La variante callada, para lo que acompaña a una acción principal y no
+   debe competir con ella. */
+.enlace-boton.callado {
+  background-image: none;
+  background: var(--papel);
+  border-color: var(--borde);
+  color: var(--navy);
+  box-shadow: none;
+}
+
+.enlace-boton.callado:hover:not(:disabled) {
+  border-color: var(--azul);
+  color: var(--azul);
+  filter: none;
+}
+
+/* La destructiva se ve distinta antes de que la toquen, no después. */
+.enlace-boton.peligro {
+  background-image: none;
+  background: var(--papel);
+  border-color: #f0cdc8;
+  color: #b4332a;
+  box-shadow: none;
+}
+
+.enlace-boton.peligro:hover:not(:disabled) {
+  background: #fdecea;
+  border-color: #e0a79f;
+  color: #93271f;
+  filter: none;
 }
 
 .enlace-acento {
@@ -3124,7 +3190,10 @@ a.chip:hover {
   align-items: center;
 }
 
-.enlace-peligro {
+/* Sobre un botón de degradado el texto rojo no se ve; la variante
+   destructiva vive en `.enlace-boton.peligro`. Esta queda para los
+   enlaces de verdad, que siguen siendo texto. */
+a.enlace-peligro {
   color: #c0392b;
 }
 
@@ -3625,4 +3694,366 @@ a.chip:hover {
   margin-top: 18px;
   color: var(--suave);
   font-size: 0.82rem;
+}
+
+/* ------------------------------------------------------ armazón del panel */
+
+/* El panel dejó de ser una página con un párrafo de enlaces arriba. Para
+   quien administra todos los días, releer una línea de texto con puntos
+   entre los enlaces no es navegar: es buscar. */
+
+.panel-armazon {
+  display: grid;
+  grid-template-columns: 236px minmax(0, 1fr);
+  gap: 26px;
+  align-items: start;
+  padding-block: 26px 48px;
+}
+
+.panel-lado {
+  position: sticky;
+  top: calc(var(--barra-alto) + var(--barra-aire) + 14px);
+  display: grid;
+  gap: 10px;
+}
+
+.rail {
+  background: var(--papel);
+  border: 1px solid var(--borde);
+  border-radius: 16px;
+  padding: 14px 12px;
+  box-shadow: var(--sombra-suave);
+}
+
+.rail-identidad {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 4px 6px 12px;
+  border-bottom: 1px solid var(--borde);
+  margin-bottom: 10px;
+}
+
+.rail-avatar {
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background-image: var(--deg-marca);
+  color: #fff;
+  font-weight: 700;
+  font-size: 0.86rem;
+}
+
+.rail-quien {
+  min-width: 0;
+}
+
+.rail-quien b {
+  display: block;
+  font-size: 0.88rem;
+  color: var(--navy);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rail-quien small {
+  color: var(--suave);
+  font-size: 0.76rem;
+}
+
+.rail-lista {
+  display: grid;
+  gap: 2px;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.rail-enlace {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 10px;
+  border-radius: 10px;
+  color: var(--suave);
+  font-size: 0.88rem;
+  font-weight: 600;
+  transition: background 0.14s ease, color 0.14s ease;
+}
+
+.rail-enlace:hover {
+  background: var(--papel-2);
+  color: var(--navy);
+}
+
+.rail-icono {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  background: var(--papel-2);
+  color: var(--suave);
+  transition: background 0.14s ease, color 0.14s ease;
+}
+
+/* La pantalla donde uno está no se adivina por el color del texto. */
+.rail-enlace[data-aqui="true"] {
+  background: var(--azul-tenue);
+  color: var(--navy);
+}
+
+.rail-enlace[data-aqui="true"] .rail-icono {
+  background-image: var(--deg-marca);
+  color: #fff;
+}
+
+.rail-punto {
+  margin-left: auto;
+  display: grid;
+  place-items: center;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
+  border-radius: 999px;
+  background: #e8503f;
+  color: #fff;
+  font-size: 0.7rem;
+  font-weight: 700;
+}
+
+.rail-pie {
+  display: grid;
+}
+
+.panel-contenido {
+  min-width: 0;
+}
+
+/* Dentro del panel, las secciones ya no necesitan su propio margen de
+   página: el armazón se lo da. */
+.panel-contenido .envoltura {
+  width: auto;
+  max-width: none;
+  padding-inline: 0;
+}
+
+.panel-cabeza {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+  padding-bottom: 6px;
+}
+
+.panel-cabeza h1 {
+  font-size: clamp(1.5rem, 3vw, 2rem);
+  margin-block: 8px 8px;
+}
+
+.campana {
+  position: relative;
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  border: 1px solid var(--borde);
+  border-radius: 12px;
+  background: var(--papel);
+  color: var(--navy);
+  cursor: pointer;
+  box-shadow: var(--sombra-suave);
+  transition: border-color 0.15s ease, color 0.15s ease;
+}
+
+.campana:hover {
+  border-color: var(--azul);
+  color: var(--azul);
+}
+
+.campana-punto {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  display: grid;
+  place-items: center;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 5px;
+  border-radius: 999px;
+  background: #e8503f;
+  color: #fff;
+  font-size: 0.7rem;
+  font-weight: 700;
+  border: 2px solid var(--papel);
+}
+
+@media (max-width: 900px) {
+  .panel-armazon {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .panel-lado {
+    position: static;
+  }
+
+  .rail-lista {
+    grid-auto-flow: column;
+    grid-auto-columns: max-content;
+    overflow-x: auto;
+    gap: 6px;
+  }
+
+  .rail-identidad {
+    border-bottom: 0;
+    margin-bottom: 4px;
+  }
+}
+
+/* -------------------------------------------------------------- modales */
+
+/* Un `<dialog>` de verdad: trae el foco atrapado, el fondo inerte y la
+   tecla de escape sin que haya que escribirlos. */
+
+.modal {
+  border: 0;
+  padding: 0;
+  background: transparent;
+  max-width: min(560px, calc(100vw - 32px));
+  width: 100%;
+}
+
+.modal[data-ancha="true"] {
+  max-width: min(720px, calc(100vw - 32px));
+}
+
+.modal::backdrop {
+  background: rgba(16, 38, 58, 0.45);
+  backdrop-filter: blur(2px);
+}
+
+.modal-caja {
+  background: var(--papel);
+  border-radius: 18px;
+  box-shadow: 0 24px 60px -24px rgba(16, 38, 58, 0.55);
+  overflow: hidden;
+  animation: modal-entra 170ms ease-out;
+}
+
+@keyframes modal-entra {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.985);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .modal-caja {
+    animation: none;
+  }
+}
+
+.modal-cabeza {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 22px 22px 14px;
+  border-bottom: 1px solid var(--borde);
+}
+
+.modal-cabeza h2 {
+  font-size: 1.15rem;
+}
+
+.modal-cerrar {
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border: 1px solid var(--borde);
+  border-radius: 9px;
+  background: var(--papel);
+  color: var(--suave);
+  cursor: pointer;
+  transition: border-color 0.15s ease, color 0.15s ease;
+}
+
+.modal-cerrar:hover {
+  border-color: var(--azul);
+  color: var(--azul);
+}
+
+.modal-cuerpo {
+  padding: 18px 22px;
+  max-height: min(62vh, 560px);
+  overflow-y: auto;
+}
+
+.modal-pie {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  flex-wrap: wrap;
+  padding: 14px 22px 20px;
+  background: var(--papel-2);
+  border-top: 1px solid var(--borde);
+}
+
+.novedades {
+  display: grid;
+  gap: 10px;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.novedad {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  flex-wrap: wrap;
+  background: var(--papel-2);
+  border: 1px solid var(--borde);
+  border-radius: 12px;
+  padding: 13px 15px;
+}
+
+.novedad-titulo {
+  font-weight: 650;
+  color: var(--navy);
+  margin-top: 7px;
+}
+
+.novedad-acciones {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+/* La tabla de accesos lleva tres columnas, no las cuatro de la de cobros:
+   sin su propia plantilla las tres cabeceras se encimaban en la primera. */
+.tabla-accesos .tabla-fila {
+  grid-template-columns: minmax(0, 1.9fr) 150px minmax(0, 1.1fr);
+}
+
+/* Las acciones de una fila van en línea mientras quepan, y nunca pegadas. */
+.tabla-fila .acciones-fila {
+  gap: 8px;
+}
+
+/* En una columna estrecha los dos botones de una fila se apilan; que lo
+   hagan alineados y con el mismo ancho, no escalonados. */
+.tabla-accesos .acciones-fila {
+  display: grid;
+  gap: 8px;
+  justify-items: stretch;
 }

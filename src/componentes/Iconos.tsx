@@ -113,6 +113,34 @@ export function Persona({ size = 18 }: Props) {
   );
 }
 
+export function Tarjeta({ size = 18 }: Props) {
+  return (
+    <svg {...base(size)}>
+      <rect x="3" y="5.5" width="18" height="13" rx="2.2" />
+      <path d="M3 10h18" />
+      <path d="M6.5 14.5h3.5" />
+    </svg>
+  );
+}
+
+export function Engrane({ size = 18 }: Props) {
+  return (
+    <svg {...base(size)}>
+      <circle cx="12" cy="12" r="3.1" />
+      <path d="M12 3.2v2.1M12 18.7v2.1M20.8 12h-2.1M5.3 12H3.2M18.2 5.8l-1.5 1.5M7.3 16.7l-1.5 1.5M18.2 18.2l-1.5-1.5M7.3 7.3 5.8 5.8" />
+    </svg>
+  );
+}
+
+export function Campana({ size = 18 }: Props) {
+  return (
+    <svg {...base(size)}>
+      <path d="M18 16.2V11a6 6 0 1 0-12 0v5.2L4.6 18h14.8L18 16.2Z" />
+      <path d="M10 20.2a2.2 2.2 0 0 0 4 0" />
+    </svg>
+  );
+}
+
 export function Globo({ size = 18 }: Props) {
   return (
     <svg {...base(size)}>

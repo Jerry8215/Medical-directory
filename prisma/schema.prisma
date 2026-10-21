@@ -553,6 +553,9 @@ model Novedad {
   detalle       String?
   /// A dónde lleva en el panel.
   enlace        String?
+  /// A qué registro apunta, para poder apagar el aviso al resolverlo. Sin
+  /// esto el aviso de un alta seguía ahí después de aprobarla.
+  referencia    String?
   /// Si corresponde a un médico en particular, para que vea las suyas.
   profesionalId String?
   leidaEn       DateTime?
@@ -562,6 +565,7 @@ model Novedad {
 
   @@index([leidaEn, creadaEn])
   @@index([profesionalId, creadaEn])
+  @@index([referencia, leidaEn])
 }
 
 model RegistroAuditoria {

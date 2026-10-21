@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useMemo, useState, useTransition } from "react";
 
+import { BotonConfirmar } from "@/componentes/BotonConfirmar";
 import { Lupa } from "@/componentes/Iconos";
 import {
   eliminarProfesional,
@@ -40,7 +41,6 @@ export function ListaProfesionales({
   const [especialidad, setEspecialidad] = useState("");
   const [estado, setEstado] = useState("");
   const [aviso, setAviso] = useState("");
-  const [confirmando, setConfirmando] = useState("");
   const [quitados, setQuitados] = useState<string[]>([]);
   const [trabajando, iniciar] = useTransition();
 
@@ -63,7 +63,6 @@ export function ListaProfesionales({
       const r = await accion();
       setAviso(r.mensaje);
       if (r.ok && slug) setQuitados((q) => [...q, slug]);
-      setConfirmando("");
     });
   }
 
@@ -145,25 +144,15 @@ export function ListaProfesionales({
               >
                 {p.publicado ? "Suspender" : "Publicar"}
               </button>
-              {confirmando === p.slug ? (
-                <button
-                  type="button"
-                  className="enlace-boton enlace-peligro"
-                  disabled={trabajando}
-                  onClick={() => ejecutar(() => eliminarProfesional(p.slug), p.slug)}
-                >
-                  Confirmar
-                </button>
-              ) : (
-                <button
-                  type="button"
-                  className="enlace-boton enlace-peligro"
-                  disabled={trabajando}
-                  onClick={() => setConfirmando(p.slug)}
-                >
-                  Eliminar
-                </button>
-              )}
+              <BotonConfirmar
+                etiqueta="Eliminar"
+                peligro
+                disabled={trabajando}
+                titulo={`¿Eliminar el perfil de ${p.nombre}?`}
+                cuerpo="Se borran su ficha, sus consultorios, sus horarios, sus verificaciones y su acceso al panel. No se puede deshacer, y si vuelve a darse de alta tendrá que capturarlo todo otra vez. Para quitarlo del directorio sin perder nada, suspéndalo."
+                confirmar="Sí, eliminar el perfil"
+                alConfirmar={() => ejecutar(() => eliminarProfesional(p.slug), p.slug)}
+              />
             </span>
           </div>
         ))}

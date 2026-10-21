@@ -2,6 +2,8 @@
 
 import { useState, useTransition } from "react";
 
+import { BotonConfirmar } from "@/componentes/BotonConfirmar";
+
 import {
   aprobarSolicitud,
   marcarEnVerificacion,
@@ -91,19 +93,18 @@ export function FilaSolicitud({
       ) : null}
 
       <div className="acciones">
-        <button
-          type="button"
+        <BotonConfirmar
           className="boton-lleno boton-corto"
+          etiqueta="Cédula comprobada · publicar"
           disabled={trabajando}
-          onClick={() =>
-            iniciar(async () => {
-              const r = await aprobarSolicitud(id);
-              setAviso(r.mensaje);
-            })
-          }
-        >
-          Cédula comprobada · publicar
-        </button>
+          titulo={`¿Publicar el perfil de ${nombre}?`}
+          cuerpo={`Está declarando que cotejó la cédula ${cedula} contra el Registro Nacional de Profesionistas y que corresponde a esta persona. El perfil queda visible para los pacientes y se le envía su acceso por correo.`}
+          confirmar="Sí, la cédula está comprobada"
+          alConfirmar={async () => {
+            const r = await aprobarSolicitud(id);
+            setAviso(r.mensaje);
+          }}
+        />
 
         {estado === "RECIBIDA" ? (
           <button
@@ -121,24 +122,31 @@ export function FilaSolicitud({
           </button>
         ) : null}
 
-        <button
-          type="button"
-          className="boton-suave"
-          disabled={trabajando}
-          onClick={() => {
-            if (!rechazando) {
-              setRechazando(true);
-              return;
-            }
-            iniciar(async () => {
+        {rechazando ? (
+          <BotonConfirmar
+            className="enlace-boton peligro"
+            etiqueta="Confirmar rechazo"
+            disabled={trabajando}
+            titulo={`¿Rechazar la solicitud de ${nombre}?`}
+            cuerpo="No se publica su perfil y la solicitud queda cerrada. Conviene que el motivo quede escrito: es lo único que va a tener a la mano si después le pregunta por qué."
+            confirmar="Sí, rechazar"
+            peligro
+            alConfirmar={async () => {
               const r = await rechazarSolicitud(id, motivo);
               setAviso(r.mensaje);
               setRechazando(false);
-            });
-          }}
-        >
-          {rechazando ? "Confirmar rechazo" : "Rechazar"}
-        </button>
+            }}
+          />
+        ) : (
+          <button
+            type="button"
+            className="boton-suave"
+            disabled={trabajando}
+            onClick={() => setRechazando(true)}
+          >
+            Rechazar
+          </button>
+        )}
       </div>
     </div>
   );

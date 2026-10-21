@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from "react";
 
+import { BotonConfirmar } from "@/componentes/BotonConfirmar";
 import {
   activarAcceso,
   cambiarRolDeEquipo,
@@ -67,8 +68,8 @@ export function PanelUsuarios({ cuentas, yo }: { cuentas: Cuenta[]; yo: string }
       <section className="ficha formulario">
         <h2>Quién entra al panel</h2>
 
-        <div className="tabla">
-          <div className="tabla-cabeza">
+        <div className="tabla tabla-accesos">
+          <div className="tabla-fila tabla-cabeza">
             <span>Persona</span>
             <span>Permiso</span>
             <span>Estado</span>
@@ -110,20 +111,34 @@ export function PanelUsuarios({ cuentas, yo }: { cuentas: Cuenta[]; yo: string }
                   <span className="meta">activo</span>
                 ) : (
                   <>
-                    <button
-                      type="button"
-                      className="enlace-boton"
-                      disabled={trabajando}
-                      onClick={() =>
-                        iniciar(async () => {
-                          const r = await activarAcceso(c.id, !c.activo);
+                    {c.activo ? (
+                      <BotonConfirmar
+                        etiqueta="Quitar acceso"
+                        peligro
+                        disabled={trabajando}
+                        titulo={`¿Quitarle el acceso a ${c.nombre}?`}
+                        cuerpo="Deja de poder entrar al panel de inmediato, aunque su cuenta y lo que haya hecho se conservan. Puede devolvérselo cuando quiera."
+                        confirmar="Sí, quitar el acceso"
+                        alConfirmar={async () => {
+                          const r = await activarAcceso(c.id, false);
                           setAviso(r.mensaje);
-                        })
-                      }
-                    >
-                      {c.activo ? "Activo · quitar" : "Sin acceso · dar"}
-                    </button>
-                    {" · "}
+                        }}
+                      />
+                    ) : (
+                      <button
+                        type="button"
+                        className="enlace-boton callado"
+                        disabled={trabajando}
+                        onClick={() =>
+                          iniciar(async () => {
+                            const r = await activarAcceso(c.id, true);
+                            setAviso(r.mensaje);
+                          })
+                        }
+                      >
+                        Dar acceso
+                      </button>
+                    )}
                     <button
                       type="button"
                       className="enlace-boton"
@@ -136,7 +151,7 @@ export function PanelUsuarios({ cuentas, yo }: { cuentas: Cuenta[]; yo: string }
                         })
                       }
                     >
-                      nueva clave
+                      Nueva clave
                     </button>
                   </>
                 )}

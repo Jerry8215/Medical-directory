@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from "react";
 
+import { BotonConfirmar } from "@/componentes/BotonConfirmar";
 import { acreditarPago, rechazarPago } from "@/lib/cobros";
 
 export type FilaPago = {
@@ -83,14 +84,15 @@ export function TablaCobros({ pagos }: { pagos: FilaPago[] }) {
                       placeholder="¿Por qué se rechaza?"
                       aria-label="Motivo del rechazo"
                     />
-                    <button
-                      type="button"
-                      className="enlace-boton enlace-peligro"
+                    <BotonConfirmar
+                      etiqueta="Confirmar rechazo"
+                      peligro
                       disabled={trabajando}
-                      onClick={() => ejecutar(() => rechazarPago(p.id, motivo), p.id)}
-                    >
-                      Confirmar rechazo
-                    </button>
+                      titulo={`¿Rechazar el pago de ${p.medico}?`}
+                      cuerpo="El cobro queda marcado como rechazado y el médico ve el motivo. Si fue un error, tendrá que volver a registrar el pago desde cero."
+                      confirmar="Sí, rechazar el pago"
+                      alConfirmar={() => ejecutar(() => rechazarPago(p.id, motivo), p.id)}
+                    />
                   </>
                 ) : (
                   <>
@@ -104,7 +106,7 @@ export function TablaCobros({ pagos }: { pagos: FilaPago[] }) {
                     </button>
                     <button
                       type="button"
-                      className="enlace-boton enlace-peligro"
+                      className="enlace-boton peligro"
                       disabled={trabajando}
                       onClick={() => setRechazando(p.id)}
                     >

@@ -184,7 +184,7 @@ export function AtencionArco() {
                 {h.cancelado ? null : confirmando === h.id ? (
                   <button
                     type="button"
-                    className="enlace-boton enlace-peligro"
+                    className="enlace-boton peligro"
                     disabled={trabajando}
                     onClick={() =>
                       iniciar(async () => {
@@ -200,7 +200,7 @@ export function AtencionArco() {
                 ) : (
                   <button
                     type="button"
-                    className="enlace-boton enlace-peligro"
+                    className="enlace-boton peligro"
                     disabled={trabajando}
                     onClick={() => setConfirmando(h.id)}
                   >

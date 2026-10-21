@@ -76,7 +76,7 @@ export async function registrarSolicitud(datos: Solicitud): Promise<Resultado> {
     };
   }
 
-  await prisma.solicitudAlta.create({
+  const solicitud = await prisma.solicitudAlta.create({
     data: {
       nombre: nombre.ok ? nombre.valor : datos.nombre.trim(),
       correo: correo.ok ? correo.valor : datos.correo.trim(),
@@ -106,6 +106,8 @@ export async function registrarSolicitud(datos: Solicitud): Promise<Resultado> {
       cedula.ok ? cedula.valor : ""
     }`,
     enlace: "/panel/solicitudes",
+    // Para que el aviso se apague solo al aprobarla o rechazarla.
+    referencia: solicitud.id,
   });
 
   revalidatePath("/panel");
