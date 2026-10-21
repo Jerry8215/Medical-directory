@@ -107,7 +107,7 @@ export default async function TodosLosMedicos() {
               </Link>
             </div>
 
-            <div className="rejilla">
+            <div className="rejilla-medicos">
               {suyos.map((p) => (
                 <TarjetaProfesional
                   key={`${ciudad.slug}-${p.slug}`}

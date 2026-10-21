@@ -1,19 +1,9 @@
 "use client";
 
-import Link from "next/link";
 import { useMemo, useState } from "react";
 
-import {
-  Calendario,
-  Escudo,
-  Estrella,
-  Globo,
-  Persona,
-  Pin,
-} from "@/componentes/Iconos";
-import { Flecha } from "@/componentes/Ilustraciones";
-import { Retrato } from "@/componentes/Retrato";
-import { cedulaVerificada, type Profesional } from "@/lib/tipos";
+import { TarjetaProfesional } from "@/componentes/TarjetaProfesional";
+import type { Profesional } from "@/lib/tipos";
 
 /**
  * Los médicos destacados de la portada.
@@ -31,8 +21,6 @@ import { cedulaVerificada, type Profesional } from "@/lib/tipos";
 
 const TODOS = "todos";
 
-/** Los de muestra se reparten los tintes para que no se repitan en fila. */
-const TINTES = ["lila", "durazno", "cielo"] as const;
 
 export function MedicosDestacados({
   profesionales,
@@ -66,18 +54,6 @@ export function MedicosDestacados({
     [profesionales, filtro],
   );
 
-  // El tinte se reparte entre los de muestra, no entre todas las tarjetas:
-  // si contara también la verificada, el primer tinte nunca saldría.
-  const conTinte = useMemo(() => {
-    let muestra = 0;
-    return visibles.map((p) => {
-      const verificado = cedulaVerificada(p) && !p.ejemplo;
-      return {
-        p,
-        tinte: verificado ? "verde" : TINTES[muestra++ % TINTES.length],
-      };
-    });
-  }, [visibles]);
 
   const hayMuestras = visibles.some((p) => p.ejemplo);
 
@@ -119,14 +95,13 @@ export function MedicosDestacados({
         </div>
       ) : null}
 
-      <div className="destacados-rejilla">
-        {conTinte.map(({ p, tinte }) => (
-          <TarjetaDestacada
+      <div className="rejilla-medicos">
+        {visibles.map((p) => (
+          <TarjetaProfesional
             key={p.slug}
             profesional={p}
             especialidad={especialidades[p.especialidades[0]]}
             ciudad={ciudades[p.consultorios[0]?.ciudad ?? ""]}
-            tinte={tinte}
           />
         ))}
       </div>
@@ -138,106 +113,5 @@ export function MedicosDestacados({
         </p>
       ) : null}
     </>
-  );
-}
-
-function TarjetaDestacada({
-  profesional,
-  especialidad,
-  ciudad,
-  tinte,
-}: {
-  profesional: Profesional;
-  especialidad?: string;
-  ciudad?: string;
-  tinte: string;
-}) {
-  const consultorio = profesional.consultorios[0];
-  const verificado = cedulaVerificada(profesional) && !profesional.ejemplo;
-
-  return (
-    <article className="destacado" data-tinte={tinte}>
-      <div className="destacado-tapa">
-        <span className="destacado-sello">
-          {profesional.ejemplo
-            ? "Perfil de muestra"
-            : verificado
-              ? "Cédula verificada"
-              : "En verificación"}
-        </span>
-      </div>
-
-      <div className="destacado-cuerpo">
-        <div className="destacado-foto">
-          <Retrato
-            nombre={profesional.nombre}
-            fotografia={profesional.fotografia}
-            verificado={verificado}
-            tamano={104}
-            tinte={tinte}
-          />
-        </div>
-
-        {especialidad ? (
-          <p className="destacado-especialidad">{especialidad}</p>
-        ) : null}
-
-        <h3 className="destacado-nombre">
-          <Link href={`/medico/${profesional.slug}`}>{profesional.nombre}</Link>
-        </h3>
-
-        <p className="destacado-lugar">
-          <Pin size={15} />
-          <span>
-            {consultorio?.nombre ?? ciudad ?? ""}
-            {consultorio && ciudad ? <small>{ciudad}, Chihuahua</small> : null}
-          </span>
-        </p>
-
-        <div className="destacado-raya" />
-
-        <p className="destacado-nota">
-          {verificado ? <Escudo size={15} /> : <Persona size={15} />}
-          {verificado
-            ? "Identidad profesional verificada"
-            : "Ejemplo de presentación del perfil"}
-        </p>
-
-        {profesional.calificacion ? (
-          <p className="destacado-opiniones destacado-estrellas">
-            <Estrella size={14} />
-            <b>{profesional.calificacion.toFixed(1)}</b>
-            <span>
-              {profesional.opiniones === 1
-                ? "1 opinión"
-                : `${profesional.opiniones} opiniones`}
-            </span>
-          </p>
-        ) : (
-          <p className="destacado-opiniones">Sin opiniones todavía</p>
-        )}
-
-        <Link
-          href={`/medico/${profesional.slug}`}
-          className="destacado-boton"
-          data-realce={verificado}
-        >
-          Conocer al especialista
-          <Flecha size={17} />
-        </Link>
-
-        {profesional.puede.agenda ? (
-          <Link href={`/medico/${profesional.slug}#agenda`} className="destacado-atajo">
-            <Calendario size={15} />
-            Consultar agenda
-          </Link>
-        ) : (
-          <Link href={`/medico/${profesional.slug}#contacto`} className="destacado-atajo">
-            <Globo size={15} />
-            Ver contacto
-          </Link>
-        )}
-      </div>
-    </article>
   );
 }

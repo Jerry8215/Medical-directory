@@ -103,7 +103,7 @@ export default async function PaginaEspecialidad({ params }: Props) {
         </div>
 
         {profesionales.length > 0 ? (
-          <div className="rejilla">
+          <div className="rejilla-medicos">
             {profesionales.map((p) => (
               <TarjetaProfesional key={p.slug} profesional={p} especialidad={e.nombre} />
             ))}

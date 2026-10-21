@@ -79,7 +79,7 @@ export function Buscador({
       </label>
 
       {encontrados.length > 0 ? (
-        <div className="rejilla" style={{ marginTop: 18 }}>
+        <div className="rejilla-medicos" style={{ marginTop: 18 }}>
           {encontrados.map((p) => (
             <TarjetaProfesional
               key={p.slug}

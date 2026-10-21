@@ -15,7 +15,9 @@ import {
   Whatsapp,
 } from "@/componentes/Iconos";
 import { Reserva } from "@/componentes/Reserva";
-import { Retrato } from "@/componentes/Retrato";
+import Image from "next/image";
+
+import { InsigniaVerificado } from "@/componentes/Retrato";
 import { sitio, urlAbsoluta } from "@/config/sitio";
 import { huecos, porDia } from "@/lib/agenda";
 import { fichas, migasDeNavegacion } from "@/lib/schema";
@@ -84,6 +86,14 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   };
 }
 
+
+function inicialesDe(nombre: string): string {
+  const palabras = nombre
+    .replace(/^(Dr\.|Dra\.|Lic\.)\s*/i, "")
+    .split(/\s+/)
+    .filter(Boolean);
+  return (palabras[0]?.[0] ?? "") + (palabras[1]?.[0] ?? "");
+}
 
 export default async function PaginaProfesional({ params }: Props) {
   const { slug } = await params;
@@ -264,12 +274,29 @@ export default async function PaginaProfesional({ params }: Props) {
         <div>
           <div className="ficha">
             <div className="perfil-cabeza">
-              <Retrato
-                nombre={p.nombre}
-                fotografia={p.fotografia}
-                verificado={cedulaVerificada(p)}
-                tamano={148}
-              />
+              {/* El retrato manda también acá: es la misma pieza que el
+                  paciente vio en el listado, en grande. */}
+              <div className="perfil-retrato">
+                {p.fotografia ? (
+                  <Image
+                    src={p.fotografia}
+                    alt={p.nombre}
+                    fill
+                    sizes="(max-width: 860px) 92vw, 380px"
+                    className="retratada-imagen"
+                    priority
+                  />
+                ) : (
+                  <span className="retratada-iniciales" aria-hidden="true">
+                    {inicialesDe(p.nombre)}
+                  </span>
+                )}
+                {cedulaVerificada(p) ? (
+                  <span className="perfil-insignia">
+                    <InsigniaVerificado size={34} />
+                  </span>
+                ) : null}
+              </div>
 
               <div className="perfil-datos">
                 <h1>{p.nombre}</h1>

@@ -1,15 +1,14 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 
-import { Calendario, Pin, Reloj } from "@/componentes/Iconos";
-import { Retrato } from "@/componentes/Retrato";
+import { TarjetaProfesional } from "@/componentes/TarjetaProfesional";
 import {
   ciudades,
   especialidades,
   profesionalesPublicados,
 } from "@/lib/catalogo";
 import { migasDeNavegacion, fichas } from "@/lib/schema";
-import { cedulaVerificada, perfilCompleto } from "@/lib/tipos";
+import { perfilCompleto } from "@/lib/tipos";
 
 export const revalidate = 1800;
 
@@ -80,56 +79,15 @@ export default async function Agendar() {
 
       {conAgenda.length > 0 ? (
         <section className="envoltura seccion">
-          <div className="rejilla">
-            {conAgenda.map((p) => {
-              const consultorio = p.consultorios[0];
-              return (
-                <article className="tarjeta medico-tarjeta" key={p.slug}>
-                  <div className="medico-cabeza">
-                    <Retrato
-                      nombre={p.nombre}
-                      fotografia={p.fotografia}
-                      verificado={cedulaVerificada(p) && !p.ejemplo}
-                      tamano={72}
-                    />
-                    <div style={{ minWidth: 0 }}>
-                      <h3>
-                        <Link href={`/medico/${p.slug}`}>{p.nombre}</Link>
-                      </h3>
-                      <p className="especialidad-texto">
-                        {nombreDeEspecialidad.get(p.especialidades[0]) ?? ""}
-                      </p>
-                      {consultorio ? (
-                        <>
-                          <p className="linea-icono">
-                            <Pin size={15} />
-                            {consultorio.nombre},{" "}
-                            {nombreDeCiudad.get(consultorio.ciudad) ?? ""}
-                          </p>
-                          <p className="linea-icono">
-                            <Reloj size={15} />
-                            {consultorio.horario}
-                          </p>
-                        </>
-                      ) : null}
-                    </div>
-                  </div>
-
-                  <div className="acciones-tarjeta">
-                    <Link href={`/medico/${p.slug}`} className="boton-suave">
-                      Ver perfil
-                    </Link>
-                    <Link
-                      href={`/medico/${p.slug}#agenda`}
-                      className="boton-lleno"
-                    >
-                      <Calendario size={17} />
-                      Ver horarios
-                    </Link>
-                  </div>
-                </article>
-              );
-            })}
+          <div className="rejilla-medicos">
+            {conAgenda.map((p) => (
+              <TarjetaProfesional
+                key={p.slug}
+                profesional={p}
+                especialidad={nombreDeEspecialidad.get(p.especialidades[0])}
+                ciudad={nombreDeCiudad.get(p.consultorios[0]?.ciudad ?? "")}
+              />
+            ))}
           </div>
         </section>
       ) : (
