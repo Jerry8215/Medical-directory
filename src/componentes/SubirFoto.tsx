@@ -65,10 +65,13 @@ export function SubirFoto({
   slug,
   fotografia,
   nombre,
+  seVePublicada = true,
 }: {
   slug: string;
   fotografia: string | null;
   nombre: string;
+  /** Si el plan la muestra en el perfil público. */
+  seVePublicada?: boolean;
 }) {
   const [actual, setActual] = useState(fotografia);
   const [aviso, setAviso] = useState<{ ok: boolean; texto: string } | null>(null);
@@ -118,6 +121,17 @@ export function SubirFoto({
           Una foto de frente, con buena luz y sin lentes de sol. El recorte
           cuadrado lo hace el sistema.
         </p>
+
+        {/* Sin este aviso, el plan básico subía la fotografía, la guardaba
+            y no la mostraba en ninguna parte. El médico la veía aquí y no
+            en su perfil, y concluía que el sitio estaba roto. */}
+        {!seVePublicada ? (
+          <div className="nota-umbral" style={{ marginBlock: "10px 4px" }}>
+            Su plan no incluye fotografía en el perfil público. Aquí la puede
+            dejar lista, pero el paciente verá sus iniciales hasta que el
+            perfil pase a Gold o Premium.
+          </div>
+        ) : null}
 
         <input
           ref={entrada}

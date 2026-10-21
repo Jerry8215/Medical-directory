@@ -9,6 +9,7 @@
  * cada cambio queda asentado con su autor.
  */
 
+import { del } from "@vercel/blob";
 import { revalidatePath } from "next/cache";
 
 import { refrescarDirectorio } from "@/lib/refrescar";
@@ -366,6 +367,17 @@ export async function eliminarProfesional(slug: string): Promise<Resultado> {
       ok: false,
       mensaje: "No se pudo eliminar el perfil. Intente suspenderlo y avíseme.",
     };
+  }
+
+  // La fotografía no vive en la base sino en el almacén de imágenes, de
+  // modo que borrar la fila la dejaba ahí para siempre, ocupando espacio
+  // y sin que nadie supiera ya de quién había sido.
+  if (profesional.fotografia) {
+    try {
+      await del(profesional.fotografia);
+    } catch (error) {
+      console.error("[perfil] quedó una fotografía huérfana", error);
+    }
   }
 
   await prisma.registroAuditoria.create({

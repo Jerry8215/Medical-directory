@@ -89,6 +89,9 @@ export default async function EditarProfesional({ params }: Props) {
             slug={slug}
             fotografia={profesional.fotografia}
             nombre={profesional.nombre}
+            seVePublicada={
+              capacidades(profesional.plan, profesional.planHasta).fotografia
+            }
           />
         </div>
       </section>

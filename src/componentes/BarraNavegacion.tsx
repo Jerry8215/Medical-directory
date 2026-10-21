@@ -53,9 +53,10 @@ export function BarraNavegacion({ enlaces }: { enlaces: Enlace[] }) {
         );
       })}
 
-      {/* Con el texto, porque es la acción principal del sitio. Como ícono
-          suelto no decía nada y además repetía el enlace de «Médicos». */}
-      <Link href="/delicias" className="boton-lleno boton-cita">
+      {/* Con el texto, porque es la acción principal del sitio, y con
+          destino propio: llevaba al mismo listado que «Médicos», que está
+          justo al lado, de modo que uno de los dos botones sobraba. */}
+      <Link href="/agendar" className="boton-lleno boton-cita">
         <Calendario size={20} grosor={2} />
         Agendar cita
       </Link>

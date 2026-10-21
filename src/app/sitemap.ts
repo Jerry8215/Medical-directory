@@ -43,6 +43,24 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 1,
   };
 
+  // El directorio completo y la pantalla de reserva son las dos puertas
+  // de la barra: si el buscador no las conoce, sus propias páginas de
+  // ciudad son lo único que indexa y no hay nada que las reúna.
+  const puertas = [
+    {
+      url: urlAbsoluta("/medicos"),
+      lastModified: ahora,
+      changeFrequency: "weekly" as const,
+      priority: 0.9,
+    },
+    {
+      url: urlAbsoluta("/agendar"),
+      lastModified: ahora,
+      changeFrequency: "weekly" as const,
+      priority: 0.7,
+    },
+  ];
+
   const porCiudad = ciudadesPublicadas.map((c) => ({
     url: urlAbsoluta(`/${c.slug}`),
     lastModified: ahora,
@@ -68,5 +86,11 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.7,
     }));
 
-  return [inicio, ...porCiudad, ...porEspecialidad, ...paginasDePerfil];
+  return [
+    inicio,
+    ...puertas,
+    ...porCiudad,
+    ...porEspecialidad,
+    ...paginasDePerfil,
+  ];
 }
