@@ -5,7 +5,6 @@ import { sitio } from "@/config/sitio";
 import { BotonSalir } from "@/componentes/BotonSalir";
 import { ListaProfesionales } from "@/componentes/ListaProfesionales";
 import { Novedades } from "@/componentes/Novedades";
-import { FilaSolicitud } from "@/componentes/FilaSolicitud";
 import { sinLeer } from "@/lib/novedades";
 import { enHoraLocal, proximasCitas, solicitudesPendientes } from "@/lib/panel-datos";
 import { sesionActual } from "@/lib/sesion-actual";
@@ -46,6 +45,7 @@ function enlacesDelPanel(rol: string | undefined, tienePerfil: boolean) {
   ];
   const soloAdmin = [{ href: "/panel/usuarios", texto: "Accesos" }];
   const delEquipo = [
+    { href: "/panel/solicitudes", texto: "Solicitudes" },
     { href: "/panel/catalogos", texto: "Catálogos" },
     { href: "/panel/opiniones", texto: "Opiniones" },
     { href: "/panel/cobros", texto: "Cobros" },
@@ -321,43 +321,25 @@ export default async function Panel() {
         )}
       </section>
 
-      {/* El aviso de «solicitud de alta» trae aquí: las solicitudes se
-          revisan en esta misma pantalla y no en una propia. */}
-      <section className="envoltura seccion" id="solicitudes">
+      {/* La revisión vive en su propia pantalla desde que el directorio
+          empezó a recibir altas de verdad: aquí solo se avisa y se lleva.
+          Tenerla en dos lados invitaba a aprobar en una y buscar en la
+          otra por qué no se había movido. */}
+      <section className="envoltura seccion">
         <div className="seccion-cabeza">
           <h2>Solicitudes de alta</h2>
-          <span>{solicitudes.length} por revisar</span>
+          <Link href="/panel/solicitudes" className="enlace-acento">
+            Revisarlas →
+          </Link>
         </div>
-        {solicitudes.length > 0 ? (
-          <div style={{ display: "grid", gap: 14 }}>
-            {solicitudes.map((s) => (
-              <FilaSolicitud
-                key={s.id}
-                id={s.id}
-                nombre={s.nombre}
-                correo={s.correo}
-                telefono={s.telefono}
-                especialidad={
-                  listaEspecialidades.find((e) => e.slug === s.especialidad)?.nombre ??
-                  s.especialidad
-                }
-                ciudad={
-                  listaCiudades.find((c) => c.slug === s.ciudadSlug)?.nombre ??
-                  s.ciudadSlug
-                }
-                cedula={s.cedula}
-                consejo={s.consejo}
-                consultorio={s.consultorio}
-                estado={s.estado}
-              />
-            ))}
-          </div>
-        ) : (
-          <div className="nota-umbral">
-            Las solicitudes que llegan por <Link href="/alta">la página de alta</Link>{" "}
-            aparecerán acá para verificar la cédula y publicar el perfil.
-          </div>
-        )}
+        <div className="nota-umbral">
+          {solicitudes.length === 0
+            ? "No hay solicitudes esperando."
+            : solicitudes.length === 1
+              ? "Hay 1 solicitud esperando para cotejar la cédula y publicar el perfil."
+              : `Hay ${solicitudes.length} solicitudes esperando para cotejar la cédula y publicar el perfil.`}{" "}
+          Llegan por <Link href="/alta">la página de alta</Link>.
+        </div>
       </section>
     </main>
   );
