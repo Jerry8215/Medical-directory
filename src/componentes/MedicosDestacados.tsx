@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
 import { useMemo, useState } from "react";
 
@@ -8,11 +7,12 @@ import {
   Calendario,
   Escudo,
   Estrella,
-  Flecha,
   Globo,
   Persona,
   Pin,
 } from "@/componentes/Iconos";
+import { Flecha } from "@/componentes/Ilustraciones";
+import { Retrato } from "@/componentes/Retrato";
 import { cedulaVerificada, type Profesional } from "@/lib/tipos";
 
 /**
@@ -33,14 +33,6 @@ const TODOS = "todos";
 
 /** Los de muestra se reparten los tintes para que no se repitan en fila. */
 const TINTES = ["lila", "durazno", "cielo"] as const;
-
-function iniciales(nombre: string): string {
-  const palabras = nombre
-    .replace(/^(Dr\.|Dra\.|Lic\.|Mtro\.|Mtra\.)\s*/i, "")
-    .split(/\s+/)
-    .filter(Boolean);
-  return (palabras[0]?.[0] ?? "") + (palabras[1]?.[0] ?? "");
-}
 
 export function MedicosDestacados({
   profesionales,
@@ -173,37 +165,17 @@ function TarjetaDestacada({
               ? "Cédula verificada"
               : "En verificación"}
         </span>
-        <span className="destacado-glifo" aria-hidden="true">
-          <Persona size={22} />
-        </span>
       </div>
 
       <div className="destacado-cuerpo">
         <div className="destacado-foto">
-          {profesional.fotografia ? (
-            <Image
-              className="destacado-retrato"
-              src={profesional.fotografia}
-              alt={profesional.nombre}
-              width={96}
-              height={96}
-            />
-          ) : (
-            <div className="destacado-retrato" aria-hidden="true">
-              {iniciales(profesional.nombre)}
-            </div>
-          )}
-          {verificado ? (
-            <span className="destacado-insignia" title="Cédula verificada">
-              <svg width="15" height="15" viewBox="0 0 24 24" aria-hidden="true">
-                <path
-                  fill="currentColor"
-                  d="m9.6 16.3-3.5-3.5 1.4-1.4 2.1 2.1 6-6 1.4 1.4-7.4 7.4Z"
-                />
-              </svg>
-              <span className="sr-only">Cédula verificada</span>
-            </span>
-          ) : null}
+          <Retrato
+            nombre={profesional.nombre}
+            fotografia={profesional.fotografia}
+            verificado={verificado}
+            tamano={104}
+            tinte={tinte}
+          />
         </div>
 
         {especialidad ? (

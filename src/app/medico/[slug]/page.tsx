@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
@@ -16,6 +15,7 @@ import {
   Whatsapp,
 } from "@/componentes/Iconos";
 import { Reserva } from "@/componentes/Reserva";
+import { Retrato } from "@/componentes/Retrato";
 import { sitio, urlAbsoluta } from "@/config/sitio";
 import { huecos, porDia } from "@/lib/agenda";
 import { fichas, migasDeNavegacion } from "@/lib/schema";
@@ -84,13 +84,6 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   };
 }
 
-function iniciales(nombre: string): string {
-  const palabras = nombre
-    .replace(/^(Dr\.|Dra\.)\s*/i, "")
-    .split(/\s+/)
-    .filter(Boolean);
-  return (palabras[0]?.[0] ?? "") + (palabras[1]?.[0] ?? "");
-}
 
 export default async function PaginaProfesional({ params }: Props) {
   const { slug } = await params;
@@ -271,19 +264,12 @@ export default async function PaginaProfesional({ params }: Props) {
         <div>
           <div className="ficha">
             <div className="perfil-cabeza">
-              {p.fotografia ? (
-                <Image
-                  className="retrato retrato-grande"
-                  src={p.fotografia}
-                  alt={p.nombre}
-                  width={132}
-                  height={132}
-                />
-              ) : (
-                <div className="retrato retrato-grande" aria-hidden="true">
-                  {iniciales(p.nombre)}
-                </div>
-              )}
+              <Retrato
+                nombre={p.nombre}
+                fotografia={p.fotografia}
+                verificado={cedulaVerificada(p)}
+                tamano={148}
+              />
 
               <div className="perfil-datos">
                 <h1>{p.nombre}</h1>

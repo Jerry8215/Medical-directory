@@ -3194,8 +3194,8 @@ a.chip:hover {
 }
 
 .destacado {
-  --tinte: var(--verde-tenue);
-  --anillo: rgba(24, 156, 91, 0.16);
+  --tinte: #e6f7ee;
+  --brillo: rgba(32, 190, 112, 0.42);
   --acento: var(--verde-fuerte);
 
   display: flex;
@@ -3214,20 +3214,20 @@ a.chip:hover {
 }
 
 .destacado[data-tinte="lila"] {
-  --tinte: #ece9f7;
-  --anillo: rgba(98, 76, 170, 0.14);
+  --tinte: #ebe6f8;
+  --brillo: rgba(123, 97, 205, 0.38);
   --acento: #5b4b9c;
 }
 
 .destacado[data-tinte="durazno"] {
-  --tinte: #fdeee2;
-  --anillo: rgba(199, 120, 46, 0.14);
+  --tinte: #fdeee0;
+  --brillo: rgba(226, 145, 62, 0.36);
   --acento: #b5701f;
 }
 
 .destacado[data-tinte="cielo"] {
   --tinte: #e4eff9;
-  --anillo: rgba(23, 106, 152, 0.14);
+  --brillo: rgba(23, 106, 152, 0.34);
   --acento: var(--azul);
 }
 
@@ -3243,11 +3243,12 @@ a.chip:hover {
   content: "";
   position: absolute;
   inset: 0;
-  background: repeating-radial-gradient(
-    circle at 88% 14%,
-    transparent 0 25px,
-    var(--anillo) 25px 26.5px
-  );
+  /* Dos luces sobre el tinte: una fría arriba a la izquierda y otra del
+     color de acento arriba a la derecha. Es lo que le da relieve sin
+     dibujar nada encima. */
+  background:
+    radial-gradient(110% 150% at 12% -20%, rgba(255, 255, 255, 0.92), transparent 58%),
+    radial-gradient(90% 130% at 100% 0%, var(--brillo), transparent 62%);
 }
 
 .destacado-sello {
@@ -3262,13 +3263,6 @@ a.chip:hover {
   border-radius: 999px;
 }
 
-.destacado-glifo {
-  position: absolute;
-  top: 14px;
-  right: 18px;
-  color: var(--acento);
-  opacity: 0.55;
-}
 
 .destacado-cuerpo {
   display: flex;
@@ -3284,34 +3278,7 @@ a.chip:hover {
   margin-bottom: 16px;
 }
 
-.destacado-retrato {
-  display: grid;
-  place-items: center;
-  width: 96px;
-  height: 96px;
-  border-radius: 50%;
-  object-fit: cover;
-  border: 4px solid var(--papel);
-  background: var(--tinte);
-  color: var(--acento);
-  font-weight: 700;
-  font-size: 1.55rem;
-  letter-spacing: 0.02em;
-}
 
-.destacado-insignia {
-  position: absolute;
-  right: 0;
-  bottom: 4px;
-  display: grid;
-  place-items: center;
-  width: 26px;
-  height: 26px;
-  border-radius: 50%;
-  background: #1d82e2;
-  color: #fff;
-  border: 3px solid var(--papel);
-}
 
 .destacado-especialidad {
   text-transform: uppercase;
@@ -3445,5 +3412,149 @@ a.chip:hover {
 
   .destacado-tapa {
     height: 96px;
+  }
+}
+
+/* ------------------------------------------------- retrato del profesional */
+
+/* Mismo retrato en los tres sitios donde aparece un médico: el listado, la
+   portada y su ficha. El degradado de fondo es lo que sostiene la pieza
+   cuando todavía no hay fotografía y solo están las iniciales. */
+
+.retrato-caja {
+  --tinte: #e6f7ee;
+  --brillo: rgba(32, 190, 112, 0.5);
+  --acento: var(--verde-fuerte);
+
+  position: relative;
+  flex: 0 0 auto;
+  display: block;
+}
+
+.retrato-marco {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  overflow: hidden;
+  isolation: isolate;
+  background:
+    radial-gradient(120% 120% at 22% 8%, rgba(255, 255, 255, 0.95), transparent 60%),
+    radial-gradient(110% 110% at 85% 95%, var(--brillo), transparent 62%),
+    var(--tinte);
+  box-shadow:
+    0 0 0 4px var(--papel),
+    0 8px 20px -10px rgba(18, 59, 89, 0.45),
+    inset 0 0 0 1px rgba(18, 59, 89, 0.08);
+}
+
+.retrato-caja[data-tinte="lila"] {
+  --tinte: #ebe6f8;
+  --brillo: rgba(123, 97, 205, 0.45);
+  --acento: #5b4b9c;
+}
+
+.retrato-caja[data-tinte="durazno"] {
+  --tinte: #fdeee0;
+  --brillo: rgba(226, 145, 62, 0.45);
+  --acento: #b5701f;
+}
+
+.retrato-caja[data-tinte="cielo"] {
+  --tinte: #e4eff9;
+  --brillo: rgba(23, 106, 152, 0.42);
+  --acento: var(--azul);
+}
+
+/* La fotografía se recorta cuadrada por el centro al subirla y en un
+   retrato de pie el centro cae en la bata. El doble de acercamiento,
+   corrido hacia arriba, devuelve el encuadre de cara y hombros. */
+.retrato-foto {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transform: scale(2);
+  transform-origin: 50% -10%;
+}
+
+.retrato-iniciales {
+  font-weight: 700;
+  color: var(--acento);
+  letter-spacing: 0.02em;
+}
+
+.insignia-verificado {
+  position: absolute;
+  right: 2%;
+  bottom: 2%;
+  display: grid;
+  place-items: center;
+  color: #1d82e2;
+  filter: drop-shadow(0 0 2px var(--papel)) drop-shadow(0 0 2px var(--papel))
+    drop-shadow(0 1px 3px rgba(18, 59, 89, 0.35));
+  z-index: 2;
+}
+
+/* ---------------------------------------- catálogo de padecimientos (tabs) */
+
+/* El alto deja de crecer con el catálogo: se ve una especialidad a la vez.
+   La tira se desplaza de lado en pantallas angostas en lugar de apilarse,
+   que es lo que hace que una fila de pestañas se coma media pantalla. */
+
+.catalogo {
+  margin-top: 22px;
+}
+
+/* Píldoras que fluyen en varias líneas y no una tira que se desplaza: con
+   cinco especialidades de nombre largo, cualquier tira deja la última
+   cortada contra el borde, y al agregar especialidades empeora. */
+.catalogo-pestanas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.catalogo-pestana {
+  border: 1px solid var(--borde);
+  background: var(--papel);
+  font: inherit;
+  font-size: 0.87rem;
+  font-weight: 600;
+  color: var(--navy);
+  padding: 9px 16px;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+.catalogo-pestana:hover {
+  border-color: var(--azul);
+  color: var(--azul);
+}
+
+.catalogo-pestana[data-activa="true"] {
+  background: var(--navy);
+  border-color: var(--navy);
+  color: #fff;
+}
+
+/* El alto reservado evita que el pie de la sección brinque al cambiar de
+   especialidad, que es lo que delata una tabulación mal hecha. */
+.catalogo-panel {
+  background: var(--papel);
+  border: 1px solid var(--borde);
+  border-radius: 16px;
+  box-shadow: var(--sombra-suave);
+  padding: 18px;
+  min-height: 128px;
+}
+
+@media (max-width: 760px) {
+  .catalogo-panel {
+    min-height: 0;
   }
 }

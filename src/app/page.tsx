@@ -22,6 +22,7 @@ import {
   Flecha,
   MapaRegion,
 } from "@/componentes/Ilustraciones";
+import { CatalogoPadecimientos } from "@/componentes/CatalogoPadecimientos";
 import { MedicosDestacados } from "@/componentes/MedicosDestacados";
 import { PortadaCarrusel } from "@/componentes/PortadaCarrusel";
 import {
@@ -360,44 +361,19 @@ export default async function Inicio() {
                 duele. Elige el motivo y te mostramos quién lo atiende.
               </p>
 
-              <div className="sintomas-filas">
-                {listaEspecialidades.map((e) => {
-                  const suyos = porPadecimiento.filter(
-                    (p) => p.especialidad.slug === e.slug,
-                  );
-                  if (suyos.length === 0) return null;
-                  const Icono = ICONOS[e.slug] ?? Estetoscopio;
-                  return (
-                    <div className="sintoma-fila" key={e.slug}>
-                      <span className="sintoma-nombre">
-                        <span className="icono-cuadro">
-                          <Icono size={17} />
-                        </span>
-                        {e.nombre}
-                      </span>
-                      <div className="chips">
-                        {suyos.map((p) =>
-                          p.cuantos > 0 ? (
-                            <Link
-                              key={p.slug}
-                              href={`/delicias/padecimiento/${p.slug}`}
-                              className="chip"
-                            >
-                              {p.nombre}
-                            </Link>
-                          ) : (
-                            // Sin nadie que lo atienda todavía, el enlace
-                            // llevaría a una página vacía: se muestra apagado.
-                            <span key={p.slug} className="chip chip-apagado">
-                              {p.nombre}
-                            </span>
-                          ),
-                        )}
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
+              <CatalogoPadecimientos
+                ciudad="delicias"
+                especialidades={listaEspecialidades.map((e) => ({
+                  slug: e.slug,
+                  nombre: e.nombre,
+                }))}
+                padecimientos={porPadecimiento.map((p) => ({
+                  slug: p.slug,
+                  nombre: p.nombre,
+                  cuantos: p.cuantos,
+                  especialidad: p.especialidad.slug,
+                }))}
+              />
             </div>
           </div>
         </section>

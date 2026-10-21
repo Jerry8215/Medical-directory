@@ -121,15 +121,6 @@ export function Globo({ size = 18 }: Props) {
   );
 }
 
-export function Flecha({ size = 18 }: Props) {
-  return (
-    <svg {...base(size)}>
-      <path d="M4.5 12h14" />
-      <path d="m13 6.5 5.5 5.5-5.5 5.5" />
-    </svg>
-  );
-}
-
 export function Whatsapp({ size = 18 }: Props) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">

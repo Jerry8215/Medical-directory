@@ -1,16 +1,8 @@
-import Image from "next/image";
 import Link from "next/link";
 
 import { Escudo, Estrella, Pin } from "@/componentes/Iconos";
+import { Retrato } from "@/componentes/Retrato";
 import { cedulaVerificada, type Profesional } from "@/lib/tipos";
-
-function iniciales(nombre: string): string {
-  const palabras = nombre
-    .replace(/^(Dr\.|Dra\.|Lic\.|Mtro\.|Mtra\.)\s*/i, "")
-    .split(/\s+/)
-    .filter(Boolean);
-  return (palabras[0]?.[0] ?? "") + (palabras[1]?.[0] ?? "");
-}
 
 /**
  * Un médico en los listados.
@@ -34,19 +26,12 @@ export function TarjetaProfesional({
   return (
     <article className="tarjeta medico-tarjeta">
       <div className="medico-cabeza">
-        {profesional.fotografia ? (
-          <Image
-            className="retrato"
-            src={profesional.fotografia}
-            alt={profesional.nombre}
-            width={64}
-            height={64}
-          />
-        ) : (
-          <div className="retrato" aria-hidden="true">
-            {iniciales(profesional.nombre)}
-          </div>
-        )}
+        <Retrato
+          nombre={profesional.nombre}
+          fotografia={profesional.fotografia}
+          verificado={cedulaVerificada(profesional) && !profesional.ejemplo}
+          tamano={72}
+        />
 
         <div style={{ minWidth: 0 }}>
           <h3>
