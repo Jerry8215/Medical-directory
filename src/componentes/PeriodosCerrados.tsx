@@ -2,6 +2,8 @@
 
 import { useState, useTransition } from "react";
 
+import { BotonIcono } from "@/componentes/BotonIcono";
+import { Reabrir } from "@/componentes/Iconos";
 import { abrirPeriodo, cerrarPeriodo } from "@/lib/periodos-cerrados";
 
 export type PeriodoFila = {
@@ -107,17 +109,16 @@ export function PeriodosCerrados({
           <span>Desde</span>
           <span>Hasta</span>
           <span>Motivo</span>
-          <span>Acción</span>
+          <span className="acciones-tabla">Acción</span>
         </div>
         {visibles.map((p) => (
           <div className="tabla-fila" key={p.id}>
             <span>{p.desde}</span>
             <span>{p.hasta}</span>
             <span className="meta">{p.motivo ?? "—"}</span>
-            <span>
-              <button
-                type="button"
-                className="enlace-boton"
+            <span className="acciones-tabla">
+              <BotonIcono
+                etiqueta={`Reabrir del ${p.desde} al ${p.hasta}`}
                 disabled={trabajando || p.id.startsWith("nuevo-")}
                 onClick={() =>
                   iniciar(async () => {
@@ -127,8 +128,8 @@ export function PeriodosCerrados({
                   })
                 }
               >
-                Reabrir
-              </button>
+                <Reabrir />
+              </BotonIcono>
             </span>
           </div>
         ))}

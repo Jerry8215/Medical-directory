@@ -4,7 +4,8 @@ import Link from "next/link";
 import { useMemo, useState, useTransition } from "react";
 
 import { BotonConfirmar } from "@/componentes/BotonConfirmar";
-import { Borrar, Corregir, Lupa, Suspender } from "@/componentes/Iconos";
+import { BotonIcono, claseBotonIcono } from "@/componentes/BotonIcono";
+import { Lapiz, Lupa, Papelera, Reabrir, Suspender } from "@/componentes/Iconos";
 import {
   eliminarProfesional,
   suspenderProfesional,
@@ -118,7 +119,7 @@ export function ListaProfesionales({
           <span>Nombre</span>
           <span>Especialidad</span>
           <span>Ciudad</span>
-          <span>Acciones</span>
+          <span className="acciones-tabla">Acciones</span>
         </div>
 
         {encontrados.map((p) => (
@@ -132,33 +133,29 @@ export function ListaProfesionales({
             </span>
             <span>{p.especialidad}</span>
             <span>{p.ciudades}</span>
-            <span className="acciones-fila">
-              <Link
+            <span className="acciones-tabla">
+              <BotonIcono
                 href={`/panel/profesionales/${p.slug}`}
-                className="boton-icono"
-                title="Corregir la ficha"
-                aria-label={`Corregir la ficha de ${p.nombre}`}
+                etiqueta={`Editar la ficha de ${p.nombre}`}
               >
-                <Corregir size={18} />
-              </Link>
-              <button
-                type="button"
-                className="boton-icono"
+                <Lapiz />
+              </BotonIcono>
+              <BotonIcono
                 disabled={trabajando}
-                title={p.publicado ? "Quitar del directorio" : "Devolver al directorio"}
-                aria-label={
+                etiqueta={
                   p.publicado
-                    ? `Quitar del directorio a ${p.nombre}`
-                    : `Devolver al directorio a ${p.nombre}`
+                    ? `Suspender: quitar del directorio a ${p.nombre}`
+                    : `Reactivar: devolver al directorio a ${p.nombre}`
                 }
                 onClick={() => ejecutar(() => suspenderProfesional(p.slug, p.publicado))}
               >
-                <Suspender size={18} />
-              </button>
+                {p.publicado ? <Suspender size={16} /> : <Reabrir />}
+              </BotonIcono>
               <BotonConfirmar
-                className="boton-icono peligro"
-                etiqueta={<Borrar size={18} />}
-                rotulo={`Borrar del directorio a ${p.nombre}`}
+                className={claseBotonIcono("peligro")}
+                icono={<Papelera />}
+                etiqueta={null}
+                rotulo={`Eliminar el perfil de ${p.nombre}`}
                 peligro
                 disabled={trabajando}
                 titulo={`¿Eliminar el perfil de ${p.nombre}?`}

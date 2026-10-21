@@ -3,7 +3,9 @@ import Link from "next/link";
 
 import { sitio } from "@/config/sitio";
 import { CAPACIDADES, DESCRIPCIONES, NOMBRES, type Plan } from "@/lib/planes";
-import { precios } from "@/lib/precios";
+import { PlanesConAlta } from "@/componentes/PlanesConAlta";
+import { ciudades, especialidades } from "@/lib/catalogo";
+import { datosBancarios, precios } from "@/lib/precios";
 
 /**
  * El catálogo cambia sin que nadie despliegue: se abre una ciudad, se
@@ -50,7 +52,12 @@ const INCLUYE: Record<Plan, string[]> = {
 };
 
 export default async function Planes() {
-  const lista = await precios();
+  const [lista, banco, listaEspecialidades, listaCiudades] = await Promise.all([
+    precios(),
+    datosBancarios(),
+    especialidades(),
+    ciudades(),
+  ]);
 
   /** El precio de cada plan, en pesos y como lo lee un médico. */
   const mensual: Record<Plan, string> = {
@@ -75,50 +82,25 @@ export default async function Planes() {
       </section>
 
       <section className="envoltura seccion">
-        <div className="rejilla" style={{ gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))" }}>
-          {ORDEN.map((plan) => (
-            <div
-              className="tarjeta"
-              key={plan}
-              style={
-                plan === "PREMIUM"
-                  ? { borderColor: "var(--primario)", borderWidth: 2 }
-                  : undefined
-              }
-            >
-              <h3 style={{ fontSize: "1.3rem" }}>{NOMBRES[plan]}</h3>
-              {/* Una página de planes sin precio obliga a escribir para
-                  preguntarlo, y la mayoría no escribe. */}
-              <p className="precio-plan">{mensual[plan]}</p>
-              <p className="meta" style={{ marginTop: 6 }}>
-                {DESCRIPCIONES[plan]}
-              </p>
-
-              <ul className="lista-limpia" style={{ marginTop: 14 }}>
-                {INCLUYE[plan].map((linea) => (
-                  <li key={linea}>
-                    <svg width="14" height="14" viewBox="0 0 12 12" fill="none" aria-hidden="true">
-                      <path
-                        d="M2 6.2 4.6 8.8 10 3.4"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      />
-                    </svg>
-                    {linea}
-                  </li>
-                ))}
-              </ul>
-
-              <p className="meta" style={{ marginTop: 14 }}>
-                {CAPACIDADES[plan].consultorios === 1
-                  ? "Un consultorio"
-                  : `Hasta ${CAPACIDADES[plan].consultorios} consultorios`}
-              </p>
-            </div>
-          ))}
-        </div>
+        <PlanesConAlta
+          fichas={ORDEN.map((plan) => ({
+            plan,
+            nombre: NOMBRES[plan],
+            precio: mensual[plan],
+            descripcion: DESCRIPCIONES[plan],
+            incluye: INCLUYE[plan],
+            consultorios:
+              CAPACIDADES[plan].consultorios === 1
+                ? "Un consultorio"
+                : `Hasta ${CAPACIDADES[plan].consultorios} consultorios`,
+          }))}
+          especialidades={listaEspecialidades.map((e) => ({
+            slug: e.slug,
+            nombre: e.nombre,
+          }))}
+          ciudades={listaCiudades.map((c) => ({ slug: c.slug, nombre: c.nombre }))}
+          datosBancarios={banco}
+        />
       </section>
 
       <section className="envoltura seccion">
@@ -128,11 +110,6 @@ export default async function Planes() {
           sin tarjeta guardada: al terminar el periodo el perfil vuelve al
           básico y usted decide si continúa.
         </div>
-        <p style={{ marginTop: 16 }}>
-          <Link href="/alta" className="boton-lleno" style={{ display: "inline-block", width: "auto" }}>
-            Solicitar mi alta
-          </Link>
-        </p>
       </section>
     </main>
   );

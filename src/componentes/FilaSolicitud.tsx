@@ -4,8 +4,11 @@ import { useState, useTransition } from "react";
 
 import { BotonConfirmar } from "@/componentes/BotonConfirmar";
 
+import { claseBotonIcono } from "@/componentes/BotonIcono";
+import { Papelera } from "@/componentes/Iconos";
 import {
   aprobarSolicitud,
+  borrarSolicitud,
   marcarEnVerificacion,
   rechazarSolicitud,
 } from "@/lib/verificacion";
@@ -26,6 +29,7 @@ export function FilaSolicitud({
   consejo,
   consultorio,
   estado,
+  puedeBorrar = false,
 }: {
   id: string;
   nombre: string;
@@ -37,11 +41,18 @@ export function FilaSolicitud({
   consejo?: string | null;
   consultorio?: string | null;
   estado: string;
+  /** Borrar es del administrador: rechazar deja constancia, borrar no. */
+  puedeBorrar?: boolean;
 }) {
   const [aviso, setAviso] = useState("");
   const [motivo, setMotivo] = useState("");
   const [rechazando, setRechazando] = useState(false);
+  const [borrada, setBorrada] = useState(false);
   const [trabajando, iniciar] = useTransition();
+
+  // Borrada, la fila desaparece sola: dejarla ahí con un aviso invita a
+  // volver a pulsar sobre algo que ya no existe.
+  if (borrada) return null;
 
   return (
     <div className="solicitud">
@@ -147,6 +158,24 @@ export function FilaSolicitud({
             Rechazar
           </button>
         )}
+
+        {puedeBorrar ? (
+          <BotonConfirmar
+            className={claseBotonIcono("peligro")}
+            etiqueta={<Papelera size={16} />}
+            rotulo={`Borrar la solicitud de ${nombre}`}
+            disabled={trabajando}
+            titulo={`¿Borrar la solicitud de ${nombre}?`}
+            cuerpo="Desaparece de la base de datos y no se puede deshacer. Es para lo que nunca debió existir: una prueba, un duplicado, alguien que se registró dos veces. Si lo que quiere es dejar constancia de que se decidió que no, rechácela en lugar de borrarla."
+            confirmar="Sí, borrarla"
+            peligro
+            alConfirmar={async () => {
+              const r = await borrarSolicitud(id);
+              setAviso(r.mensaje);
+              if (r.ok) setBorrada(true);
+            }}
+          />
+        ) : null}
       </div>
     </div>
   );

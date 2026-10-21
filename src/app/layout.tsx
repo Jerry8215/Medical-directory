@@ -9,6 +9,8 @@ import { sitio, urlAbsoluta } from "@/config/sitio";
 import { ciudades, especialidades } from "@/lib/catalogo";
 
 import "./globals.css";
+import "./estilos/botones-icono.css";
+import "./estilos/asistente-boton.css";
 
 const inter = Inter({
   variable: "--fuente",
@@ -57,7 +59,7 @@ export default async function RootLayout({
               enlaces={[
                 { href: "/", texto: "Inicio", icono: "casa" },
                 { href: "/medicos", texto: "Médicos", icono: "medicos" },
-                { href: "/planes", texto: "¿Eres médico?", icono: "medico" },
+                { href: "/planes", texto: "Registro", icono: "medico" },
                 { href: "/panel", texto: "Entrar", icono: "acceso" },
               ]}
             />

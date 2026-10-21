@@ -97,10 +97,15 @@ body {
   margin: 0;
 }
 
+/* `clip` y no `hidden`. Los dos atajan el desborde lateral, pero
+   `hidden` convierte al elemento en contenedor de desplazamiento y eso
+   anula el `position: sticky` de todo lo que lleva dentro: la barra y el
+   rail del panel dejaban de quedarse fijos al bajar. `clip` recorta sin
+   crear ese contenedor. */
 html,
 body {
   max-width: 100%;
-  overflow-x: hidden;
+  overflow-x: clip;
 }
 
 body {
@@ -4483,4 +4488,105 @@ a.enlace-peligro {
 .chip-hora:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+}
+
+/* ------------------------------------------------------------- planes */
+
+/* El botón de registro vive arriba y a la derecha, a la vista desde el
+   primer momento: el médico que ya sabe lo que quiere no tiene que
+   recorrer tres tarjetas para encontrarlo. */
+.planes-cabeza {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-bottom: 22px;
+}
+
+.planes-rejilla {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(290px, 1fr));
+  gap: 20px;
+  align-items: start;
+}
+
+.plan {
+  display: flex;
+  flex-direction: column;
+  background: var(--papel);
+  border: 1px solid var(--borde);
+  border-radius: var(--radio-l);
+  overflow: hidden;
+  box-shadow: var(--sombra);
+  transition: transform 200ms ease, box-shadow 200ms ease, border-color 200ms ease;
+}
+
+.plan:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--sombra-alta);
+}
+
+/* El elegido se nota sin leer: el borde lo dice antes que la palabra. */
+.plan[data-elegido="true"] {
+  border-color: var(--navy);
+  box-shadow: var(--sombra-alta);
+}
+
+/* Un degradado por plan, y distintos de verdad. Tres variantes del mismo
+   azul obligan a leer el nombre para saber cuál es cuál. */
+.plan-tapa {
+  position: relative;
+  padding: 26px 22px 24px;
+  color: #fff;
+}
+
+.plan[data-plan="basico"] .plan-tapa {
+  background: linear-gradient(135deg, #2bb6a4 0%, #1d7fb8 55%, #1d4e9b 100%);
+}
+
+.plan[data-plan="gold"] .plan-tapa {
+  background: linear-gradient(135deg, #f7a83c 0%, #ef6f3c 52%, #d8455f 100%);
+}
+
+.plan[data-plan="premium"] .plan-tapa {
+  background: linear-gradient(135deg, #8b5cf6 0%, #6d3fd4 50%, #2f2a86 100%);
+}
+
+.plan-nombre {
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  font-size: 0.74rem;
+  font-weight: 800;
+  opacity: 0.88;
+}
+
+.plan-precio {
+  margin-top: 8px;
+  font-size: 1.7rem;
+  font-weight: 700;
+  line-height: 1.15;
+}
+
+.plan-marca {
+  position: absolute;
+  top: 18px;
+  right: 18px;
+  background: rgba(255, 255, 255, 0.95);
+  color: var(--navy);
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 4px 11px;
+  border-radius: var(--pastilla);
+}
+
+.plan-cuerpo {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  padding: 20px 22px 22px;
+}
+
+.plan-cuerpo .lista-limpia {
+  flex: 1;
 }

@@ -2,6 +2,8 @@
 
 import { useMemo, useState, useTransition } from "react";
 
+import { BotonIcono } from "@/componentes/BotonIcono";
+import { Reabrir } from "@/componentes/Iconos";
 import { apartarHora, liberarHora } from "@/lib/horas-cerradas";
 
 export type HoraFila = {
@@ -192,10 +194,9 @@ export function HorasApartadas({
               </span>
               <span>{h.hora}</span>
               <span className="meta">{h.motivo ?? "—"}</span>
-              <span>
-                <button
-                  type="button"
-                  className="enlace-boton callado"
+              <span className="acciones-tabla">
+                <BotonIcono
+                  etiqueta={`Liberar las ${h.hora} del ${h.fecha}`}
                   disabled={trabajando || h.id.startsWith("nueva-")}
                   onClick={() =>
                     iniciar(async () => {
@@ -205,8 +206,8 @@ export function HorasApartadas({
                     })
                   }
                 >
-                  Liberar
-                </button>
+                  <Reabrir />
+                </BotonIcono>
               </span>
             </div>
           ))}

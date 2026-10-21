@@ -29,9 +29,17 @@ const VACIO: Solicitud = {
 export function FormularioAlta({
   especialidades,
   ciudades,
+  plan = "BASICO",
+  periodicidad,
+  alTerminar,
 }: {
   especialidades: Opcion[];
   ciudades: Opcion[];
+  /** El plan que eligió antes de llegar aquí. */
+  plan?: "BASICO" | "GOLD" | "PREMIUM";
+  periodicidad?: string;
+  /** Si lo recibe, en vez de pintar el acuse avisa y deja que lo pinte quien lo abrió. */
+  alTerminar?: () => void;
 }) {
   const [datos, setDatos] = useState<Solicitud>(VACIO);
   const [errores, setErrores] = useState<Partial<Record<keyof Solicitud, string>>>({});
@@ -63,9 +71,13 @@ export function FormularioAlta({
       onSubmit={(e) => {
         e.preventDefault();
         iniciar(async () => {
-          const r = await registrarSolicitud(datos);
-          if (r.ok) setEnviada(true);
-          else setErrores(r.errores);
+          const r = await registrarSolicitud({ ...datos, plan, periodicidad });
+          if (!r.ok) {
+            setErrores(r.errores);
+            return;
+          }
+          if (alTerminar) alTerminar();
+          else setEnviada(true);
         });
       }}
       noValidate
@@ -192,7 +204,7 @@ export function FormularioAlta({
       </div>
 
       <button className="boton-lleno" type="submit" disabled={enviando}>
-        {enviando ? "Enviando…" : "Solicitar mi alta"}
+        {enviando ? "Enviando…" : "Enviar mi registro"}
       </button>
 
       <p className="meta">

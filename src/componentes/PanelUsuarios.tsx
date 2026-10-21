@@ -3,6 +3,8 @@
 import { useState, useTransition } from "react";
 
 import { BotonConfirmar } from "@/componentes/BotonConfirmar";
+import { BotonIcono, claseBotonIcono } from "@/componentes/BotonIcono";
+import { Llave, Papelera, Visto } from "@/componentes/Iconos";
 import {
   activarAcceso,
   cambiarRolDeEquipo,
@@ -72,7 +74,7 @@ export function PanelUsuarios({ cuentas, yo }: { cuentas: Cuenta[]; yo: string }
           <div className="tabla-fila tabla-cabeza">
             <span>Persona</span>
             <span>Permiso</span>
-            <span>Estado</span>
+            <span className="acciones-tabla">Estado</span>
           </div>
 
           {deEquipo.map((c) => (
@@ -106,14 +108,20 @@ export function PanelUsuarios({ cuentas, yo }: { cuentas: Cuenta[]; yo: string }
                 )}
               </span>
 
-              <span>
+              <span className="acciones-tabla">
                 {c.correo === yo ? (
                   <span className="meta">activo</span>
                 ) : (
                   <>
+                    <em className={`pastilla ${c.activo ? "pastilla-bien" : "pastilla-espera"}`}>
+                      {c.activo ? "Activo" : "Sin acceso"}
+                    </em>
                     {c.activo ? (
                       <BotonConfirmar
-                        etiqueta="Quitar acceso"
+                        className={claseBotonIcono("peligro")}
+                        icono={<Papelera />}
+                        etiqueta={null}
+                        rotulo={`Quitar el acceso a ${c.nombre}`}
                         peligro
                         disabled={trabajando}
                         titulo={`¿Quitarle el acceso a ${c.nombre}?`}
@@ -125,9 +133,9 @@ export function PanelUsuarios({ cuentas, yo }: { cuentas: Cuenta[]; yo: string }
                         }}
                       />
                     ) : (
-                      <button
-                        type="button"
-                        className="enlace-boton callado"
+                      <BotonIcono
+                        tono="exito"
+                        etiqueta={`Devolver el acceso a ${c.nombre}`}
                         disabled={trabajando}
                         onClick={() =>
                           iniciar(async () => {
@@ -136,12 +144,11 @@ export function PanelUsuarios({ cuentas, yo }: { cuentas: Cuenta[]; yo: string }
                           })
                         }
                       >
-                        Dar acceso
-                      </button>
+                        <Visto />
+                      </BotonIcono>
                     )}
-                    <button
-                      type="button"
-                      className="enlace-boton"
+                    <BotonIcono
+                      etiqueta={`Generar una clave nueva para ${c.nombre}`}
                       disabled={trabajando}
                       onClick={() =>
                         iniciar(async () => {
@@ -151,8 +158,8 @@ export function PanelUsuarios({ cuentas, yo }: { cuentas: Cuenta[]; yo: string }
                         })
                       }
                     >
-                      Nueva clave
-                    </button>
+                      <Llave />
+                    </BotonIcono>
                   </>
                 )}
               </span>

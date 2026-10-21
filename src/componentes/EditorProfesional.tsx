@@ -3,6 +3,8 @@
 import { useState, useTransition } from "react";
 
 import { BotonConfirmar } from "@/componentes/BotonConfirmar";
+import { BotonIcono } from "@/componentes/BotonIcono";
+import { Papelera } from "@/componentes/Iconos";
 import { crearAccesoProfesional } from "@/lib/usuarios-admin";
 import { cambiarPlan } from "@/lib/profesionales-admin";
 import {
@@ -313,17 +315,17 @@ export function EditorProfesional({
                     cambiarConsultorio(i, { franjas });
                   }}
                 />
-                <button
-                  type="button"
-                  className="enlace-boton"
+                <BotonIcono
+                  tono="peligro"
+                  etiqueta={`Quitar el tramo del ${DIAS[f.dia] ?? "día"}, ${f.desde} a ${f.hasta}`}
                   onClick={() =>
                     cambiarConsultorio(i, {
                       franjas: c.franjas.filter((_, n) => n !== j),
                     })
                   }
                 >
-                  Quitar
-                </button>
+                  <Papelera />
+                </BotonIcono>
               </div>
             ))}
             <button

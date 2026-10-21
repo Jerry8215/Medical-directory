@@ -649,7 +649,10 @@ export default async function Inicio() {
               citas en línea.
             </p>
           </div>
-          <Link href="/alta" className="boton-lleno">
+          {/* A elegir plan y no al formulario: el plan decide qué lleva
+              el perfil, y preguntarlo después de capturar todo obliga a
+              volver sobre lo ya escrito. */}
+          <Link href="/planes" className="boton-lleno">
             <Lupa size={17} />
             Crear mi perfil
           </Link>

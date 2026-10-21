@@ -85,6 +85,7 @@ export default async function Solicitudes() {
                 consejo={s.consejo}
                 consultorio={s.consultorio}
                 estado={s.estado}
+                puedeBorrar={sesion.rol === "ADMINISTRADOR"}
               />
             ))}
           </div>

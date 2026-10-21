@@ -2,6 +2,8 @@
 
 import { useState, useTransition } from "react";
 
+import { BotonIcono } from "@/componentes/BotonIcono";
+import { Lapiz, Reabrir, Suspender, Tache } from "@/componentes/Iconos";
 import {
   ajustarCiudad,
   ajustarUmbralGeneral,
@@ -115,34 +117,38 @@ export function PanelCatalogos({
             <span>Ciudad</span>
             <span>Profesionales</span>
             <span>Mínimo propio</span>
-            <span>Estado</span>
+            <span className="acciones-tabla">Estado</span>
           </div>
           {ciudades.map((c) => (
             <div className="tabla-fila" key={c.slug}>
               <span>{c.nombre}</span>
               <span className="num">{c.profesionales}</span>
               <span className="num">{c.umbral ?? "general"}</span>
-              <span>
-                <button
-                  type="button"
-                  className="enlace-boton"
-                  disabled={trabajando}
-                  onClick={() => ejecutar(() => ajustarCiudad(c.slug, { activa: !c.activa }))}
-                >
-                  {c.activa ? "Abierta · cerrar" : "Cerrada · abrir"}
-                </button>
-                {" · "}
-                <button
-                  type="button"
-                  className="enlace-boton"
+              <span className="acciones-tabla">
+                <em className={`pastilla ${c.activa ? "pastilla-bien" : "pastilla-espera"}`}>
+                  {c.activa ? "Abierta" : "Cerrada"}
+                </em>
+                <BotonIcono
+                  etiqueta={
+                    editando === c.slug
+                      ? "Cancelar la edición del texto"
+                      : `Editar el texto de ${c.nombre}`
+                  }
                   disabled={trabajando}
                   onClick={() => {
                     setEditando(editando === c.slug ? null : c.slug);
                     setTextoCiudad(c.descripcion);
                   }}
                 >
-                  {editando === c.slug ? "cancelar" : "texto"}
-                </button>
+                  {editando === c.slug ? <Tache /> : <Lapiz />}
+                </BotonIcono>
+                <BotonIcono
+                  etiqueta={c.activa ? `Cerrar ${c.nombre}` : `Abrir ${c.nombre}`}
+                  disabled={trabajando}
+                  onClick={() => ejecutar(() => ajustarCiudad(c.slug, { activa: !c.activa }))}
+                >
+                  {c.activa ? <Suspender size={16} /> : <Reabrir />}
+                </BotonIcono>
               </span>
 
               {editando === c.slug ? (

@@ -1,12 +1,14 @@
 /**
  * Qué pantallas ve cada quien dentro del panel.
  *
- * Vive aparte de la página porque ahora la usan dos: el armazón que dibuja
- * el rail y la propia pantalla de inicio. Tenerla escrita dos veces era
- * garantía de que una se quedara atrás al agregar una pantalla nueva.
+ * Vive aparte de la página porque la usan dos: el armazón que dibuja el
+ * rail y la propia pantalla de inicio.
  *
- * Cada quien ve lo que puede abrir. Mostrarle «Cobros» a un médico solo
- * le ofrece una puerta que se le va a cerrar en la cara.
+ * Las cuentas de administración y las de médico están separadas del todo.
+ * El administrador gestiona el directorio —altas, catálogos, cobros,
+ * accesos— y no tiene «Mi perfil» ni «Mi agenda»: si además pasa consulta,
+ * entra con su cuenta de médico. Mezclar las dos cosas en una cuenta era
+ * lo que hacía que el panel de gestión mostrara ajustes personales.
  */
 
 export type EnlaceDelPanel = {
@@ -15,51 +17,36 @@ export type EnlaceDelPanel = {
   icono: string;
 };
 
-export function enlacesDelPanel(
-  rol: string | undefined,
-  tienePerfil: boolean,
-): EnlaceDelPanel[] {
-  const inicio: EnlaceDelPanel = {
-    href: "/panel",
-    texto: "Inicio",
-    icono: "casa",
-  };
+export function esEquipo(rol: string | undefined): boolean {
+  return rol === "ADMINISTRADOR" || rol === "RECEPCION";
+}
 
-  const propios: EnlaceDelPanel[] = [
-    { href: "/panel/mi-agenda", texto: "Agenda", icono: "calendario" },
-    { href: "/panel/mi-perfil", texto: "Mi perfil", icono: "persona" },
-  ];
+export function enlacesDelPanel(rol: string | undefined): EnlaceDelPanel[] {
+  const inicio: EnlaceDelPanel = { href: "/panel", texto: "Inicio", icono: "casa" };
 
-  const delEquipo: EnlaceDelPanel[] = [
+  const gestion: EnlaceDelPanel[] = [
     { href: "/panel/solicitudes", texto: "Solicitudes", icono: "documento" },
     { href: "/panel/catalogos", texto: "Catálogos", icono: "maletin" },
     { href: "/panel/opiniones", texto: "Opiniones", icono: "estrella" },
     { href: "/panel/cobros", texto: "Cobros", icono: "tarjeta" },
-    {
-      href: "/panel/datos-personales",
-      texto: "Datos personales",
-      icono: "escudo",
-    },
+    { href: "/panel/datos-personales", texto: "Datos personales", icono: "escudo" },
   ];
 
-  const soloAdmin: EnlaceDelPanel[] = [
-    { href: "/panel/usuarios", texto: "Accesos", icono: "puerta" },
-  ];
-
-  const clave: EnlaceDelPanel[] = [
-    { href: "/panel/mi-clave", texto: "Mi contraseña", icono: "engrane" },
-  ];
-
-  if (rol === "ADMINISTRADOR" || rol === "RECEPCION") {
-    const equipo =
-      rol === "ADMINISTRADOR" ? [...delEquipo, ...soloAdmin] : delEquipo;
-    // El titular del sitio también pasa consulta. Esconderle «Mi perfil»
-    // por ser administrador lo dejaba sin forma de editar lo suyo, con la
-    // página existiendo y sin un solo enlace que llevara hasta ella.
-    return tienePerfil
-      ? [inicio, ...propios, ...equipo, ...clave]
-      : [inicio, propios[0], ...equipo, ...clave];
+  if (rol === "ADMINISTRADOR") {
+    return [inicio, ...gestion, { href: "/panel/usuarios", texto: "Accesos", icono: "puerta" }];
   }
 
-  return [inicio, ...propios, ...clave];
+  if (rol === "RECEPCION") {
+    // Recepción agenda por teléfono: la agenda de todo el consultorio es su
+    // herramienta de trabajo, no un ajuste personal.
+    return [inicio, { href: "/panel/mi-agenda", texto: "Agenda", icono: "calendario" }, ...gestion];
+  }
+
+  // El médico no ve el tablero del directorio: ahí hay datos de todos los
+  // perfiles y teléfonos de pacientes ajenos. Su inicio es su agenda.
+  return [
+    { href: "/panel/mi-agenda", texto: "Agenda", icono: "calendario" },
+    { href: "/panel/mi-perfil", texto: "Mi perfil", icono: "persona" },
+    { href: "/panel/mi-clave", texto: "Mi contraseña", icono: "engrane" },
+  ];
 }

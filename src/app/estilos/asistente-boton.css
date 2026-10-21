@@ -1,0 +1,180 @@
+/* ------------------------------------------------- botón del asistente */
+
+/* Calcado del botón flotante de FlowClinic: 56 px, a 24 px de la esquina,
+   un halo que late, la insignia roja con «1» y, en pantallas anchas, una
+   tarjeta a su izquierda. Cambia el verde de WhatsApp por el degradado de
+   marca, porque lo que abre es nuestro asistente y no un chat de terceros. */
+
+.asistente-boton {
+  position: fixed;
+  right: 24px;
+  bottom: calc(24px + env(safe-area-inset-bottom, 0px));
+  z-index: 40;
+  width: 56px;
+  height: 56px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: none;
+  color: #fff;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.asistente-boton:focus-visible {
+  outline: 2px solid var(--marca-b);
+  outline-offset: 3px;
+}
+
+/* El halo: el `animate-ping` de Tailwind, en el cian de la marca. */
+.asistente-boton-halo {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: var(--marca-a);
+  opacity: 0.3;
+  animation: asistente-ping 1s cubic-bezier(0, 0, 0.2, 1) infinite;
+  pointer-events: none;
+}
+
+@keyframes asistente-ping {
+  75%,
+  100% {
+    transform: scale(2);
+    opacity: 0;
+  }
+}
+
+.asistente-boton-cara {
+  position: relative;
+  display: flex;
+  width: 56px;
+  height: 56px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background-image: var(--deg-marca);
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
+  transition: all 200ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.asistente-boton-cara:hover {
+  filter: brightness(0.92);
+  transform: scale(1.1);
+}
+
+.asistente-boton-cara svg {
+  width: 28px;
+  height: 28px;
+  color: #fff;
+}
+
+.asistente-boton-insignia {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  display: flex;
+  width: 20px;
+  height: 20px;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid #fff;
+  border-radius: 50%;
+  background: #ef4444;
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.1);
+  pointer-events: none;
+}
+
+/* La tarjeta de al lado. Solo en pantallas anchas: en el teléfono taparía
+   el contenido que el paciente está leyendo. */
+.asistente-aviso {
+  display: none;
+}
+
+@media (min-width: 768px) {
+  .asistente-aviso {
+    position: fixed;
+    right: 88px;
+    bottom: calc(32px + env(safe-area-inset-bottom, 0px));
+    z-index: 39;
+    display: block;
+    pointer-events: none;
+  }
+}
+
+.asistente-aviso-tarjeta {
+  position: relative;
+  padding: 8px 16px;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  background: #fff;
+  color: #374151;
+  font-size: 14px;
+  line-height: 20px;
+  white-space: nowrap;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
+  opacity: 0;
+  animation: asistente-aviso-entra 400ms ease-out 1.5s forwards;
+}
+
+.asistente-aviso-tarjeta p {
+  margin: 0;
+}
+
+.asistente-aviso-titulo {
+  font-weight: 500;
+}
+
+.asistente-aviso-sub {
+  color: #9ca3af;
+  font-size: 12px;
+  line-height: 16px;
+}
+
+/* La flecha que apunta al botón. */
+.asistente-aviso-tarjeta::after {
+  content: "";
+  position: absolute;
+  right: 0;
+  top: 50%;
+  width: 8px;
+  height: 8px;
+  background: #fff;
+  border-right: 1px solid #e5e7eb;
+  border-bottom: 1px solid #e5e7eb;
+  transform: translate(4px, -50%) rotate(-45deg);
+}
+
+@keyframes asistente-aviso-entra {
+  from {
+    opacity: 0;
+    transform: translateX(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .asistente-boton-halo {
+    display: none;
+  }
+
+  .asistente-boton-cara {
+    transition: none;
+  }
+
+  .asistente-boton-cara:hover {
+    transform: none;
+  }
+
+  .asistente-aviso-tarjeta {
+    animation: none;
+    opacity: 1;
+  }
+}

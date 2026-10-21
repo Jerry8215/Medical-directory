@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from "react";
 
-import { Lupa } from "@/componentes/Iconos";
+import { Campana, Descargar, Lapiz, Lupa, Papelera } from "@/componentes/Iconos";
 import {
   buscarTitular,
   cancelarTitular,
@@ -150,6 +150,7 @@ export function AtencionArco() {
                     })
                   }
                 >
+                  <Descargar />
                   Acceso: descargar sus datos
                 </button>
 
@@ -163,6 +164,7 @@ export function AtencionArco() {
                     setCorreo(h.correo ?? "");
                   }}
                 >
+                  <Lapiz />
                   Rectificación: corregir
                 </button>
 
@@ -178,6 +180,7 @@ export function AtencionArco() {
                     })
                   }
                 >
+                  <Campana size={16} />
                   {h.bajaEn ? "Oposición: volver a avisarle" : "Oposición: dejar de avisarle"}
                 </button>
 
@@ -195,6 +198,7 @@ export function AtencionArco() {
                       })
                     }
                   >
+                    <Papelera />
                     Confirmar: esto no se puede deshacer
                   </button>
                 ) : (
@@ -204,6 +208,7 @@ export function AtencionArco() {
                     disabled={trabajando}
                     onClick={() => setConfirmando(h.id)}
                   >
+                    <Papelera />
                     Cancelación: borrar sus datos
                   </button>
                 )}

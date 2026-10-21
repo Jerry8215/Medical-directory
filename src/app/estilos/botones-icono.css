@@ -1,0 +1,136 @@
+/* ---------------------------------------- acciones de fila: botón icono */
+
+/* Las acciones de cada renglón del panel son cuadros de un solo icono:
+   lápiz para cambiar, bote para borrar, palomita para aprobar. Lo que
+   hace cada uno vive en `title` y `aria-label` (ver BotonIcono.tsx).
+   Todos miden lo mismo para que una columna de acciones quede alineada
+   renglón con renglón, tenga uno, dos o tres botones. */
+
+.boton-accion {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  box-sizing: border-box;
+  width: 34px;
+  height: 34px;
+  margin: 0;
+  padding: 0;
+  border: 1px solid var(--borde);
+  border-radius: 10px;
+  background: #fff;
+  background-image: none;
+  color: var(--navy);
+  font: inherit;
+  line-height: 0;
+  text-decoration: none;
+  cursor: pointer;
+  box-shadow: none;
+  vertical-align: middle;
+  transition: background-color 0.15s ease, border-color 0.15s ease,
+    color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.boton-accion svg {
+  width: 16px;
+  height: 16px;
+  flex: none;
+  pointer-events: none;
+}
+
+.boton-accion:hover:not(:disabled) {
+  background: var(--azul-tenue);
+  border-color: var(--azul);
+  color: var(--navy);
+}
+
+.boton-accion:focus-visible {
+  outline: none;
+  border-color: var(--azul);
+  box-shadow: 0 0 0 3px var(--azul-tenue);
+}
+
+.boton-accion:active:not(:disabled) {
+  transform: translateY(1px);
+}
+
+/* Lo destructivo se distingue antes de tocarlo, no después. */
+.boton-accion.peligro {
+  color: #d64545;
+}
+
+.boton-accion.peligro:hover:not(:disabled) {
+  background: #fdecec;
+  border-color: #d64545;
+  color: #d64545;
+}
+
+.boton-accion.peligro:focus-visible {
+  border-color: #d64545;
+  box-shadow: 0 0 0 3px #fdecec;
+}
+
+.boton-accion.exito {
+  color: var(--verde-fuerte);
+}
+
+.boton-accion.exito:hover:not(:disabled) {
+  background: var(--verde-tenue);
+  border-color: var(--verde-fuerte);
+  color: var(--verde-fuerte);
+}
+
+.boton-accion.exito:focus-visible {
+  border-color: var(--verde-fuerte);
+  box-shadow: 0 0 0 3px var(--verde-tenue);
+}
+
+.boton-accion:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+/* --------------------------------------------- la celda de las acciones */
+
+/* Pegada a la derecha y centrada en el alto del renglón. Si en un
+   teléfono no caben en línea, bajan en otra fila igual de alineada a la
+   derecha en vez de salirse de la tabla. */
+.acciones-tabla {
+  display: flex;
+  gap: 6px;
+  justify-content: flex-end;
+  align-items: center;
+  flex-wrap: wrap;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+}
+
+/* En la cabecera, el rótulo de la columna se alinea con los botones. */
+.tabla-cabeza > .acciones-tabla {
+  text-align: right;
+}
+
+/* La pastilla de estado que comparte celda con los botones no debe
+   empujarlos ni partirse en dos renglones. */
+.acciones-tabla > .pastilla {
+  margin: 0 auto 0 0;
+  white-space: nowrap;
+}
+
+/* Las tarjetas de cita, opinión y cobro llevan las acciones al pie;
+   ahí también van a la derecha y sin margen extra entre botones. */
+.acciones.acciones-tabla {
+  gap: 6px;
+}
+
+/* El tramo de horario: el bote ocupa la columna «auto» de la franja. */
+.franja > .boton-accion {
+  justify-self: end;
+}
+
+@media (max-width: 680px) {
+  .acciones-tabla {
+    row-gap: 6px;
+  }
+}

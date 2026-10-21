@@ -281,3 +281,47 @@ export async function cambiarEstadoPerfil(
   refrescarDirectorio(slug);
   return { ok: true, mensaje: publicar ? "Perfil publicado." : "Perfil suspendido." };
 }
+
+/**
+ * Borrar una solicitud del todo.
+ *
+ * Rechazar y borrar no son lo mismo y conviene no confundirlos. Rechazar
+ * deja constancia de que alguien pidió entrar y de que se decidió que no,
+ * que es lo que uno quiere tener a la mano cuando el interesado pregunta.
+ * Borrar es para lo que nunca debió existir: una prueba, un duplicado,
+ * alguien que se registró dos veces. Por eso solo lo puede hacer el
+ * administrador y por eso no queda rastro de la solicitud, aunque sí del
+ * borrado en el registro de auditoría.
+ */
+export async function borrarSolicitud(id: string): Promise<Resultado> {
+  const sesion = await sesionActual();
+  if (!sesion || sesion.rol !== "ADMINISTRADOR") {
+    return { ok: false, mensaje: "Solo el administrador puede borrar una solicitud." };
+  }
+
+  const solicitud = await prisma.solicitudAlta.findUnique({
+    where: { id },
+    select: { nombre: true, correo: true, cedula: true, estado: true },
+  });
+  if (!solicitud) return { ok: false, mensaje: "Esa solicitud ya no existe." };
+
+  await prisma.solicitudAlta.delete({ where: { id } });
+
+  // El perfil que se haya publicado a partir de ella no se toca: borrar la
+  // solicitud es limpiar la bandeja, no dar de baja a un médico.
+  await resolver(id);
+
+  await prisma.registroAuditoria.create({
+    data: {
+      actor: sesion.nombre,
+      accion: "solicitud.borrada",
+      entidad: "solicitud",
+      entidadId: id,
+      detalle: `${solicitud.nombre} · ${solicitud.correo} · cédula ${solicitud.cedula}`,
+    },
+  });
+
+  revalidatePath("/panel/solicitudes");
+  revalidatePath("/panel");
+  return { ok: true, mensaje: `Se borró la solicitud de ${solicitud.nombre}.` };
+}

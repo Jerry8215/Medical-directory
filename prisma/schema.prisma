@@ -426,6 +426,14 @@ model PeriodoCerrado {
 /// así la tabla crece un renglón diario por perfil en lugar de uno por
 /// visita. Las citas no se cuentan acá porque ya están en su propia tabla
 /// y contarlas dos veces es garantizar que algún día no cuadren.
+/// Visitantes del sitio por día (navegadores distintos, sin el panel). Lo
+/// cuenta el navegador una vez al día, así que los rastreadores no suman.
+model VisitaDiaria {
+  /// Medianoche del día, en hora de Chihuahua.
+  dia     DateTime @id
+  visitas Int      @default(0)
+}
+
 model MetricaDiaria {
   id            String      @id @default(cuid())
   profesionalId String
@@ -546,6 +554,13 @@ model SolicitudAlta {
   consejo       String?
   consultorio   String?
   mensaje       String?
+  /// El plan que eligió al registrarse. El básico se aplica al publicar el
+  /// perfil; los de pago quedan como cobro pendiente hasta acreditarse.
+  plan          PlanSuscripcion @default(BASICO)
+  /// MENSUAL o ANUAL, solo para los planes de pago.
+  periodicidad  String?
+  /// Referencia del depósito, si la reportó al registrarse.
+  referenciaPago String?
   estado        EstadoSolicitud @default(RECIBIDA)
   revisadaPor   String?
   revisadaEn    DateTime?

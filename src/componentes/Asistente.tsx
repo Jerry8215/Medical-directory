@@ -2,9 +2,10 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 
 import { AgendarEnElChat } from "@/componentes/AgendarEnElChat";
+import { Asistente as IconoAsistente } from "@/componentes/Iconos";
 
 type Sugerencia = { slug: string; nombre: string; especialidad: string };
 type Agenda = {
@@ -28,6 +29,29 @@ const PRIMERAS = [
   "¿Cuánto cuesta la consulta?",
 ];
 
+/** Recuerda que el paciente ya abrió el asistente, para no volver a
+ *  mostrarle la insignia. Sin almacenamiento (modo privado, bloqueado)
+ *  la insignia vuelve en cada visita, que es un mal menor. */
+const CLAVE_VISTO = "asistente-visto";
+
+function leerVisto(): boolean {
+  try {
+    return window.localStorage.getItem(CLAVE_VISTO) === "1";
+  } catch {
+    return false;
+  }
+}
+
+function guardarVisto() {
+  try {
+    window.localStorage.setItem(CLAVE_VISTO, "1");
+  } catch {
+    // Sin almacenamiento no pasa nada: solo vuelve la insignia.
+  }
+}
+
+const sinSuscripcion = () => () => {};
+
 /**
  * El asistente, visible en todo el sitio.
  *
@@ -41,6 +65,11 @@ export function Asistente() {
   const [texto, setTexto] = useState("");
   const [esperando, setEsperando] = useState(false);
   const hilo = useRef<HTMLDivElement>(null);
+  // En el servidor se da por visto: así la insignia no parpadea al hidratar
+  // para quien ya lo abrió, y aparece solo en el cliente para quien no.
+  const vistoAntes = useSyncExternalStore(sinSuscripcion, leerVisto, () => true);
+  const [vistoAhora, setVistoAhora] = useState(false);
+  const conInsignia = !vistoAntes && !vistoAhora;
 
   useEffect(() => {
     hilo.current?.scrollTo({ top: hilo.current.scrollHeight });
@@ -91,9 +120,13 @@ export function Asistente() {
     <>
       <button
         type="button"
-        className="burbuja"
+        className="asistente-boton"
         onClick={() => {
           setAbierto((a) => !a);
+          if (!abierto) {
+            setVistoAhora(true);
+            guardarVisto();
+          }
           if (!abierto && turnos.length === 0) {
             setTurnos([
               {
@@ -108,23 +141,42 @@ export function Asistente() {
         aria-label={abierto ? "Cerrar el asistente" : "Abrir el asistente"}
         title={abierto ? "Cerrar el asistente" : "Pregúntele al asistente"}
       >
-        {abierto ? (
-          <svg
-            width="24"
-            height="24"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            aria-hidden="true"
-          >
-            <path d="m6 6 12 12M18 6 6 18" />
-          </svg>
-        ) : (
-          <Image src="/asistente.png" alt="" width={44} height={44} priority={false} />
-        )}
+        {abierto ? null : <span className="asistente-boton-halo" aria-hidden="true" />}
+        <span className="asistente-boton-cara">
+          {abierto ? (
+            <svg
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              aria-hidden="true"
+            >
+              <path d="m6 6 12 12M18 6 6 18" />
+            </svg>
+          ) : (
+            <IconoAsistente size={28} />
+          )}
+        </span>
+        {conInsignia && !abierto ? (
+          <span className="asistente-boton-insignia" aria-hidden="true">
+            1
+          </span>
+        ) : null}
       </button>
+
+      {/* La tarjeta de al lado: solo con el chat cerrado y, por CSS, solo
+          en pantallas anchas. Es un rótulo; el botón ya dice qué hace. */}
+      {abierto ? null : (
+        <div className="asistente-aviso" aria-hidden="true">
+          <div className="asistente-aviso-tarjeta">
+            <p className="asistente-aviso-titulo">¿Necesita ayuda?</p>
+            <p className="asistente-aviso-sub">Le respondemos al instante</p>
+          </div>
+        </div>
+      )}
 
       {abierto ? (
         <div className="chat" role="dialog" aria-label="Asistente del directorio">

@@ -300,3 +300,109 @@ export function Asistente({ size = 22 }: Props) {
     </svg>
   );
 }
+
+/*
+ * Los de las acciones en las filas del panel.
+ *
+ * El consultorio pidió, después de usar el panel unas semanas, los
+ * dibujos que cualquiera reconoce sin pensarlo: el lápiz para cambiar
+ * algo y el bote para borrarlo. En una fila con tres botones cuadrados
+ * no hay lugar para leer, solo para reconocer, y ahí lo convencional
+ * gana. Todos se dibujan para verse bien a 16 px.
+ */
+
+export function Lapiz({ size = 16 }: Props) {
+  return (
+    <svg {...base(size)}>
+      <path d="M15.6 4.6a2.1 2.1 0 0 1 3 0l.8.8a2.1 2.1 0 0 1 0 3L9 18.8 4.5 19.5l.7-4.5L15.6 4.6Z" />
+      <path d="m13.8 6.4 3.8 3.8" />
+    </svg>
+  );
+}
+
+export function Papelera({ size = 16 }: Props) {
+  return (
+    <svg {...base(size)}>
+      <path d="M4.5 7h15" />
+      <path d="M9.5 7V5.2a1.2 1.2 0 0 1 1.2-1.2h2.6a1.2 1.2 0 0 1 1.2 1.2V7" />
+      <path d="M6.5 7l.8 11.6a1.6 1.6 0 0 0 1.6 1.4h6.2a1.6 1.6 0 0 0 1.6-1.4L17.5 7" />
+      <path d="M10.2 11v5M13.8 11v5" />
+    </svg>
+  );
+}
+
+export function Tache({ size = 16 }: Props) {
+  return (
+    <svg {...base(size, 2)}>
+      <path d="M6.5 6.5l11 11M17.5 6.5l-11 11" />
+    </svg>
+  );
+}
+
+/** La palomita de aprobar, en la misma retícula que los demás. */
+export function Visto({ size = 16 }: Props) {
+  return (
+    <svg {...base(size, 2)}>
+      <path d="m5 12.5 4.5 4.5L19 7.5" />
+    </svg>
+  );
+}
+
+/** Volver atrás algo: reabrir, liberar, devolver. */
+export function Reabrir({ size = 16 }: Props) {
+  return (
+    <svg {...base(size)}>
+      <path d="M4.5 12a7.5 7.5 0 1 0 2.2-5.3" />
+      <path d="M4.5 4.5v4.2h4.2" />
+    </svg>
+  );
+}
+
+export function Ojo({ size = 16 }: Props) {
+  return (
+    <svg {...base(size)}>
+      <path d="M2.8 12S6.2 5.5 12 5.5 21.2 12 21.2 12 17.8 18.5 12 18.5 2.8 12 2.8 12Z" />
+      <circle cx="12" cy="12" r="2.8" />
+    </svg>
+  );
+}
+
+export function OjoCerrado({ size = 16 }: Props) {
+  return (
+    <svg {...base(size)}>
+      <path d="M9.9 5.8A9.5 9.5 0 0 1 12 5.5c5.8 0 9.2 6.5 9.2 6.5a16 16 0 0 1-2.4 3.2" />
+      <path d="M6.6 7.6C4.1 9.3 2.8 12 2.8 12s3.4 6.5 9.2 6.5a9 9 0 0 0 4.4-1.1" />
+      <path d="M10 10a2.8 2.8 0 0 0 4 4" />
+      <path d="M4 4l16 16" />
+    </svg>
+  );
+}
+
+export function Llave({ size = 16 }: Props) {
+  return (
+    <svg {...base(size)}>
+      <circle cx="8" cy="15" r="4" />
+      <path d="m10.9 12.1 8.6-8.6M16.5 6.5l2.5 2.5M14 9l2 2" />
+    </svg>
+  );
+}
+
+export function Descargar({ size = 16 }: Props) {
+  return (
+    <svg {...base(size)}>
+      <path d="M12 4v11M7.5 10.5 12 15l4.5-4.5" />
+      <path d="M5 19.5h14" />
+    </svg>
+  );
+}
+
+/** Una persona tachada: el paciente que no llegó. */
+export function NoAsistio({ size = 16 }: Props) {
+  return (
+    <svg {...base(size)}>
+      <circle cx="10" cy="8.2" r="3.6" />
+      <path d="M3.5 20c0-3.6 2.9-5.8 6.5-5.8 1.2 0 2.3.2 3.3.7" />
+      <path d="m16 15 4.5 4.5M20.5 15 16 19.5" />
+    </svg>
+  );
+}

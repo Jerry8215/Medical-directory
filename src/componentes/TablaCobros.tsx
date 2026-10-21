@@ -3,6 +3,8 @@
 import { useState, useTransition } from "react";
 
 import { BotonConfirmar } from "@/componentes/BotonConfirmar";
+import { BotonIcono, claseBotonIcono } from "@/componentes/BotonIcono";
+import { Tache, Visto } from "@/componentes/Iconos";
 import { acreditarPago, rechazarPago } from "@/lib/cobros";
 
 export type FilaPago = {
@@ -74,7 +76,7 @@ export function TablaCobros({ pagos }: { pagos: FilaPago[] }) {
                 </p>
               </div>
 
-              <div className="cobro-acciones">
+              <div className="cobro-acciones acciones-tabla">
                 {rechazando === p.id ? (
                   <>
                     <input
@@ -85,7 +87,10 @@ export function TablaCobros({ pagos }: { pagos: FilaPago[] }) {
                       aria-label="Motivo del rechazo"
                     />
                     <BotonConfirmar
-                      etiqueta="Confirmar rechazo"
+                      className={claseBotonIcono("peligro")}
+                      icono={<Tache />}
+                      etiqueta={null}
+                      rotulo={`Confirmar el rechazo del pago de ${p.medico}`}
                       peligro
                       disabled={trabajando}
                       titulo={`¿Rechazar el pago de ${p.medico}?`}
@@ -96,22 +101,22 @@ export function TablaCobros({ pagos }: { pagos: FilaPago[] }) {
                   </>
                 ) : (
                   <>
-                    <button
-                      type="button"
-                      className="boton-lleno"
+                    <BotonIcono
+                      tono="exito"
+                      etiqueta={`Acreditar el pago de ${p.medico}`}
                       disabled={trabajando}
                       onClick={() => ejecutar(() => acreditarPago(p.id), p.id)}
                     >
-                      Acreditar
-                    </button>
-                    <button
-                      type="button"
-                      className="enlace-boton peligro"
+                      <Visto />
+                    </BotonIcono>
+                    <BotonIcono
+                      tono="peligro"
+                      etiqueta={`Rechazar el pago de ${p.medico}`}
                       disabled={trabajando}
                       onClick={() => setRechazando(p.id)}
                     >
-                      Rechazar
-                    </button>
+                      <Tache />
+                    </BotonIcono>
                   </>
                 )}
               </div>

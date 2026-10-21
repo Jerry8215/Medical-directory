@@ -2,6 +2,8 @@
 
 import { useState, useTransition } from "react";
 
+import { BotonIcono } from "@/componentes/BotonIcono";
+import { NoAsistio, Tache, Visto } from "@/componentes/Iconos";
 import {
   cancelarCita,
   confirmarCita,
@@ -78,43 +80,46 @@ export function FilaCita({
         </div>
       ) : null}
 
-      <div className="acciones">
+      <div className="acciones acciones-tabla">
         {!pasada && estado === "AGENDADA" ? (
-          <button
-            type="button"
-            className="boton-lleno boton-corto"
+          <BotonIcono
+            tono="exito"
+            etiqueta={`Confirmar la cita de ${paciente}`}
             disabled={trabajando}
             onClick={() => ejecutar(() => confirmarCita(id))}
           >
-            Confirmar
-          </button>
+            <Visto />
+          </BotonIcono>
         ) : null}
 
         {pasada && (estado === "AGENDADA" || estado === "CONFIRMADA") ? (
           <>
-            <button
-              type="button"
-              className="boton-lleno boton-corto"
+            <BotonIcono
+              tono="exito"
+              etiqueta={`Marcar como atendida la cita de ${paciente}`}
               disabled={trabajando}
               onClick={() => ejecutar(() => marcarAtendida(id))}
             >
-              Atendida
-            </button>
-            <button
-              type="button"
-              className="boton-suave"
+              <Visto />
+            </BotonIcono>
+            <BotonIcono
+              etiqueta={`${paciente} no asistió`}
               disabled={trabajando}
               onClick={() => ejecutar(() => marcarNoAsistio(id))}
             >
-              No asistió
-            </button>
+              <NoAsistio />
+            </BotonIcono>
           </>
         ) : null}
 
         {!cancelada && estado !== "ATENDIDA" ? (
-          <button
-            type="button"
-            className="boton-suave"
+          <BotonIcono
+            tono="peligro"
+            etiqueta={
+              cancelando
+                ? `Confirmar la cancelación de la cita de ${paciente}`
+                : `Cancelar la cita de ${paciente}`
+            }
             disabled={trabajando}
             onClick={() => {
               if (!cancelando) {
@@ -125,8 +130,8 @@ export function FilaCita({
               setCancelando(false);
             }}
           >
-            {cancelando ? "Confirmar cancelación" : "Cancelar"}
-          </button>
+            {cancelando ? <Visto /> : <Tache />}
+          </BotonIcono>
         ) : null}
       </div>
     </div>

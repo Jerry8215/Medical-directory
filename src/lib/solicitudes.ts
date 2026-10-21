@@ -30,6 +30,12 @@ export type Solicitud = {
   consejo?: string;
   consultorio?: string;
   mensaje?: string;
+  /** El plan que eligió antes de llenar el formulario. */
+  plan?: "BASICO" | "GOLD" | "PREMIUM";
+  /** MENSUAL o ANUAL, solo para los de pago. */
+  periodicidad?: string;
+  /** Referencia del depósito, si la reportó al registrarse. */
+  referenciaPago?: string;
 };
 
 export type Resultado =
@@ -88,6 +94,9 @@ export async function registrarSolicitud(datos: Solicitud): Promise<Resultado> {
       consejo: datos.consejo?.trim() || null,
       consultorio: datos.consultorio?.trim() || null,
       mensaje: datos.mensaje?.trim() || null,
+      plan: datos.plan ?? "BASICO",
+      periodicidad: datos.periodicidad ?? null,
+      referenciaPago: datos.referenciaPago?.trim() || null,
     },
   });
 

@@ -2,6 +2,8 @@
 
 import { useState, useTransition } from "react";
 
+import { BotonIcono } from "@/componentes/BotonIcono";
+import { Ojo, OjoCerrado, Papelera } from "@/componentes/Iconos";
 import { eliminarOpinion, publicarOpinion } from "@/lib/opiniones";
 
 export function FilaOpinion({
@@ -52,10 +54,12 @@ export function FilaOpinion({
 
       {aviso ? <p className="aviso-accion">{aviso}</p> : null}
 
-      <div className="acciones">
-        <button
-          type="button"
-          className="boton-lleno boton-corto"
+      <div className="acciones acciones-tabla">
+        <BotonIcono
+          tono={publicada ? "neutro" : "exito"}
+          etiqueta={
+            publicada ? `Ocultar la opinión de ${autor}` : `Publicar la opinión de ${autor}`
+          }
           disabled={trabajando}
           onClick={() =>
             iniciar(async () => {
@@ -64,11 +68,11 @@ export function FilaOpinion({
             })
           }
         >
-          {publicada ? "Ocultar" : "Publicar"}
-        </button>
-        <button
-          type="button"
-          className="boton-suave"
+          {publicada ? <OjoCerrado /> : <Ojo />}
+        </BotonIcono>
+        <BotonIcono
+          tono="peligro"
+          etiqueta={`Eliminar la opinión de ${autor}`}
           disabled={trabajando}
           onClick={() =>
             iniciar(async () => {
@@ -78,8 +82,8 @@ export function FilaOpinion({
             })
           }
         >
-          Eliminar
-        </button>
+          <Papelera />
+        </BotonIcono>
       </div>
     </div>
   );
