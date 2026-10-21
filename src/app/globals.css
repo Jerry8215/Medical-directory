@@ -60,6 +60,10 @@
      El alto y ese aire se usan también para meter la portada por debajo. */
   --barra-alto: 84px;
   --barra-aire: 16px;
+  /* Lo que la barra ocupa de verdad: su alto más el aire de arriba y el
+     de abajo. Quien se coloque debajo usa esto y no un número a mano, que
+     es como se descuadra en cuanto cambia el aire. */
+  --barra-total: calc(var(--barra-alto) + var(--barra-aire) * 2);
 }
 
 /* ------------------------------------------------- bandas de sección */
@@ -3765,31 +3769,33 @@ a.enlace-peligro {
   display: grid;
   grid-template-columns: 236px minmax(0, 1fr);
   gap: 26px;
-  align-items: start;
+  align-items: stretch;
   padding-block: 26px 48px;
 }
 
-/* La barra ocupa su alto más el aire de arriba y el de abajo. Anclar el
-   rail a menos que eso lo metía por debajo de ella al subir, y sin un
-   z-index propio quedaba además en el orden de pintado equivocado. */
 .panel-lado {
-  position: sticky;
-  top: calc(var(--barra-alto) + var(--barra-aire) * 2 + 10px);
-  z-index: 10;
-  display: grid;
-  gap: 10px;
-  /* Si el menú no cabe en la pantalla, se desplaza dentro de sí mismo en
-     lugar de empujar el anclaje. */
-  max-height: calc(100vh - var(--barra-alto) - var(--barra-aire) * 2 - 24px);
+  display: block;
 }
 
-/* `min-width: 0` y `overflow: hidden`: dentro de una rejilla, una caja
-   no baja de su contenido mínimo salvo que se le diga, y con once
-   secciones en fila ese mínimo es el doble de un teléfono. Es por donde
-   se desbordaba el panel entero. */
+/* El anclaje va en la tarjeta y no en la columna. Con `align-items:
+   start` la columna medía exactamente lo que su contenido, de modo que
+   no le quedaba recorrido dentro del cual quedarse quieta y el `sticky`
+   no llegaba a activarse: el menú subía con la página y se metía detrás
+   de la barra.
+
+   `min-width: 0` por lo otro: dentro de una rejilla una caja no baja de
+   su contenido mínimo salvo que se le diga, y con nueve secciones en
+   fila ese mínimo es el doble de un teléfono. */
 .rail {
+  position: sticky;
+  top: calc(var(--barra-total) + 10px);
+  z-index: 10;
+  /* Si el menú no cabe a lo alto, se desplaza dentro de sí mismo en
+     lugar de empujar el anclaje. */
+  max-height: calc(100vh - var(--barra-total) - 24px);
   min-width: 0;
-  overflow: hidden;
+  overflow-x: hidden;
+  overflow-y: auto;
   background: var(--papel);
   border: 1px solid var(--borde);
   border-radius: 16px;
