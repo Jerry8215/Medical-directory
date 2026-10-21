@@ -115,7 +115,7 @@ export function huecos({
   ocupados = [],
   bloqueados = [],
   desde,
-  dias = 14,
+  dias = 30,
   horaActual,
   anticipacionMin = 60,
   maximo = 24,

@@ -140,8 +140,13 @@ export default async function PaginaProfesional({ params }: Props) {
                   ocupados: await ocupadosDe(c.id),
                   bloqueados: cerrados,
                   desde: hoy,
-                  dias: 21,
-                  maximo: 24,
+                  // Dos meses, y el tope alto a propósito. Con 24 huecos
+                  // y dos citas al día el calendario se cortaba a los
+                  // once días, que es lo que lo hacía parecer una agenda
+                  // de una semana: el paciente que quería pedir para
+                  // dentro de un mes no tenía dónde.
+                  dias: 60,
+                  maximo: 400,
                 }),
               )
             : [],
