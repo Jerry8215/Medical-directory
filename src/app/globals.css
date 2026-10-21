@@ -4212,20 +4212,21 @@ a.enlace-peligro {
 .retratada-foto {
   position: relative;
   aspect-ratio: 1 / 1.8;
-  background: linear-gradient(180deg, var(--papel) 0%, var(--verde-tenue) 72%);
+  /* El degradado solo se ve cuando el médico todavía no sube fotografía:
+     es el fondo de sus iniciales, no un marco alrededor de la foto. */
+  background: linear-gradient(160deg, #eef7f2 0%, #dcefe6 55%, #cfe8dd 100%);
   display: grid;
   place-items: center;
   overflow: hidden;
 }
 
-/* Asentada abajo, no centrada: con la fotografía cuadrada que dejó el
-   recorte viejo, centrarla parte el hueco en dos franjas y parece un
-   error. Abajo, el hueco queda arriba y se lee como aire bajo el nombre.
-   Las que se suban ya vienen en 1 : 1.8 y no dejan hueco. */
+/* El marco no se mueve y la fotografía lo llena. Cada médico sube la
+   suya y vienen de todas las proporciones; si el marco se adaptara a
+   cada una, una fila de tarjetas quedaría escalonada. Se recorta por los
+   costados, que es donde una fotografía de retrato no lleva nada. */
 .retratada-imagen {
-  object-fit: contain;
-  object-position: 50% 100%;
-  align-self: end;
+  object-fit: cover;
+  object-position: 50% 50%;
 }
 
 .retratada-iniciales {
