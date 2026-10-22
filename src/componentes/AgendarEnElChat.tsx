@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState, useTransition } from "react";
 
+import { intentar } from "@/lib/intentar";
 import { agendarCita } from "@/lib/citas";
 
 export type Agenda = {
@@ -111,13 +112,13 @@ export function AgendarEnElChat({ agenda }: { agenda: Agenda }) {
           onSubmit={(e) => {
             e.preventDefault();
             iniciar(async () => {
-              const r = await agendarCita({
+              const r = await intentar(() => agendarCita({
                 consultorioId: agenda.consultorioId,
                 fecha: opcion.fecha,
                 hora: opcion.hora,
                 nombre,
                 telefono,
-              });
+              }));
               setResultado({
                 ok: r.ok,
                 mensaje: r.mensaje,

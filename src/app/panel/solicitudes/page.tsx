@@ -1,12 +1,10 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { redirect } from "next/navigation";
 
 import { FilaSolicitud } from "@/componentes/FilaSolicitud";
 import { ciudades, especialidades } from "@/lib/catalogo";
 import { exigirEquipo } from "@/lib/guardia-panel";
 import { prisma } from "@/lib/prisma";
-import { sesionActual } from "@/lib/sesion-actual";
 
 export const metadata: Metadata = {
   title: "Solicitudes de alta",
@@ -31,7 +29,6 @@ export const dynamic = "force-dynamic";
  */
 export default async function Solicitudes() {
   const sesion = await exigirEquipo();
-  if (sesion.rol !== "ADMINISTRADOR" && sesion.rol !== "RECEPCION") redirect("/panel");
 
   const [pendientes, resueltas, listaCiudades, listaEspecialidades] =
     await Promise.all([

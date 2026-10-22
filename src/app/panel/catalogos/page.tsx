@@ -14,7 +14,7 @@ export const metadata: Metadata = {
 export const dynamic = "force-dynamic";
 
 export default async function Catalogos() {
-  const sesion = await exigirAdministrador();
+  await exigirAdministrador();
   const [ciudades, especialidades, profesiones, umbralGeneral] = await Promise.all([
     prisma.ciudad.findMany({
       orderBy: { orden: "asc" },

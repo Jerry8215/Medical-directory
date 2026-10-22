@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from "react";
 
+import { intentar } from "@/lib/intentar";
 import { reportarComprobante, solicitarSuscripcion } from "@/lib/cobros";
 
 export type Plan = "BASICO" | "GOLD" | "PREMIUM";
@@ -122,7 +123,7 @@ export function MiPlan({
                 disabled={trabajando}
                 onClick={() =>
                   iniciar(async () => {
-                    const r = await reportarComprobante(enCurso.id, referencia);
+                    const r = await intentar(() => reportarComprobante(enCurso.id, referencia));
                     setAviso(r.mensaje);
                     if (r.ok) {
                       setEnCurso({ ...enCurso, estado: "EN_REVISION", referencia });
@@ -214,11 +215,11 @@ export function MiPlan({
             disabled={trabajando || !ficha}
             onClick={() =>
               iniciar(async () => {
-                const r = await solicitarSuscripcion(
+                const r = await intentar(() => solicitarSuscripcion(
                   profesionalId,
                   elegido,
                   periodicidad,
-                );
+                ));
                 setAviso(r.mensaje);
                 if (r.ok && r.pagoId && ficha) {
                   setEnCurso({

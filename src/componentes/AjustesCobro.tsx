@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from "react";
 
+import { intentar } from "@/lib/intentar";
 import { guardarAjustesDeCobro } from "@/lib/ajustes-cobro";
 import { pesos } from "@/lib/suscripciones";
 
@@ -37,11 +38,11 @@ export function AjustesCobro({
       onSubmit={(e) => {
         e.preventDefault();
         iniciar(async () => {
-          const r = await guardarAjustesDeCobro(
+          const r = await intentar(() => guardarAjustesDeCobro(
             Math.round(gNum * 100),
             Math.round(pNum * 100),
             banco,
-          );
+          ));
           setAviso(r.mensaje);
         });
       }}

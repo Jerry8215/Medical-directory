@@ -2,6 +2,8 @@
 
 import { useState, useTransition } from "react";
 
+import { intentar } from "@/lib/intentar";
+
 import { BotonIcono } from "@/componentes/BotonIcono";
 import { Lapiz, Reabrir, Suspender, Tache } from "@/componentes/Iconos";
 import {
@@ -71,7 +73,7 @@ export function PanelCatalogos({
 
   function ejecutar(accion: () => Promise<{ ok: boolean; mensaje: string }>) {
     iniciar(async () => {
-      const r = await accion();
+      const r = await intentar(() => accion());
       setAviso(r.mensaje);
     });
   }
@@ -168,9 +170,9 @@ export function PanelCatalogos({
                     disabled={trabajando || textoCiudad.trim().length < 20}
                     onClick={() =>
                       ejecutar(async () => {
-                        const r = await ajustarCiudad(c.slug, {
+                        const r = await intentar(() => ajustarCiudad(c.slug, {
                           descripcion: textoCiudad,
-                        });
+                        }));
                         if (r.ok) setEditando(null);
                         return r;
                       })

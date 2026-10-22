@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 
+import { intentar } from "@/lib/intentar";
 import { entrar } from "@/lib/acceso";
 
 export function FormularioAcceso() {
@@ -19,7 +20,7 @@ export function FormularioAcceso() {
         e.preventDefault();
         setError("");
         iniciar(async () => {
-          const r = await entrar(correo, clave);
+          const r = await intentar(() => entrar(correo, clave));
           if (r.ok) router.replace("/panel");
           else setError(r.mensaje);
         });

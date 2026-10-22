@@ -5,7 +5,6 @@ import { AtencionArco } from "@/componentes/AtencionArco";
 import { PLAZO_DIAS_HABILES } from "@/lib/arco";
 import { exigirEquipo } from "@/lib/guardia-panel";
 import { prisma } from "@/lib/prisma";
-import { sesionActual } from "@/lib/sesion-actual";
 
 export const metadata: Metadata = {
   title: "Datos personales",
@@ -38,15 +37,7 @@ const NOMBRES: Record<string, string> = {
  * registro de lo que se ha hecho, con fecha y responsable.
  */
 export default async function DatosPersonales() {
-  const sesion = await exigirEquipo();
-  if (sesion?.rol !== "ADMINISTRADOR" && sesion?.rol !== "RECEPCION") {
-    return (
-      <main className="envoltura seccion">
-        <h1>Datos personales</h1>
-        <div className="nota-umbral">Esta pantalla es del equipo del consultorio.</div>
-      </main>
-    );
-  }
+  await exigirEquipo();
 
   const registro = await prisma.registroAuditoria.findMany({
     where: { accion: { startsWith: "arco." } },

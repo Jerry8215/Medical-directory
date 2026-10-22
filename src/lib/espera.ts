@@ -17,7 +17,7 @@
 import { revalidatePath } from "next/cache";
 
 import { enviarCorreo } from "@/lib/avisos";
-import { anotar } from "@/lib/novedades";
+import { anotar, resolver } from "@/lib/novedades";
 import { prisma } from "@/lib/prisma";
 import { sesionActual } from "@/lib/sesion-actual";
 import { telefonoMexicano } from "@/lib/validacion";
@@ -64,7 +64,7 @@ export async function anotarseEnEspera(datos: {
     return { ok: true, mensaje: "Ya está en la lista. Le avisamos en cuanto se libere un horario." };
   }
 
-  await prisma.enEspera.create({
+  const espera = await prisma.enEspera.create({
     data: {
       profesionalId: profesional.id,
       pacienteId: paciente.id,
@@ -78,6 +78,8 @@ export async function anotarseEnEspera(datos: {
     detalle: `Espera consulta con ${profesional.nombre} · tel. ${tel.valor}`,
     enlace: "/panel/mi-agenda",
     profesionalId: profesional.id,
+    // Para que el aviso se apague al sacarlo de la lista.
+    referencia: espera.id,
   });
 
   revalidatePath("/panel/mi-agenda");
@@ -153,6 +155,7 @@ export async function ofrecerHueco(
     detalle: `Avisado: ${siguiente.paciente.nombre ?? "paciente"} de la lista de espera.`,
     enlace: "/panel/mi-agenda",
     profesionalId,
+    referencia: siguiente.id,
   });
 
   return { avisado: siguiente.paciente.nombre ?? "un paciente en espera" };
@@ -170,6 +173,7 @@ export async function cerrarEspera(id: string): Promise<Resultado> {
   }
 
   await prisma.enEspera.update({ where: { id }, data: { cerradoEn: new Date() } });
+  await resolver(id);
   revalidatePath("/panel/mi-agenda");
   return { ok: true, mensaje: "Salió de la lista de espera." };
 }

@@ -5,6 +5,7 @@ import { useState, useTransition } from "react";
 import { BotonConfirmar } from "@/componentes/BotonConfirmar";
 import { BotonIcono, claseBotonIcono } from "@/componentes/BotonIcono";
 import { Tache, Visto } from "@/componentes/Iconos";
+import { intentar } from "@/lib/intentar";
 import { acreditarPago, rechazarPago } from "@/lib/cobros";
 
 export type FilaPago = {
@@ -40,7 +41,7 @@ export function TablaCobros({ pagos }: { pagos: FilaPago[] }) {
 
   function ejecutar(accion: () => Promise<{ ok: boolean; mensaje: string }>, id: string) {
     iniciar(async () => {
-      const r = await accion();
+      const r = await intentar(() => accion());
       setAviso(r.mensaje);
       if (r.ok) setResueltos((x) => [...x, id]);
       setRechazando("");

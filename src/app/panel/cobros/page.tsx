@@ -6,7 +6,6 @@ import { TablaCobros, type FilaPago } from "@/componentes/TablaCobros";
 import { datosBancarios, precios } from "@/lib/precios";
 import { exigirAdministrador } from "@/lib/guardia-panel";
 import { prisma } from "@/lib/prisma";
-import { sesionActual } from "@/lib/sesion-actual";
 import {
   diasRestantes,
   estadoSuscripcion,
@@ -35,16 +34,6 @@ const FECHA = new Intl.DateTimeFormat("es-MX", {
  */
 export default async function Cobros() {
   const sesion = await exigirAdministrador();
-  if (sesion?.rol !== "ADMINISTRADOR" && sesion?.rol !== "RECEPCION") {
-    return (
-      <main className="envoltura seccion">
-        <h1>Cobros</h1>
-        <div className="nota-umbral">
-          Esta pantalla es del equipo del consultorio.
-        </div>
-      </main>
-    );
-  }
 
   const ahora = new Date();
   const inicioDeMes = new Date(

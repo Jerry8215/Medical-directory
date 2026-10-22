@@ -19,7 +19,7 @@ export const dynamic = "force-dynamic";
  * escribió y a un médico que todavía no ve su reseña.
  */
 export default async function Opiniones() {
-  const sesion = await exigirAdministrador();
+  await exigirAdministrador();
   const [pendientes, publicadas] = await Promise.all([
     prisma.opinion.findMany({
       where: { publicada: false },

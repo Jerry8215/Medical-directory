@@ -2,6 +2,8 @@
 
 import { useState, useTransition } from "react";
 
+import { intentar } from "@/lib/intentar";
+
 import { BotonConfirmar } from "@/componentes/BotonConfirmar";
 import { BotonIcono, claseBotonIcono } from "@/componentes/BotonIcono";
 import { Llave, Papelera, Visto } from "@/componentes/Iconos";
@@ -94,10 +96,10 @@ export function PanelUsuarios({ cuentas, yo }: { cuentas: Cuenta[]; yo: string }
                     disabled={trabajando}
                     onChange={(e) =>
                       iniciar(async () => {
-                        const r = await cambiarRolDeEquipo(
+                        const r = await intentar(() => cambiarRolDeEquipo(
                           c.id,
                           e.target.value as RolDeEquipo,
-                        );
+                        ));
                         setAviso(r.mensaje);
                       })
                     }
@@ -128,7 +130,7 @@ export function PanelUsuarios({ cuentas, yo }: { cuentas: Cuenta[]; yo: string }
                         cuerpo="Deja de poder entrar al panel de inmediato, aunque su cuenta y lo que haya hecho se conservan. Puede devolvérselo cuando quiera."
                         confirmar="Sí, quitar el acceso"
                         alConfirmar={async () => {
-                          const r = await activarAcceso(c.id, false);
+                          const r = await intentar(() => activarAcceso(c.id, false));
                           setAviso(r.mensaje);
                         }}
                       />
@@ -139,7 +141,7 @@ export function PanelUsuarios({ cuentas, yo }: { cuentas: Cuenta[]; yo: string }
                         disabled={trabajando}
                         onClick={() =>
                           iniciar(async () => {
-                            const r = await activarAcceso(c.id, true);
+                            const r = await intentar(() => activarAcceso(c.id, true));
                             setAviso(r.mensaje);
                           })
                         }
@@ -152,7 +154,7 @@ export function PanelUsuarios({ cuentas, yo }: { cuentas: Cuenta[]; yo: string }
                       disabled={trabajando}
                       onClick={() =>
                         iniciar(async () => {
-                          const r = await reemitirClaveDeEquipo(c.id);
+                          const r = await intentar(() => reemitirClaveDeEquipo(c.id));
                           setAviso(r.mensaje);
                           if (r.ok) setCredencial({ correo: r.correo, clave: r.clave });
                         })
@@ -213,7 +215,7 @@ export function PanelUsuarios({ cuentas, yo }: { cuentas: Cuenta[]; yo: string }
           disabled={trabajando}
           onClick={() =>
             iniciar(async () => {
-              const r = await crearAccesoDeEquipo(nombre, correo, rol);
+              const r = await intentar(() => crearAccesoDeEquipo(nombre, correo, rol));
               setAviso(r.mensaje);
               if (r.ok) {
                 setCredencial({ correo: r.correo, clave: r.clave });

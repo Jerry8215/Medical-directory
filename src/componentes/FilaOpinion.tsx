@@ -4,6 +4,7 @@ import { useState, useTransition } from "react";
 
 import { BotonIcono } from "@/componentes/BotonIcono";
 import { Ojo, OjoCerrado, Papelera } from "@/componentes/Iconos";
+import { intentar } from "@/lib/intentar";
 import { eliminarOpinion, publicarOpinion } from "@/lib/opiniones";
 
 export function FilaOpinion({
@@ -63,7 +64,7 @@ export function FilaOpinion({
           disabled={trabajando}
           onClick={() =>
             iniciar(async () => {
-              const r = await publicarOpinion(id, !publicada);
+              const r = await intentar(() => publicarOpinion(id, !publicada));
               setAviso(r.mensaje);
             })
           }
@@ -76,7 +77,7 @@ export function FilaOpinion({
           disabled={trabajando}
           onClick={() =>
             iniciar(async () => {
-              const r = await eliminarOpinion(id);
+              const r = await intentar(() => eliminarOpinion(id));
               setAviso(r.mensaje);
               setOculta(r.ok);
             })

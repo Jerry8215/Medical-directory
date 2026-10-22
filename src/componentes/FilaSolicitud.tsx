@@ -2,6 +2,8 @@
 
 import { useState, useTransition } from "react";
 
+import { intentar } from "@/lib/intentar";
+
 import { BotonConfirmar } from "@/componentes/BotonConfirmar";
 
 import { claseBotonIcono } from "@/componentes/BotonIcono";
@@ -142,7 +144,7 @@ export function FilaSolicitud({
           cuerpo={`Está declarando que cotejó la cédula ${cedula} contra el Registro Nacional de Profesionistas y que corresponde a esta persona. El perfil queda visible para los pacientes y se le envía su acceso por correo.`}
           confirmar="Sí, la cédula está comprobada"
           alConfirmar={async () => {
-            const r = await aprobarSolicitud(id);
+            const r = await intentar(() => aprobarSolicitud(id));
             setAviso(r.mensaje);
             if (r.ok && r.acceso) setCredencial(r.acceso);
           }}
@@ -155,7 +157,7 @@ export function FilaSolicitud({
             disabled={trabajando}
             onClick={() =>
               iniciar(async () => {
-                const r = await marcarEnVerificacion(id);
+                const r = await intentar(() => marcarEnVerificacion(id));
                 setAviso(r.mensaje);
               })
             }
@@ -174,7 +176,7 @@ export function FilaSolicitud({
             confirmar="Sí, rechazar"
             peligro
             alConfirmar={async () => {
-              const r = await rechazarSolicitud(id, motivo);
+              const r = await intentar(() => rechazarSolicitud(id, motivo));
               setAviso(r.mensaje);
               setRechazando(false);
             }}
@@ -201,7 +203,7 @@ export function FilaSolicitud({
             confirmar="Sí, borrarla"
             peligro
             alConfirmar={async () => {
-              const r = await borrarSolicitud(id);
+              const r = await intentar(() => borrarSolicitud(id));
               setAviso(r.mensaje);
               if (r.ok) setBorrada(true);
             }}

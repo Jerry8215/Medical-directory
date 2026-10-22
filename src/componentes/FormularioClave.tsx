@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from "react";
 
+import { intentar } from "@/lib/intentar";
 import { cambiarMiClave } from "@/lib/usuarios-admin";
 
 /**
@@ -32,7 +33,7 @@ export function FormularioClave() {
           return;
         }
         iniciar(async () => {
-          const r = await cambiarMiClave(actual, nueva);
+          const r = await intentar(() => cambiarMiClave(actual, nueva));
           setAviso(r.mensaje);
           setListo(r.ok);
         });

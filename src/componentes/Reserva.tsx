@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from "react";
 
+import { intentar } from "@/lib/intentar";
 import { agendarCita } from "@/lib/citas";
 
 type Dia = { fecha: string; etiqueta: string; horas: string[] };
@@ -182,13 +183,13 @@ export function Reserva({
           onSubmit={(e) => {
             e.preventDefault();
             iniciar(async () => {
-              const r = await agendarCita({
+              const r = await intentar(() => agendarCita({
                 consultorioId: consultorio.id,
                 fecha: dia.fecha,
                 hora,
                 nombre,
                 telefono,
-              });
+              }));
               setResultado({
                 ok: r.ok,
                 mensaje: r.mensaje,

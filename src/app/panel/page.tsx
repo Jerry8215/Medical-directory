@@ -52,7 +52,7 @@ async function visitantesDeHoy(): Promise<number> {
 }
 
 export default async function Panel() {
-  const sesion = await exigirEquipo();
+  await exigirEquipo();
   const [
     listaCiudades,
     listaEspecialidades,

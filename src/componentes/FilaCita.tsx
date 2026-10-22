@@ -2,6 +2,8 @@
 
 import { useState, useTransition } from "react";
 
+import { intentar } from "@/lib/intentar";
+
 import { BotonIcono } from "@/componentes/BotonIcono";
 import { NoAsistio, Tache, Visto } from "@/componentes/Iconos";
 import {
@@ -42,7 +44,7 @@ export function FilaCita({
 
   function ejecutar(accion: () => Promise<{ ok: boolean; mensaje: string }>) {
     iniciar(async () => {
-      const r = await accion();
+      const r = await intentar(() => accion());
       setAviso(r.mensaje);
     });
   }

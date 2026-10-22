@@ -15,7 +15,7 @@ import { revalidatePath } from "next/cache";
 
 import { disponible } from "@/lib/agenda";
 import { ofrecerHueco } from "@/lib/espera";
-import { anotar } from "@/lib/novedades";
+import { anotar, resolver } from "@/lib/novedades";
 import { cancelarEvento } from "@/lib/google-calendar";
 import { prisma } from "@/lib/prisma";
 
@@ -87,12 +87,16 @@ export async function cancelarPorToken(
   // de que se quede ahí esperando a que alguien lo encuentre de casualidad.
   await ofrecerHueco(cita.profesionalId, cita.inicio);
 
+  // La cita ya no existe: su aviso de «cita nueva» no tiene nada que pedir.
+  await resolver(cita.id);
+
   await anotar({
     tipo: "CITA_CANCELADA",
     titulo: `Un paciente canceló su cita con ${cita.profesional.nombre}`,
     detalle: motivo.trim() || "Sin motivo indicado. El horario vuelve a estar libre.",
     enlace: "/panel/mi-agenda",
     profesionalId: cita.profesionalId,
+    referencia: `${cita.id}:cancelada`,
   });
 
   await prisma.registroAuditoria.create({

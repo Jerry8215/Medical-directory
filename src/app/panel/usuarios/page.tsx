@@ -1,11 +1,9 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { redirect } from "next/navigation";
 
 import { PanelUsuarios } from "@/componentes/PanelUsuarios";
 import { exigirAdministrador } from "@/lib/guardia-panel";
 import { prisma } from "@/lib/prisma";
-import { sesionActual } from "@/lib/sesion-actual";
 
 export const metadata: Metadata = {
   title: "Accesos al panel",
@@ -16,7 +14,6 @@ export const dynamic = "force-dynamic";
 
 export default async function Usuarios() {
   const sesion = await exigirAdministrador();
-  if (sesion.rol !== "ADMINISTRADOR") redirect("/panel");
 
   const cuentas = await prisma.usuario.findMany({
     orderBy: [{ activo: "desc" }, { creadoEn: "asc" }],

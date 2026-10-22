@@ -3,7 +3,6 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { TarjetaProfesional } from "@/componentes/TarjetaProfesional";
-import { urlAbsoluta } from "@/config/sitio";
 import { fichas, listaDeProfesionales, migasDeNavegacion } from "@/lib/schema";
 import {
   ciudad,

@@ -242,12 +242,6 @@ export default async function PaginaProfesional({ params }: Props) {
     ]),
   );
 
-  const comoLlegar = primera
-    ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
-        `${primera.nombre} ${primera.direccion} ${nombreDeCiudad(primera.ciudad)} Chihuahua`,
-      )}`
-    : null;
-
   // Si ningún consultorio tiene horarios libres, se ofrece la lista.
   const sinHuecos =
     reservables.length > 0 && reservables.every((c) => c.dias.length === 0);

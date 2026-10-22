@@ -18,7 +18,7 @@
 import { revalidatePath } from "next/cache";
 
 import { enviarCorreo } from "@/lib/avisos";
-import { anotar } from "@/lib/novedades";
+import { anotar, resolver } from "@/lib/novedades";
 import { precios } from "@/lib/precios";
 import { prisma } from "@/lib/prisma";
 import { refrescarDirectorio } from "@/lib/refrescar";
@@ -136,6 +136,8 @@ export async function reportarComprobante(
     detalle: `Referencia ${referencia.trim()}. Falta aprobarlo para que su plan se active.`,
     enlace: "/panel/cobros",
     profesionalId: pago.profesionalId,
+    // Para que el aviso se apague al acreditarlo o rechazarlo.
+    referencia: pagoId,
   });
 
   revalidatePath("/panel/cobros");
@@ -214,6 +216,9 @@ async function acreditar(pagoId: string, porQuien: string): Promise<Resultado> {
 
   await enviarRecibo(pagoId);
 
+  // Ya se revisó el depósito: el panel no tiene por qué seguir pidiéndolo.
+  await resolver(pagoId);
+
   revalidatePath("/panel/cobros");
   revalidatePath("/panel");
   // El plan enciende la fotografía, el WhatsApp y la agenda en el perfil
@@ -243,6 +248,8 @@ export async function rechazarPago(pagoId: string, motivo: string): Promise<Resu
       revisadoEn: new Date(),
     },
   });
+
+  await resolver(pagoId);
 
   revalidatePath("/panel/cobros");
   return { ok: true, mensaje: "Cobro rechazado. El plan del perfil no cambió." };

@@ -4,6 +4,7 @@ import { useMemo, useState, useTransition } from "react";
 
 import { BotonIcono } from "@/componentes/BotonIcono";
 import { Reabrir } from "@/componentes/Iconos";
+import { intentar } from "@/lib/intentar";
 import { apartarHora, liberarHora } from "@/lib/horas-cerradas";
 
 export type HoraFila = {
@@ -65,7 +66,7 @@ export function HorasApartadas({
   function apartar(hora: string) {
     if (!elegido || !dia) return;
     iniciar(async () => {
-      const r = await apartarHora(elegido.id, dia.fecha, hora, motivo);
+      const r = await intentar(() => apartarHora(elegido.id, dia.fecha, hora, motivo));
       setAviso(r.mensaje);
       if (r.ok) {
         setNuevas((n) => [
@@ -214,7 +215,7 @@ export function HorasApartadas({
                   disabled={trabajando || h.id.startsWith("nueva-")}
                   onClick={() =>
                     iniciar(async () => {
-                      const r = await liberarHora(h.id);
+                      const r = await intentar(() => liberarHora(h.id));
                       setAviso(r.mensaje);
                       if (r.ok) setQuitadas((q) => [...q, h.id]);
                     })

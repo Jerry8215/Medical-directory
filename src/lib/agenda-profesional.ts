@@ -12,6 +12,7 @@ import { revalidatePath } from "next/cache";
 
 import { cancelarEvento } from "@/lib/google-calendar";
 import { ofrecerHueco } from "@/lib/espera";
+import { resolver } from "@/lib/novedades";
 import { prisma } from "@/lib/prisma";
 import { sesionActual } from "@/lib/sesion-actual";
 
@@ -37,6 +38,9 @@ export async function confirmarCita(id: string): Promise<Resultado> {
   if (!quien) return { ok: false, mensaje: "Esa cita no es suya." };
 
   await prisma.cita.update({ where: { id }, data: { estado: "CONFIRMADA" } });
+  // El consultorio ya se hizo cargo: el aviso de esta cita deja de pedir
+  // atención en el panel.
+  await resolver(id);
   await prisma.registroAuditoria.create({
     data: { actor: quien.nombre, accion: "cita.confirmada", entidad: "cita", entidadId: id },
   });
@@ -64,6 +68,8 @@ export async function cancelarCita(id: string, motivo: string): Promise<Resultad
   // Y que el hueco se le ofrezca al siguiente de la lista.
   await ofrecerHueco(cita.profesionalId, cita.inicio);
 
+  await resolver(id);
+
   // El horario vuelve a ofrecerse en cuanto se regenere el perfil.
   revalidatePath("/panel/mi-agenda");
   revalidatePath("/panel");
@@ -89,6 +95,7 @@ export async function marcarAtendida(id: string): Promise<Resultado> {
   if (!quien) return { ok: false, mensaje: "Esa cita no es suya." };
 
   await prisma.cita.update({ where: { id }, data: { estado: "ATENDIDA" } });
+  await resolver(id);
   revalidatePath("/panel/mi-agenda");
   return { ok: true, mensaje: "Marcada como atendida." };
 }
@@ -101,6 +108,7 @@ export async function marcarNoAsistio(id: string): Promise<Resultado> {
   await prisma.registroAuditoria.create({
     data: { actor: quien.nombre, accion: "cita.no_asistio", entidad: "cita", entidadId: id },
   });
+  await resolver(id);
   revalidatePath("/panel/mi-agenda");
   return { ok: true, mensaje: "Registrada la inasistencia." };
 }

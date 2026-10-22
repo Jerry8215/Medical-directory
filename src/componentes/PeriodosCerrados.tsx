@@ -4,6 +4,7 @@ import { useState, useTransition } from "react";
 
 import { BotonIcono } from "@/componentes/BotonIcono";
 import { Reabrir } from "@/componentes/Iconos";
+import { intentar } from "@/lib/intentar";
 import { abrirPeriodo, cerrarPeriodo } from "@/lib/periodos-cerrados";
 
 export type PeriodoFila = {
@@ -47,7 +48,7 @@ export function PeriodosCerrados({
         onSubmit={(e) => {
           e.preventDefault();
           iniciar(async () => {
-            const r = await cerrarPeriodo(profesionalId, desde, hasta || desde, motivo);
+            const r = await intentar(() => cerrarPeriodo(profesionalId, desde, hasta || desde, motivo));
             setAviso(r.mensaje);
             if (r.ok) {
               setNuevos((n) => [
@@ -122,7 +123,7 @@ export function PeriodosCerrados({
                 disabled={trabajando || p.id.startsWith("nuevo-")}
                 onClick={() =>
                   iniciar(async () => {
-                    const r = await abrirPeriodo(p.id);
+                    const r = await intentar(() => abrirPeriodo(p.id));
                     setAviso(r.mensaje);
                     if (r.ok) setQuitados((q) => [...q, p.id]);
                   })

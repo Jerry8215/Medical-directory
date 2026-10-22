@@ -39,10 +39,6 @@ export type Resultado =
   | { ok: true; mensaje: string; enlace?: string }
   | { ok: false; motivo: "datos" | "ocupado" | "error"; mensaje: string };
 
-function soloDigitos(telefono: string): string {
-  return telefono.replace(/\D/g, "").replace(/^52/, "");
-}
-
 /** Hora de pared a instante UTC. Chihuahua vive en UTC−6 todo el año. */
 function aUtc(fecha: string, hora: string): Date {
   const [a, m, d] = fecha.split("-").map(Number);
@@ -229,6 +225,9 @@ export async function agendarCita(peticion: Peticion): Promise<Resultado> {
       detalle: `${peticion.fecha} a las ${peticion.hora} · ${consultorio.nombre} · tel. ${telefono}`,
       enlace: "/panel/mi-agenda",
       profesionalId: consultorio.profesionalId,
+      // Para que el aviso se apague en cuanto el consultorio la atienda,
+      // la confirme o la cancele.
+      referencia: cita.id,
     });
 
     revalidatePath(`/medico/${consultorio.profesional.slug}`);

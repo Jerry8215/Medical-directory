@@ -5,6 +5,7 @@ import { useState, useTransition } from "react";
 import { BotonConfirmar } from "@/componentes/BotonConfirmar";
 import { BotonIcono } from "@/componentes/BotonIcono";
 import { Papelera } from "@/componentes/Iconos";
+import { intentar } from "@/lib/intentar";
 import { crearAccesoProfesional } from "@/lib/usuarios-admin";
 import { cambiarPlan } from "@/lib/profesionales-admin";
 import {
@@ -165,7 +166,7 @@ export function EditorProfesional({
           disabled={trabajando}
           onClick={() =>
             iniciar(async () => {
-              const r = await guardarPerfil(slug, datos);
+              const r = await intentar(() => guardarPerfil(slug, datos));
               setAviso(r.mensaje);
             })
           }
@@ -266,10 +267,10 @@ export function EditorProfesional({
                 disabled={trabajando}
                 onClick={() =>
                   iniciar(async () => {
-                    const r = await probarConexionGoogle(
+                    const r = await intentar(() => probarConexionGoogle(
                       slug,
                       c.calendarioGoogleId ?? "",
-                    );
+                    ));
                     setAviso(r.mensaje);
                   })
                 }
@@ -352,7 +353,7 @@ export function EditorProfesional({
               disabled={trabajando}
               onClick={() =>
                 iniciar(async () => {
-                  const r = await guardarConsultorio(slug, c);
+                  const r = await intentar(() => guardarConsultorio(slug, c));
                   setAviso(r.mensaje);
                 })
               }
@@ -369,7 +370,7 @@ export function EditorProfesional({
                 confirmar="Sí, eliminar el consultorio"
                 peligro
                 alConfirmar={async () => {
-                  const r = await eliminarConsultorio(slug, c.id!);
+                  const r = await intentar(() => eliminarConsultorio(slug, c.id!));
                   setAviso(r.mensaje);
                   if (r.ok) setLocales((cs) => cs.filter((_, n) => n !== i));
                 }}
@@ -425,7 +426,7 @@ export function EditorProfesional({
           disabled={trabajando}
           onClick={() =>
             iniciar(async () => {
-              const r = await cambiarPlan(slug, planElegido, vence || undefined);
+              const r = await intentar(() => cambiarPlan(slug, planElegido, vence || undefined));
               setAviso(r.mensaje);
             })
           }
@@ -459,7 +460,7 @@ export function EditorProfesional({
               disabled={trabajando}
               onClick={() =>
                 iniciar(async () => {
-                  const r = await crearAccesoProfesional(slug, correoAcceso);
+                  const r = await intentar(() => crearAccesoProfesional(slug, correoAcceso));
                   setAviso(r.mensaje);
                   setClaveNueva(r.ok && r.clave ? r.clave : "");
                 })

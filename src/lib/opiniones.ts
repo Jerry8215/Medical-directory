@@ -15,7 +15,7 @@
 
 import { revalidatePath } from "next/cache";
 
-import { anotar } from "@/lib/novedades";
+import { anotar, resolver } from "@/lib/novedades";
 import { prisma } from "@/lib/prisma";
 import { sesionActual } from "@/lib/sesion-actual";
 import { nombreDePersona } from "@/lib/validacion";
@@ -67,7 +67,7 @@ export async function dejarOpinion(datos: {
     }
   }
 
-  await prisma.opinion.create({
+  const opinion = await prisma.opinion.create({
     data: {
       profesionalId: profesional.id,
       autor,
@@ -83,6 +83,8 @@ export async function dejarOpinion(datos: {
     detalle: `${datos.calificacion} de 5 estrellas · por revisar antes de publicarse`,
     enlace: "/panel/opiniones",
     profesionalId: profesional.id,
+    // Para que el aviso se apague solo cuando alguien la revise.
+    referencia: opinion.id,
   });
 
   revalidatePath("/panel/opiniones");
@@ -127,6 +129,9 @@ export async function publicarOpinion(id: string, publicar: boolean): Promise<Re
 
   await recalcular(opinion.profesionalId);
 
+  // Ya se revisó: el panel no tiene por qué seguir pidiéndolo.
+  await resolver(opinion.id);
+
   await prisma.registroAuditoria.create({
     data: {
       actor: sesion.nombre,
@@ -152,6 +157,7 @@ export async function eliminarOpinion(id: string): Promise<Resultado> {
     include: { profesional: true },
   });
   await recalcular(opinion.profesionalId);
+  await resolver(opinion.id);
 
   await prisma.registroAuditoria.create({
     data: {

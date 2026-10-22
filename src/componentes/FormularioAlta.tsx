@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from "react";
 
+import { intentar } from "@/lib/intentar";
 import { registrarSolicitud, type Solicitud } from "@/lib/solicitudes";
 
 type Opcion = { slug: string; nombre: string };
@@ -72,7 +73,7 @@ export function FormularioAlta({
       onSubmit={(e) => {
         e.preventDefault();
         iniciar(async () => {
-          const r = await registrarSolicitud({ ...datos, plan, periodicidad });
+          const r = await intentar(() => registrarSolicitud({ ...datos, plan, periodicidad }));
           if (!r.ok) {
             setErrores(r.errores);
             return;

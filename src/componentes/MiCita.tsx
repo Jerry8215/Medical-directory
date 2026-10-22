@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from "react";
 
+import { intentar } from "@/lib/intentar";
 import { cancelarPorToken, reprogramarPorToken } from "@/lib/cita-paciente";
 
 type Dia = { fecha: string; etiqueta: string; horas: string[] };
@@ -131,7 +132,7 @@ export function MiCita({
                 disabled={trabajando || !hora}
                 onClick={() =>
                   iniciar(async () => {
-                    const r = await reprogramarPorToken(token, dia.fecha, hora);
+                    const r = await intentar(() => reprogramarPorToken(token, dia.fecha, hora));
                     setResultado(r.ok ? { ok: true, mensaje: r.mensaje } : { ok: false, mensaje: r.mensaje });
                     if (!r.ok) setHora("");
                   })
@@ -160,7 +161,7 @@ export function MiCita({
                   return;
                 }
                 iniciar(async () => {
-                  const r = await cancelarPorToken(token, motivo);
+                  const r = await intentar(() => cancelarPorToken(token, motivo));
                   setResultado({ ok: r.ok, mensaje: r.mensaje });
                   setCancelando(false);
                 });

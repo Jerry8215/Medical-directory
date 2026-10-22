@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from "react";
 
+import { intentar } from "@/lib/intentar";
 import { dejarOpinion } from "@/lib/opiniones";
 
 /**
@@ -50,7 +51,7 @@ export function FormularioOpinion({
       onSubmit={(e) => {
         e.preventDefault();
         iniciar(async () => {
-          const r = await dejarOpinion({ slug, autor, texto, calificacion, token });
+          const r = await intentar(() => dejarOpinion({ slug, autor, texto, calificacion, token }));
           setAviso(r.mensaje);
           setListo(r.ok);
         });

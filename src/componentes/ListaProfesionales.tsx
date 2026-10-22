@@ -1,6 +1,8 @@
 "use client";
 
 import Link from "next/link";
+
+import { intentar } from "@/lib/intentar";
 import { useMemo, useState, useTransition } from "react";
 
 import { BotonConfirmar } from "@/componentes/BotonConfirmar";
@@ -61,7 +63,7 @@ export function ListaProfesionales({
 
   function ejecutar(accion: () => Promise<{ ok: boolean; mensaje: string }>, slug?: string) {
     iniciar(async () => {
-      const r = await accion();
+      const r = await intentar(() => accion());
       setAviso(r.mensaje);
       if (r.ok && slug) setQuitados((q) => [...q, slug]);
     });

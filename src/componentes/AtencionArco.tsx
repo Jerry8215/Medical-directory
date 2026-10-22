@@ -2,6 +2,8 @@
 
 import { useState, useTransition } from "react";
 
+import { intentar } from "@/lib/intentar";
+
 import { Campana, Descargar, Lapiz, Lupa, Papelera } from "@/componentes/Iconos";
 import {
   buscarTitular,
@@ -125,7 +127,7 @@ export function AtencionArco() {
                     disabled={trabajando}
                     onClick={() =>
                       iniciar(async () => {
-                        const r = await rectificarTitular(h.id, nombre, correo);
+                        const r = await intentar(() => rectificarTitular(h.id, nombre, correo));
                         setAviso(r.mensaje);
                         setEditando("");
                         refrescar();
@@ -144,7 +146,7 @@ export function AtencionArco() {
                   disabled={trabajando}
                   onClick={() =>
                     iniciar(async () => {
-                      const r = await exportarTitular(h.id);
+                      const r = await intentar(() => exportarTitular(h.id));
                       setAviso(r.mensaje);
                       if (r.ok && r.archivo && r.nombre) descargar(r.archivo, r.nombre);
                     })
@@ -174,7 +176,7 @@ export function AtencionArco() {
                   disabled={trabajando}
                   onClick={() =>
                     iniciar(async () => {
-                      const r = await oponerTitular(h.id, !h.bajaEn);
+                      const r = await intentar(() => oponerTitular(h.id, !h.bajaEn));
                       setAviso(r.mensaje);
                       refrescar();
                     })
@@ -191,7 +193,7 @@ export function AtencionArco() {
                     disabled={trabajando}
                     onClick={() =>
                       iniciar(async () => {
-                        const r = await cancelarTitular(h.id);
+                        const r = await intentar(() => cancelarTitular(h.id));
                         setAviso(r.mensaje);
                         setConfirmando("");
                         refrescar();

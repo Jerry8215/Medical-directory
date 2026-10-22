@@ -4,6 +4,7 @@ import Image from "next/image";
 import { useRef, useState, useTransition } from "react";
 
 import { BotonConfirmar } from "@/componentes/BotonConfirmar";
+import { intentar } from "@/lib/intentar";
 import { quitarFotografia, subirFotografia } from "@/lib/fotografia";
 
 /** Un retrato de perfil no necesita más que esto, ni en pantalla ni impreso. */
@@ -110,7 +111,7 @@ export function SubirFoto({
     datos.append("archivo", new File([reducida], "retrato.jpg", { type: "image/jpeg" }));
 
     iniciar(async () => {
-      const r = await subirFotografia(slug, datos);
+      const r = await intentar(() => subirFotografia(slug, datos));
       setAviso({ ok: r.ok, texto: r.mensaje });
       if (r.ok) setActual(r.url);
     });
@@ -175,7 +176,7 @@ export function SubirFoto({
               confirmar="Sí, quitarla"
               peligro
               alConfirmar={async () => {
-                const r = await quitarFotografia(slug);
+                const r = await intentar(() => quitarFotografia(slug));
                 setAviso({ ok: r.ok, texto: r.mensaje });
                 if (r.ok) setActual(null);
               }}
