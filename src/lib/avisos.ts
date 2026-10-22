@@ -12,7 +12,12 @@
  */
 
 import { prisma } from "@/lib/prisma";
-import { DIAS_DE_AVISO, diasRestantes } from "@/lib/suscripciones";
+import {
+  DIAS_DE_AVISO,
+  DIAS_DE_AVISO_TARJETA,
+  diasRestantes,
+  pesos,
+} from "@/lib/suscripciones";
 import { sitio, urlAbsoluta } from "@/config/sitio";
 
 const ZONA = 6 * 60 * 60_000; // Chihuahua, UTC−6 todo el año
@@ -390,7 +395,14 @@ export async function avisarVencimientos(): Promise<{
       plan: { not: "BASICO" },
       planHasta: { not: null, lte: limite },
     },
-    select: { id: true, nombre: true, correo: true, plan: true, planHasta: true },
+    select: {
+      id: true,
+      nombre: true,
+      correo: true,
+      plan: true,
+      planHasta: true,
+      suscripcionEstado: true,
+    },
   });
 
   let avisados = 0;
@@ -401,6 +413,14 @@ export async function avisarVencimientos(): Promise<{
     const dias = diasRestantes(p.planHasta, ahora) ?? 0;
     const momento = dias < 0 ? "vencido" : "por-vencer";
     const marca = `${p.id}:${momento}:${p.planHasta.toISOString().slice(0, 10)}`;
+
+    // A quien paga con tarjeta no se le pide que renueve: se le avisa que
+    // se le va a cobrar, y más cerca de la fecha, para que el aviso llegue
+    // cuando todavía puede darlo de baja si ya no lo quiere.
+    const conTarjeta = p.suscripcionEstado === "authorized";
+    if (conTarjeta && momento === "por-vencer" && dias > DIAS_DE_AVISO_TARJETA) {
+      continue;
+    }
 
     const yaAvisado = await prisma.registroAuditoria.findFirst({
       where: { accion: "plan.aviso", entidadId: marca },
@@ -414,8 +434,43 @@ export async function avisarVencimientos(): Promise<{
     }
 
     const cuando = p.planHasta.toLocaleDateString("es-MX");
-    const texto =
-      momento === "vencido"
+
+    // Lo que se le va a cobrar es lo último que se le cobró: es lo que
+    // autorizó, y anunciarle una cifra distinta de la que verá en su
+    // estado de cuenta sería peor que no anunciar ninguna.
+    const ultimoCobro = conTarjeta
+      ? await prisma.pago.findFirst({
+          where: { profesionalId: p.id, medio: "TARJETA", estado: "ACREDITADO" },
+          orderBy: { creadoEn: "desc" },
+          select: { importe: true },
+        })
+      : null;
+
+    const texto = conTarjeta
+      ? momento === "vencido"
+        ? [
+            `Doctor(a) ${p.nombre}:`,
+            "",
+            `No pudimos cobrar la renovación de su plan ${p.plan}, que venció el ${cuando}.`,
+            "",
+            "Su perfil sigue publicado y los pacientes lo siguen encontrando: lo que se",
+            "pausó son las herramientas del plan. Revise su tarjeta o pague por depósito",
+            "desde su panel.",
+            "",
+            `Su plan: ${urlAbsoluta("/panel/mi-plan")}`,
+          ]
+        : [
+            `Doctor(a) ${p.nombre}:`,
+            "",
+            `Su plan ${p.plan} se renueva el ${cuando}, en ${dias} día(s), y se cobrará`,
+            `a la tarjeta que autorizó${ultimoCobro ? `: ${pesos(ultimoCobro.importe)}` : ""}.`,
+            "",
+            "No tiene que hacer nada. Si prefiere que no se renueve, dé de baja el cobro",
+            "automático antes de esa fecha: conserva el plan hasta el último día pagado.",
+            "",
+            `Su plan: ${urlAbsoluta("/panel/mi-plan")}`,
+          ]
+      : momento === "vencido"
         ? [
             `Doctor(a) ${p.nombre}:`,
             "",
@@ -442,8 +497,12 @@ export async function avisarVencimientos(): Promise<{
         para: p.correo,
         asunto:
           momento === "vencido"
-            ? `Su plan ${p.plan} venció`
-            : `Su plan ${p.plan} vence en ${dias} día(s)`,
+            ? conTarjeta
+              ? `No se pudo renovar su plan ${p.plan}`
+              : `Su plan ${p.plan} venció`
+            : conTarjeta
+              ? `Su plan ${p.plan} se renueva en ${dias} día(s)`
+              : `Su plan ${p.plan} vence en ${dias} día(s)`,
         cuerpo: texto.join("\n"),
       });
       if (!salio) {
@@ -462,7 +521,9 @@ export async function avisarVencimientos(): Promise<{
         accion: "plan.aviso",
         entidad: "profesional",
         entidadId: marca,
-        detalle: momento === "vencido" ? "Aviso de vencimiento" : `Aviso previo, ${dias} día(s)`,
+        detalle: `${conTarjeta ? "Tarjeta" : "Depósito"} · ${
+          momento === "vencido" ? "vencimiento" : `aviso previo, ${dias} día(s)`
+        }`,
       },
     });
     avisados += 1;

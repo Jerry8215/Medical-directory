@@ -46,6 +46,20 @@ Variables, todas opcionales mientras no hay base de datos:
 | `UMBRAL_PUBLICACION` | Mínimo de profesionales para publicar una página de catálogo |
 | `SITIO_PUBLICADO` | `si` abre el sitio a los buscadores; cualquier otro valor lo mantiene cerrado |
 | `DATABASE_URL` | PostgreSQL, cuando se conecte la base |
+| `MERCADOPAGO_ACCESS_TOKEN` | Token de la cuenta que cobra. Sin él, el panel no ofrece la tarjeta y solo queda el depósito |
+| `MERCADOPAGO_WEBHOOK_SECRET` | Clave con la que el procesador firma sus avisos. Sin ella, el webhook rechaza todo |
+
+### Cobro con tarjeta
+
+Las dos variables de Mercado Pago van juntas o no van: con el token pero sin
+el secreto, el médico puede pagar y el aviso del cobro se rechaza, de modo
+que paga y no se le activa el plan. `GET /api/mercadopago/webhook` responde
+`{"listo":true}` cuando el secreto está puesto, que es la forma de
+comprobarlo sin esperar al primer cobro.
+
+En el panel de Mercado Pago hay que apuntar el webhook a
+`https://<dominio>/api/mercadopago/webhook` y suscribirlo a
+`subscription_preapproval` y `subscription_authorized_payment`.
 
 ## Estado
 

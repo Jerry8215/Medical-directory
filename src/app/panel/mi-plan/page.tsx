@@ -7,6 +7,7 @@ import { CAPACIDADES, DESCRIPCIONES, NOMBRES, type Plan } from "@/lib/planes";
 import { datosBancarios, precios } from "@/lib/precios";
 import { prisma } from "@/lib/prisma";
 import { sesionActual } from "@/lib/sesion-actual";
+import { hayCobroConTarjeta } from "@/lib/suscripcion-acciones";
 import { importe, pesos } from "@/lib/suscripciones";
 
 export const metadata: Metadata = {
@@ -43,15 +44,30 @@ const INCLUYE: Record<Plan, string[]> = {
  * única vía era pedirlo por teléfono, y una venta que depende de que el
  * cliente llame es una venta que casi nunca ocurre.
  */
-export default async function MiPlanPagina() {
+export default async function MiPlanPagina({
+  searchParams,
+}: {
+  searchParams: Promise<{ suscripcion?: string }>;
+}) {
   const sesion = await sesionActual();
   if (!sesion) redirect("/panel/acceso");
   if (!sesion.profesionalId) redirect("/panel");
 
-  const [profesional, lista, banco, pendiente] = await Promise.all([
+  // De vuelta del procesador. El plan no se activa acá: lo activa el aviso
+  // del procesador cuando el cobro entró. Decir «ya está» antes de eso
+  // sería prometerle al médico algo que todavía puede fallar.
+  const { suscripcion: deVuelta } = await searchParams;
+
+  const [profesional, lista, banco, pendiente, hayTarjeta] = await Promise.all([
     prisma.profesional.findUnique({
       where: { id: sesion.profesionalId },
-      select: { id: true, nombre: true, plan: true, planHasta: true },
+      select: {
+        id: true,
+        nombre: true,
+        plan: true,
+        planHasta: true,
+        suscripcionEstado: true,
+      },
     }),
     precios(),
     datosBancarios(),
@@ -62,6 +78,7 @@ export default async function MiPlanPagina() {
       },
       orderBy: { creadoEn: "desc" },
     }),
+    hayCobroConTarjeta(),
   ]);
 
   if (!profesional) redirect("/panel");
@@ -97,6 +114,14 @@ export default async function MiPlanPagina() {
           que el paciente llegue hasta su consultorio.
         </p>
 
+        {deVuelta === "listo" ? (
+          <div className="nota-umbral" style={{ marginBottom: 18 }}>
+            Autorizó el cobro. El plan se enciende en cuanto el procesador
+            confirme el pago, normalmente en un par de minutos; si al volver
+            a cargar esta página todavía dice básico, dele un momento más.
+          </div>
+        ) : null}
+
         <MiPlan
           profesionalId={profesional.id}
           planActual={profesional.plan as Plan}
@@ -107,6 +132,8 @@ export default async function MiPlanPagina() {
           }
           fichas={fichas}
           datosBancarios={banco || null}
+          hayTarjeta={hayTarjeta}
+          suscripcion={profesional.suscripcionEstado}
           pago={
             pendiente
               ? {
@@ -116,15 +143,16 @@ export default async function MiPlanPagina() {
                   meses: pendiente.meses,
                   estado: pendiente.estado,
                   referencia: pendiente.referencia,
+                  medio: pendiente.medio,
                 }
               : null
           }
         />
 
         <p className="meta" style={{ marginTop: 18 }}>
-          Sin permanencia y sin tarjeta guardada. Al terminar el periodo el
-          perfil vuelve al básico y usted decide si continúa; nunca deja de
-          aparecer en el directorio.{" "}
+          {hayTarjeta
+            ? "Sin permanencia: el cobro automático se da de baja cuando quiera, y su tarjeta nunca pasa por este sitio. Al terminar el periodo el perfil vuelve al básico y nunca deja de aparecer en el directorio. "
+            : "Sin permanencia y sin tarjeta guardada. Al terminar el periodo el perfil vuelve al básico y usted decide si continúa; nunca deja de aparecer en el directorio. "}
           {CAPACIDADES.PREMIUM.consultorios > 1
             ? `El Premium admite hasta ${CAPACIDADES.PREMIUM.consultorios} consultorios.`
             : null}

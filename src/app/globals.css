@@ -2830,6 +2830,19 @@ a.chip:hover {
   accent-color: var(--azul);
 }
 
+/* Las dos maneras de pagar, juntas: tarjeta para quien quiere que se
+   active solo, depósito para quien no deja su tarjeta en ningún lado. */
+.pagar-botones {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.pagar-botones > button {
+  flex: 1 1 180px;
+}
+
 .recorte-botones {
   display: flex;
   align-items: center;

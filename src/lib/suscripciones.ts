@@ -94,6 +94,17 @@ export type EstadoSuscripcion = "BASICO" | "ACTIVA" | "POR_VENCER" | "VENCIDA";
 /** Faltan siete días o menos: es cuando se avisa. */
 export const DIAS_DE_AVISO = 7;
 
+/**
+ * Para quien paga con tarjeta, el aviso va tres días antes.
+ *
+ * No es lo mismo recordarle a alguien que renueve que avisarle que se le
+ * va a cobrar. Siete días antes, el aviso de un cobro automático llega
+ * cuando todavía no importa y se olvida; tres días antes llega a tiempo
+ * para darlo de baja si ya no lo quiere, que es la única razón honesta
+ * para mandarlo.
+ */
+export const DIAS_DE_AVISO_TARJETA = 3;
+
 export function diasRestantes(
   vigenteHasta: Date | null | undefined,
   ahora: Date = new Date(),

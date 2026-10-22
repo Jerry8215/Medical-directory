@@ -2,8 +2,13 @@
 
 import { useState, useTransition } from "react";
 
-import { intentar } from "@/lib/intentar";
+import { BotonConfirmar } from "@/componentes/BotonConfirmar";
 import { reportarComprobante, solicitarSuscripcion } from "@/lib/cobros";
+import { intentar } from "@/lib/intentar";
+import {
+  contratarConTarjeta,
+  darDeBajaSuscripcion,
+} from "@/lib/suscripcion-acciones";
 
 export type Plan = "BASICO" | "GOLD" | "PREMIUM";
 
@@ -23,6 +28,8 @@ export type PagoEnCurso = {
   meses: number;
   estado: string;
   referencia: string | null;
+  /** Por dónde se está pagando: la tarjeta no se reporta a mano. */
+  medio: "TRANSFERENCIA" | "TARJETA" | "CORTESIA";
 };
 
 /**
@@ -34,10 +41,12 @@ export type PagoEnCurso = {
  * una venta que depende de que el cliente llame es una venta que casi
  * nunca ocurre.
  *
- * El cobro sigue siendo por depósito y lo acredita el consultorio a mano.
- * Esto no cobra: le dice cuánto es, a dónde depositar y le recoge la
- * referencia, que es exactamente lo que el administrador necesita para
- * activarlo.
+ * Se puede pagar de dos maneras y las dos conviven a propósito. El
+ * depósito no depende de ningún proveedor y es el que queda si el cobro
+ * con tarjeta no está configurado; la tarjeta no depende de que alguien
+ * revise, que es lo que hace que un depósito del viernes se acredite el
+ * lunes. El médico elige, y en ninguno de los dos casos cambia su plan
+ * hasta que el dinero entró de verdad.
  */
 export function MiPlan({
   profesionalId,
@@ -46,6 +55,8 @@ export function MiPlan({
   fichas,
   pago,
   datosBancarios,
+  hayTarjeta,
+  suscripcion,
 }: {
   profesionalId: string;
   planActual: Plan;
@@ -53,6 +64,10 @@ export function MiPlan({
   fichas: FichaDePlan[];
   pago: PagoEnCurso | null;
   datosBancarios: string | null;
+  /** Si el procesador está configurado. Sin esto, solo queda el depósito. */
+  hayTarjeta: boolean;
+  /** Lo último que dijo el procesador de su cobro automático. */
+  suscripcion: string | null;
 }) {
   const [elegido, setElegido] = useState<Plan>(
     planActual === "BASICO" ? "GOLD" : planActual,
@@ -83,6 +98,31 @@ export function MiPlan({
         </p>
       </div>
 
+      {suscripcion === "authorized" ? (
+        <div className="ficha formulario" style={{ marginBottom: 18 }}>
+          <h2>Cobro automático</h2>
+          <p className="meta">
+            Su tarjeta se cobra sola al terminar cada periodo. Puede darlo de
+            baja cuando quiera: no se le devuelve lo pagado ni pierde el
+            plan, simplemente deja de renovarse.
+          </p>
+          <div style={{ marginTop: 12 }}>
+            <BotonConfirmar
+              className="boton-suave"
+              etiqueta="Dar de baja el cobro automático"
+              disabled={trabajando}
+              titulo="¿Dejar de cobrar su tarjeta?"
+              cuerpo="Su plan sigue activo hasta la fecha que ya pagó. Al vencer, el perfil vuelve al básico y nunca deja de aparecer en el directorio."
+              confirmar="Sí, dar de baja"
+              alConfirmar={async () => {
+                const r = await intentar(() => darDeBajaSuscripcion(profesionalId));
+                setAviso(r.mensaje);
+              }}
+            />
+          </div>
+        </div>
+      ) : null}
+
       {/* Lo que ya está en marcha manda: ofrecerle contratar otra cosa
           mientras tiene un depósito sin reportar solo lo confunde. */}
       {enCurso ? (
@@ -93,7 +133,13 @@ export function MiPlan({
             {enCurso.meses === 1 ? "un mes" : `${enCurso.meses} meses`}
           </p>
 
-          {enCurso.estado === "PENDIENTE" ? (
+          {enCurso.medio === "TARJETA" ? (
+            <div className="nota-umbral" style={{ marginTop: 12 }}>
+              Falta que autorice el cobro en la página del procesador. Si
+              cerró esa ventana sin terminar, vuelva a elegir el plan y lo
+              llevamos otra vez; no se le cobró nada.
+            </div>
+          ) : enCurso.estado === "PENDIENTE" ? (
             <>
               {datosBancarios ? (
                 <div className="nota-umbral" style={{ whiteSpace: "pre-line", marginTop: 12 }}>
@@ -146,8 +192,9 @@ export function MiPlan({
         <div className="ficha formulario">
           <h2>Mejorar mi plan</h2>
           <p className="meta">
-            El pago es por depósito y lo confirma el consultorio. Aquí no se
-            le pide tarjeta ni se le cobra nada.
+            {hayTarjeta
+              ? "Con tarjeta se activa solo en cuanto el pago entra. Por depósito lo confirma el consultorio, normalmente el mismo día hábil."
+              : "El pago es por depósito y lo confirma el consultorio. Aquí no se le pide tarjeta ni se le cobra nada."}
           </p>
 
           <div className="planes-rejilla" style={{ marginTop: 16 }}>
@@ -209,33 +256,57 @@ export function MiPlan({
             </select>
           </div>
 
-          <button
-            type="button"
-            className="boton-lleno"
-            disabled={trabajando || !ficha}
-            onClick={() =>
-              iniciar(async () => {
-                const r = await intentar(() => solicitarSuscripcion(
-                  profesionalId,
-                  elegido,
-                  periodicidad,
-                ));
-                setAviso(r.mensaje);
-                if (r.ok && r.pagoId && ficha) {
-                  setEnCurso({
-                    id: r.pagoId,
-                    plan: ficha.nombre,
-                    importe: periodicidad === "ANUAL" ? ficha.anual : ficha.mensual,
-                    meses: periodicidad === "ANUAL" ? 12 : 1,
-                    estado: "PENDIENTE",
-                    referencia: null,
-                  });
+          <div className="pagar-botones">
+            {hayTarjeta ? (
+              <button
+                type="button"
+                className="boton-lleno"
+                disabled={trabajando || !ficha}
+                onClick={() =>
+                  iniciar(async () => {
+                    const r = await intentar(() =>
+                      contratarConTarjeta(profesionalId, elegido, periodicidad),
+                    );
+                    setAviso(r.mensaje);
+                    // El procesador cobra en su propia página: es lo que
+                    // hace que la tarjeta nunca pase por este servidor.
+                    if (r.ok && r.irA) window.location.href = r.irA;
+                  })
                 }
-              })
-            }
-          >
-            {trabajando ? "Un momento…" : "Contratar este plan"}
-          </button>
+              >
+                {trabajando ? "Un momento…" : "Pagar con tarjeta"}
+              </button>
+            ) : null}
+
+            <button
+              type="button"
+              className={hayTarjeta ? "boton-suave" : "boton-lleno"}
+              disabled={trabajando || !ficha}
+              onClick={() =>
+                iniciar(async () => {
+                  const r = await intentar(() => solicitarSuscripcion(
+                    profesionalId,
+                    elegido,
+                    periodicidad,
+                  ));
+                  setAviso(r.mensaje);
+                  if (r.ok && r.pagoId && ficha) {
+                    setEnCurso({
+                      id: r.pagoId,
+                      plan: ficha.nombre,
+                      importe: periodicidad === "ANUAL" ? ficha.anual : ficha.mensual,
+                      meses: periodicidad === "ANUAL" ? 12 : 1,
+                      estado: "PENDIENTE",
+                      referencia: null,
+                      medio: "TRANSFERENCIA",
+                    });
+                  }
+                })
+              }
+            >
+              {hayTarjeta ? "Pagar por depósito" : "Contratar este plan"}
+            </button>
+          </div>
         </div>
       )}
     </div>

@@ -140,6 +140,16 @@ model Profesional {
   avisoCorreo   Boolean @default(true)
   avisoWhatsapp Boolean @default(false)
 
+  /// La suscripción recurrente en el procesador de pagos, si contrató con
+  /// tarjeta. Se guarda el identificador porque es lo único con lo que se
+  /// puede consultar o cancelar el cobro automático más adelante.
+  suscripcionId     String? @unique
+  /// Lo último que el procesador dijo de esa suscripción: `authorized`,
+  /// `paused` o `cancelled`. Va como texto y no como enum porque es
+  /// vocabulario del proveedor y no nuestro: un valor nuevo de su lado no
+  /// tiene por qué tumbar una escritura del nuestro.
+  suscripcionEstado String?
+
   especialidades ProfesionalEspecialidad[]
   consultorios   Consultorio[]
   verificaciones Verificacion[]
@@ -490,6 +500,12 @@ model Pago {
   folio         String?         @unique
   /// Referencia bancaria o del procesador, tal como la reporta el médico.
   referencia    String?
+  /// El identificador que el procesador le dio a este cobro.
+  ///
+  /// Único a propósito: un webhook se reintenta y llega repetido, y sin
+  /// esto el mismo cobro se acreditaría dos veces y la suscripción ganaría
+  /// un mes que nadie pagó.
+  idExterno     String?         @unique
   /// Qué periodo quedó cubierto con este pago.
   periodoDesde  DateTime?
   periodoHasta  DateTime?
