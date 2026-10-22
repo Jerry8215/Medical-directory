@@ -20,6 +20,7 @@ import Image from "next/image";
 import { InsigniaVerificado } from "@/componentes/Retrato";
 import { sitio, urlAbsoluta } from "@/config/sitio";
 import { huecos, porDia } from "@/lib/agenda";
+import { hoyLocal, horaLocal } from "@/lib/reloj";
 import { fichas, migasDeNavegacion } from "@/lib/schema";
 import {
   cedulaVerificada,
@@ -116,7 +117,11 @@ export default async function PaginaProfesional({ params }: Props) {
   const nombreDeCiudad = (slugCiudad: string) =>
     listaCiudades.find((c: Ciudad) => c.slug === slugCiudad)?.nombre ?? "";
 
-  const hoy = new Date().toISOString().slice(0, 10);
+  // En hora de Chihuahua, no en UTC. A las 23:00 locales el reloj UTC ya
+  // va en el día siguiente, de modo que la agenda saltaba un día entero y
+  // el paciente no veía los huecos de esa misma noche.
+  const hoy = hoyLocal();
+  const horaActual = horaLocal();
 
   // Vacaciones y ausencias: valen para todos sus consultorios, así que se
   // leen una vez y no uno por uno.
@@ -140,6 +145,9 @@ export default async function PaginaProfesional({ params }: Props) {
                   ocupados: await ocupadosDe(c.id),
                   bloqueados: cerrados,
                   desde: hoy,
+                  // Sin esto el agendador ofrecía las horas de hoy que ya
+                  // pasaron: el filtro trabajaba por día y no por hora.
+                  horaActual,
                   // Dos meses, y el tope alto a propósito. Con 24 huecos
                   // y dos citas al día el calendario se cortaba a los
                   // once días, que es lo que lo hacía parecer una agenda

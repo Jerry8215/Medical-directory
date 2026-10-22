@@ -6,6 +6,7 @@ import { MiCita } from "@/componentes/MiCita";
 import { huecos, porDia } from "@/lib/agenda";
 import { cuandoLegible } from "@/lib/avisos";
 import { prisma } from "@/lib/prisma";
+import { hoyLocal } from "@/lib/reloj";
 
 export const metadata: Metadata = {
   title: "Su cita",
@@ -30,7 +31,7 @@ export default async function Cita({ params }: Props) {
 
   if (!cita) notFound();
 
-  const hoy = new Date(Date.now() - 6 * 60 * 60_000).toISOString().slice(0, 10);
+  const hoy = hoyLocal();
 
   const otras = await prisma.cita.findMany({
     where: {

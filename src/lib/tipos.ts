@@ -36,6 +36,8 @@ export type Consultorio = {
 export type Credencial = {
   tipo: "CEDULA_PROFESIONAL" | "CEDULA_ESPECIALIDAD" | "CONSEJO_ESPECIALIDAD";
   numero?: string;
+  /** En qué punto del cotejo está. El sello depende de esto, no del número. */
+  estado: "PENDIENTE" | "EN_REVISION" | "APROBADA" | "RECHAZADA";
   vigenteHasta?: string;
 };
 
@@ -60,8 +62,23 @@ export type Profesional = {
   ejemplo: boolean;
 };
 
+/**
+ * ¿La cédula de este profesional está cotejada?
+ *
+ * Exige que la verificación esté aprobada y no solo que haya un número
+ * capturado. Antes bastaba con escribir cualquier cosa en el campo para
+ * que el perfil luciera el sello de «Cédula verificada», que es el único
+ * distintivo que el directorio promete y el único que un paciente no
+ * puede comprobar por su cuenta. Un sello que se pinta siempre no
+ * distingue nada.
+ */
 export function cedulaVerificada(p: Profesional): boolean {
-  return p.credenciales.some((c) => c.tipo === "CEDULA_PROFESIONAL" && Boolean(c.numero));
+  return p.credenciales.some(
+    (c) =>
+      c.tipo === "CEDULA_PROFESIONAL" &&
+      Boolean(c.numero) &&
+      c.estado === "APROBADA",
+  );
 }
 
 /**

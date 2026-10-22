@@ -85,7 +85,12 @@ type ProfesionalConTodo = {
     ciudad: { slug: string };
     franjas: { dia: number; desde: string; hasta: string }[];
   }[];
-  verificaciones: { tipo: string; numero: string | null; vigenteHasta: Date | null }[];
+  verificaciones: {
+    tipo: string;
+    numero: string | null;
+    estado: string;
+    vigenteHasta: Date | null;
+  }[];
 };
 
 const INCLUIR = {
@@ -126,6 +131,7 @@ function aProfesional(p: ProfesionalConTodo, padecimientosPorEspecialidad: Map<s
     credenciales: p.verificaciones.map((v) => ({
       tipo: v.tipo as Credencial["tipo"],
       numero: v.numero ?? undefined,
+      estado: v.estado as Credencial["estado"],
       vigenteHasta: v.vigenteHasta?.toISOString(),
     })),
     convenios: p.convenios ?? undefined,

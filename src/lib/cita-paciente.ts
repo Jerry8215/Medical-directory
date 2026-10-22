@@ -16,6 +16,7 @@ import { revalidatePath } from "next/cache";
 import { disponible } from "@/lib/agenda";
 import { ofrecerHueco } from "@/lib/espera";
 import { anotar } from "@/lib/novedades";
+import { cancelarEvento } from "@/lib/google-calendar";
 import { prisma } from "@/lib/prisma";
 
 export type Resultado = { ok: true; mensaje: string } | { ok: false; mensaje: string };
@@ -57,6 +58,20 @@ export async function cancelarPorToken(
     where: { token },
     data: { estado: "CANCELADA", motivo: motivo.trim() || "Cancelada por el paciente" },
   });
+
+  // El evento del calendario del médico se va con la cita. Sin esto, la
+  // base decía «cancelada» pero Google seguía reportando esa hora como
+  // ocupada, y el hueco no volvía a ofrecerse nunca: cada cancelación
+  // quemaba un horario para siempre. La ruta del médico ya lo hacía; esta
+  // se había quedado atrás.
+  if (cita.eventoGoogleId && cita.consultorio.calendarioGoogleId) {
+    await cancelarEvento(
+      cita.consultorio.calendarioGoogleId,
+      cita.eventoGoogleId,
+    ).catch((error) => {
+      console.error("[cita] quedó un evento en el calendario", error);
+    });
+  }
 
   // Que el consultorio se entere, no solo que el horario vuelva a aparecer.
   await prisma.aviso.create({
