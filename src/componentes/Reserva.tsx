@@ -41,6 +41,10 @@ export function Reserva({
     ok: boolean;
     mensaje: string;
     enlace?: string;
+    // Lo reservado se guarda al confirmar: el acuse tiene que decir qué
+    // quedó agendado, y después de confirmar los selectores ya no son
+    // fuente fiable de nada.
+    cuando?: { etiqueta: string; hora: string; consultorio: string; ciudad: string };
   } | null>(null);
   const [guardando, iniciar] = useTransition();
 
@@ -62,14 +66,43 @@ export function Reserva({
 
   if (resultado?.ok) {
     return (
-      <div className="confirmada">
-        {resultado.mensaje}
+      <div className="acuse-cita">
+        <p className="acuse-titulo">Su cita quedó agendada</p>
+
+        {/* Antes el acuse no decía ni el día ni la hora: el paciente salía
+            de la pantalla sin saber qué había reservado. */}
+        {resultado.cuando ? (
+          <dl className="acuse-datos">
+            <div>
+              <dt>Cuándo</dt>
+              <dd>
+                {resultado.cuando.etiqueta} a las {resultado.cuando.hora}
+              </dd>
+            </div>
+            <div>
+              <dt>Con</dt>
+              <dd>{profesional}</dd>
+            </div>
+            <div>
+              <dt>Dónde</dt>
+              <dd>
+                {resultado.cuando.consultorio}, {resultado.cuando.ciudad}
+              </dd>
+            </div>
+          </dl>
+        ) : null}
+
+        <p className="meta">{resultado.mensaje}</p>
+
         {resultado.enlace ? (
           <>
-            {" "}
-            <a href={resultado.enlace}>
-              Guarde este enlace para cambiar o cancelar su cita.
+            <a href={resultado.enlace} className="boton-lleno">
+              Ver, cambiar o cancelar mi cita
             </a>
+            <p className="meta" style={{ marginTop: 10 }}>
+              Guarde este enlace: es la única forma de cambiarla o
+              cancelarla sin llamar.
+            </p>
           </>
         ) : null}
       </div>
@@ -160,6 +193,14 @@ export function Reserva({
                 ok: r.ok,
                 mensaje: r.mensaje,
                 enlace: r.ok ? r.enlace : undefined,
+                cuando: r.ok
+                  ? {
+                      etiqueta: dia.etiqueta,
+                      hora,
+                      consultorio: consultorio.nombre,
+                      ciudad: consultorio.ciudad,
+                    }
+                  : undefined,
               });
               if (!r.ok && r.motivo === "ocupado") setHora("");
             });

@@ -7,7 +7,7 @@ import { ciudades, especialidades } from "@/lib/catalogo";
 export const metadata: Metadata = {
   title: "Aparezca en el directorio",
   description:
-    "Solicite su alta como profesional de la salud. Verificamos su cédula contra el Registro Nacional de Profesionistas y publicamos su perfil con agenda en línea.",
+    "Solicite su alta como profesional de la salud. Revisamos su cédula a mano en el Registro Nacional de Profesionistas y publicamos su perfil con agenda en línea.",
   alternates: { canonical: "/alta" },
 };
 
@@ -42,8 +42,10 @@ export default async function Alta() {
           <div className="tarjeta">
             <h3>2 · Verificamos</h3>
             <p className="meta">
-              Cotejamos su cédula contra el Registro Nacional de Profesionistas
-              y, si es médico, su certificación de consejo con su vigencia.
+              Una persona del consultorio consulta su cédula en el Registro
+              Nacional de Profesionistas y revisa, si es médico, su
+              certificación de consejo. Es un paso manual: normalmente el
+              mismo día hábil.
             </p>
           </div>
           <div className="tarjeta">

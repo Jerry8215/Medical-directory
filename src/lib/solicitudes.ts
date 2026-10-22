@@ -11,6 +11,8 @@
 
 import { revalidatePath } from "next/cache";
 
+import { sitio, urlAbsoluta } from "@/config/sitio";
+import { enviarCorreo } from "@/lib/avisos";
 import { anotar } from "@/lib/novedades";
 import { prisma } from "@/lib/prisma";
 import {
@@ -27,6 +29,8 @@ export type Solicitud = {
   especialidad: string;
   ciudad: string;
   cedula: string;
+  /** La que emite la SEP al terminar la residencia. */
+  cedulaEspecialidad?: string;
   consejo?: string;
   consultorio?: string;
   mensaje?: string;
@@ -113,6 +117,7 @@ export async function registrarSolicitud(datos: Solicitud): Promise<Resultado> {
       especialidad: datos.especialidad,
       ciudadSlug: datos.ciudad,
       cedula: cedula.ok ? cedula.valor : datos.cedula.trim(),
+      cedulaEspecialidad: datos.cedulaEspecialidad?.trim() || null,
       consejo: datos.consejo?.trim() || null,
       consultorio: datos.consultorio?.trim() || null,
       mensaje: datos.mensaje?.trim() || null,
@@ -139,6 +144,37 @@ export async function registrarSolicitud(datos: Solicitud): Promise<Resultado> {
     enlace: "/panel/solicitudes",
     // Para que el aviso se apague solo al aprobarla o rechazarla.
     referencia: solicitud.id,
+  });
+
+  // Acuse al médico. Hasta ahora mandaba su solicitud y no recibía nada:
+  // ni confirmación de que llegó, ni idea de qué sigue ni de cuánto
+  // tarda. Quien se registra de noche y no ve nada en su buzón concluye
+  // que el formulario falló, y vuelve a mandarlo.
+  await enviarCorreo({
+    para: correo.ok ? correo.valor : datos.correo.trim(),
+    asunto: `${nombre.ok ? nombre.valor : datos.nombre}: recibimos su solicitud · ${sitio.nombre}`,
+    cuerpo: [
+      `Doctor(a) ${nombre.ok ? nombre.valor : datos.nombre}:`,
+      "",
+      "Su solicitud quedó recibida. Todavía no aparece en el directorio:",
+      "falta que revisemos su cédula en el Registro Nacional de",
+      "Profesionistas, que es un paso manual y normalmente toma el mismo",
+      "día hábil.",
+      "",
+      "Esto fue lo que nos dejó:",
+      `  Especialidad: ${especialidad.nombre}`,
+      `  Ciudad: ${datos.ciudad}`,
+      `  Cédula profesional: ${cedula.ok ? cedula.valor : datos.cedula}`,
+      "",
+      "En cuanto quede aprobada le escribimos a este mismo correo con su",
+      "acceso para administrar su perfil. No hace falta que haga nada más.",
+      "",
+      `Si algo de lo anterior está mal, responda a este correo: ${urlAbsoluta("/")}`,
+    ].join("\n"),
+  }).catch((error) => {
+    // Su solicitud ya quedó guardada: que el acuse falle no puede
+    // deshacerla, pero sí tiene que dejar rastro.
+    console.error("[alta] no se pudo enviar el acuse", error);
   });
 
   revalidatePath("/panel");

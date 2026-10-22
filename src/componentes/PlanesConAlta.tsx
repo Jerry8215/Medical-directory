@@ -11,6 +11,8 @@ export type FichaDePlan = {
   plan: Plan;
   nombre: string;
   precio: string;
+  /** El mismo plan pagado por año, si aplica. */
+  anual?: string | null;
   descripcion: string;
   incluye: string[];
   consultorios: string;
@@ -89,6 +91,7 @@ export function PlanesConAlta({
             <div className="plan-tapa">
               <p className="plan-nombre">{f.nombre}</p>
               <p className="plan-precio">{f.precio}</p>
+              {f.anual ? <p className="plan-anual">{f.anual}</p> : null}
               {elegido === f.plan ? (
                 <span className="plan-marca">Elegido</span>
               ) : null}

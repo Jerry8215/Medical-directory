@@ -551,6 +551,9 @@ model SolicitudAlta {
   especialidad  String
   ciudadSlug    String
   cedula        String
+  /// La que emite la SEP al terminar la residencia. No caduca.
+  cedulaEspecialidad String?
+  /// La que da el consejo de la especialidad. Se renueva.
   consejo       String?
   consultorio   String?
   mensaje       String?

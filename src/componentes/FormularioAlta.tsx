@@ -13,6 +13,7 @@ const VACIO: Solicitud = {
   especialidad: "",
   ciudad: "",
   cedula: "",
+  cedulaEspecialidad: "",
   consejo: "",
   consultorio: "",
   mensaje: "",
@@ -57,7 +58,7 @@ export function FormularioAlta({
         <h2>Solicitud recibida</h2>
         <p style={{ color: "var(--suave)" }}>
           Gracias, doctor. El siguiente paso es la verificación de su cédula
-          contra el Registro Nacional de Profesionistas. En cuanto quede
+ en el Registro Nacional de Profesionistas, a mano. En cuanto quede
           aprobada le escribimos al correo que nos dejó y su perfil se publica
           con el distintivo de cédula verificada.
         </p>
@@ -146,7 +147,30 @@ export function FormularioAlta({
         </div>
 
         <div className="campo">
-          <label htmlFor="consejo">Consejo de especialidad (opcional)</label>
+          {/* Cédula de especialidad y certificación de consejo son dos
+              documentos distintos: la primera la emite la SEP al terminar
+              la residencia, la segunda la da el consejo de cada
+              especialidad y se renueva. Pedir una en lugar de la otra
+              dejaba al consultorio sin qué cotejar. */}
+          <label htmlFor="cedulaEspecialidad">
+            Cédula de especialidad (si tiene)
+          </label>
+          <input
+            id="cedulaEspecialidad"
+            inputMode="numeric"
+            value={datos.cedulaEspecialidad}
+            onChange={(e) => cambiar("cedulaEspecialidad", e.target.value)}
+            placeholder="Solo números"
+          />
+          {errores.cedulaEspecialidad ? (
+            <small className="error">{errores.cedulaEspecialidad}</small>
+          ) : null}
+        </div>
+      </div>
+
+      <div className="campos-dos">
+        <div className="campo">
+          <label htmlFor="consejo">Certificación de consejo (opcional)</label>
           <input
             id="consejo"
             value={datos.consejo}

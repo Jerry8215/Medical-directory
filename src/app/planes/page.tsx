@@ -6,6 +6,7 @@ import { CAPACIDADES, DESCRIPCIONES, NOMBRES, type Plan } from "@/lib/planes";
 import { PlanesConAlta } from "@/componentes/PlanesConAlta";
 import { ciudades, especialidades } from "@/lib/catalogo";
 import { datosBancarios, precios } from "@/lib/precios";
+import { importe } from "@/lib/suscripciones";
 
 /**
  * El catálogo cambia sin que nadie despliegue: se abre una ciudad, se
@@ -66,6 +67,14 @@ export default async function Planes() {
     PREMIUM: `$${Math.round(lista.PREMIUM / 100)} al mes`,
   };
 
+  // El anual estaba configurado y no se veía en ningún lado, de modo que
+  // el descuento existía sin que nadie pudiera enterarse.
+  const anual: Record<Plan, string | null> = {
+    BASICO: null,
+    GOLD: `o $${Math.round(importe("GOLD", "ANUAL", lista) / 100)} al año, pagando diez meses`,
+    PREMIUM: `o $${Math.round(importe("PREMIUM", "ANUAL", lista) / 100)} al año, pagando diez meses`,
+  };
+
   return (
     <main>
       <section className="envoltura" style={{ paddingBlock: "44px 8px" }}>
@@ -87,6 +96,7 @@ export default async function Planes() {
             plan,
             nombre: NOMBRES[plan],
             precio: mensual[plan],
+            anual: anual[plan],
             descripcion: DESCRIPCIONES[plan],
             incluye: INCLUYE[plan],
             consultorios:

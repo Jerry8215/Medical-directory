@@ -4803,3 +4803,55 @@ a.enlace-peligro {
   color: var(--navy);
   margin-top: 4px;
 }
+
+/* ------------------------------------------------------- acuse de cita */
+
+/* Antes era una línea de texto con un enlace del mismo color. El paciente
+   salía sin saber qué había reservado y sin ver que eso era un enlace. */
+.acuse-cita {
+  background: var(--verde-tenue);
+  border: 1px solid #cde6d8;
+  border-radius: var(--radio);
+  padding: 18px 20px;
+}
+
+.acuse-titulo {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--verde-fuerte);
+}
+
+.acuse-datos {
+  display: grid;
+  gap: 8px;
+  margin: 14px 0;
+}
+
+.acuse-datos > div {
+  display: flex;
+  gap: 10px;
+  align-items: baseline;
+  flex-wrap: wrap;
+}
+
+.acuse-datos dt {
+  min-width: 70px;
+  color: var(--suave);
+  font-size: 0.84rem;
+}
+
+.acuse-datos dd {
+  margin: 0;
+  font-weight: 650;
+  color: var(--tinta);
+}
+
+.acuse-cita .boton-lleno {
+  margin-top: 6px;
+}
+
+.plan-anual {
+  margin-top: 6px;
+  font-size: 0.82rem;
+  opacity: 0.9;
+}

@@ -168,6 +168,22 @@ export async function aprobarSolicitud(id: string): Promise<Resultado> {
         },
       });
 
+      // La cédula de especialidad no caduca, pero tampoco se cotejó: se
+      // guarda declarada y pendiente, para que quien revise sepa que hay
+      // un segundo documento que mirar.
+      if (solicitud.cedulaEspecialidad) {
+        await tx.verificacion.create({
+          data: {
+            profesionalId: profesional.id,
+            tipo: "CEDULA_ESPECIALIDAD",
+            numero: solicitud.cedulaEspecialidad,
+            institucion: "Registro Nacional de Profesionistas",
+            estado: "PENDIENTE",
+            evidencia: "Declarada por el profesional; falta cotejarla.",
+          },
+        });
+      }
+
       // La certificación de consejo caduca, así que entra como pendiente
       // hasta que se registre su vigencia.
       if (solicitud.consejo) {
