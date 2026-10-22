@@ -21,7 +21,8 @@ export function FormularioOpinion({
 }: {
   slug: string;
   profesional: string;
-  token?: string;
+  /** El enlace de su cita: sin él no hay opinión que dejar. */
+  token: string;
   /** El nombre con el que agendó, para no pedírselo otra vez. */
   autorSugerido?: string;
   /** Abierto cuando el paciente llegó justamente a opinar. */

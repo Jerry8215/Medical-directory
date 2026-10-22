@@ -4,7 +4,6 @@ import { notFound } from "next/navigation";
 
 import { AnotarseEnEspera } from "@/componentes/AnotarseEnEspera";
 import { ContadorDeVisitas } from "@/componentes/ContadorDeVisitas";
-import { FormularioOpinion } from "@/componentes/FormularioOpinion";
 import {
   Calendario,
   Escudo,
@@ -483,9 +482,16 @@ export default async function PaginaProfesional({ params }: Props) {
               </p>
             )}
 
-            <div style={{ marginTop: 16 }}>
-              <FormularioOpinion slug={slug} profesional={p.nombre} />
-            </div>
+            {/* El perfil prometía opiniones de pacientes y a la vez
+                dejaba opinar a cualquiera, sin haber tenido cita. Ahora la
+                opinión se deja desde el enlace que recibe el paciente,
+                que es lo que demuestra que la consulta existió. */}
+            <p className="meta" style={{ marginTop: 16 }}>
+              Las opiniones se dejan desde el enlace que recibe el paciente
+              con su cita, y se revisan antes de publicarse. Si se atendió
+              con {p.nombre} y no encuentra su enlace, escríbanos y se lo
+              reenviamos.
+            </p>
           </div>
 
           <div className="ficha" id="ubicacion">

@@ -35,7 +35,27 @@ export default async function Opiniones() {
     }),
   ]);
 
+  // La fecha de la consulta de cada opinión: con ella el administrador
+  // comprueba que corresponde a una visita y no a un parecido de nombre.
+  // Va en una consulta aparte porque `citaId` es una columna suelta, sin
+  // relación declarada, y ponerle una ahora pediría una migración.
+  const citas = await prisma.cita.findMany({
+    where: {
+      id: {
+        in: [...pendientes, ...publicadas]
+          .map((o) => o.citaId)
+          .filter((id): id is string => Boolean(id)),
+      },
+    },
+    select: { id: true, inicio: true },
+  });
+  const consultaDe = new Map(citas.map((c) => [c.id, c.inicio]));
+
   const fecha = (d: Date) => d.toISOString().slice(0, 10);
+  const cuandoSeAtendio = (citaId: string | null) => {
+    const inicio = citaId ? consultaDe.get(citaId) : undefined;
+    return inicio ? fecha(inicio) : null;
+  };
 
   return (
     <main>
@@ -70,7 +90,7 @@ export default async function Opiniones() {
                 profesional={o.profesional.nombre}
                 cuando={fecha(o.fecha)}
                 publicada={false}
-                deUnaCita={Boolean(o.citaId)}
+                consulta={cuandoSeAtendio(o.citaId)}
               />
             ))}
           </div>
@@ -95,7 +115,7 @@ export default async function Opiniones() {
                 profesional={o.profesional.nombre}
                 cuando={fecha(o.fecha)}
                 publicada
-                deUnaCita={Boolean(o.citaId)}
+                consulta={cuandoSeAtendio(o.citaId)}
               />
             ))}
           </div>

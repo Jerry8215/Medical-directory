@@ -48,6 +48,33 @@ export default async function Opinar({ params }: Props) {
     );
   }
 
+  // Lo mismo que comprueba la acción al guardar, para que el paciente no
+  // llene el formulario y se entere después de que no cuenta.
+  if (cita.estado === "CANCELADA") {
+    return (
+      <main className="envoltura seccion">
+        <h1>Esa consulta quedó cancelada</h1>
+        <div className="nota-umbral">
+          Las opiniones son de consultas que ocurrieron. Si al final se
+          atendió con {cita.profesional.nombre} por otra vía, escríbanos y
+          le mandamos el enlace que corresponde.
+        </div>
+      </main>
+    );
+  }
+
+  if (cita.inicio > new Date()) {
+    return (
+      <main className="envoltura seccion">
+        <h1>Su consulta todavía no ocurre</h1>
+        <div className="nota-umbral">
+          Guarde este enlace: después de su cita con {cita.profesional.nombre}{" "}
+          podrá dejar su opinión aquí mismo.
+        </div>
+      </main>
+    );
+  }
+
   const yaOpino = await prisma.opinion.findUnique({ where: { citaId: cita.id } });
 
   if (yaOpino) {

@@ -27,8 +27,11 @@ export async function dejarOpinion(datos: {
   autor: string;
   calificacion: number;
   texto: string;
-  /** Si viene del enlace de su cita, la opinión queda ligada a ella. */
-  token?: string;
+  /**
+   * El enlace de su cita. Es obligatorio: hace las dos cosas a la vez,
+   * identificar la cita y demostrar que la hubo.
+   */
+  token: string;
 }): Promise<Resultado> {
   const revision = nombreDePersona(datos.autor, { minimoPalabras: 1 });
   const texto = datos.texto.trim();
@@ -55,17 +58,32 @@ export async function dejarOpinion(datos: {
   });
   if (!profesional) return { ok: false, mensaje: "Ese perfil ya no existe." };
 
-  let citaId: string | undefined;
-  if (datos.token) {
-    const cita = await prisma.cita.findUnique({ where: { token: datos.token } });
-    if (cita && cita.profesionalId === profesional.id) {
-      const yaOpino = await prisma.opinion.findUnique({ where: { citaId: cita.id } });
-      if (yaOpino) {
-        return { ok: false, mensaje: "Ya dejó su opinión de esa consulta. Gracias." };
-      }
-      citaId = cita.id;
-    }
+  // El perfil prometía opiniones de pacientes y a la vez dejaba opinar a
+  // cualquiera: el token era opcional y, sin él, la opinión entraba igual
+  // y sin quedar ligada a ninguna consulta.
+  const cita = await prisma.cita.findUnique({ where: { token: datos.token } });
+  if (!cita || cita.profesionalId !== profesional.id) {
+    return {
+      ok: false,
+      mensaje:
+        "Las opiniones se dejan desde el enlace que recibe con su cita. Ese enlace no corresponde a una consulta con este profesional.",
+    };
   }
+  if (cita.estado === "CANCELADA") {
+    return { ok: false, mensaje: "Esa consulta quedó cancelada." };
+  }
+  if (cita.inicio > new Date()) {
+    return {
+      ok: false,
+      mensaje: "Su consulta todavía no ocurre. El enlace sigue sirviendo después.",
+    };
+  }
+
+  const yaOpino = await prisma.opinion.findUnique({ where: { citaId: cita.id } });
+  if (yaOpino) {
+    return { ok: false, mensaje: "Ya dejó su opinión de esa consulta. Gracias." };
+  }
+  const citaId = cita.id;
 
   const opinion = await prisma.opinion.create({
     data: {

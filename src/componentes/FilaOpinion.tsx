@@ -15,7 +15,7 @@ export function FilaOpinion({
   profesional,
   cuando,
   publicada,
-  deUnaCita,
+  consulta,
 }: {
   id: string;
   autor: string;
@@ -24,7 +24,8 @@ export function FilaOpinion({
   profesional: string;
   cuando: string;
   publicada: boolean;
-  deUnaCita: boolean;
+  /** La fecha de la consulta, o nada si la opinión no viene de una cita. */
+  consulta: string | null;
 }) {
   const [aviso, setAviso] = useState("");
   const [oculta, setOculta] = useState(false);
@@ -44,8 +45,8 @@ export function FilaOpinion({
             {"★".repeat(calificacion)}
             {"☆".repeat(5 - calificacion)}
           </p>
-          <em className={`pastilla ${deUnaCita ? "pastilla-bien" : "pastilla-espera"}`}>
-            {deUnaCita ? "Paciente con cita" : "Sin cita registrada"}
+          <em className={`pastilla ${consulta ? "pastilla-bien" : "pastilla-espera"}`}>
+            {consulta ? `Se atendió el ${consulta}` : "Sin cita registrada"}
           </em>
         </div>
         <div>
