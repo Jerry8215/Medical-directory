@@ -25,6 +25,8 @@ type Props = {
   ciudades: { slug: string; nombre: string }[];
   plan: "BASICO" | "GOLD" | "PREMIUM";
   planHasta: string;
+  /** El plan y el acceso solo los administra el equipo. */
+  esAdministrador?: boolean;
 };
 
 /**
@@ -41,6 +43,7 @@ export function EditorProfesional({
   ciudades,
   plan,
   planHasta,
+  esAdministrador = false,
 }: Props) {
   const [planElegido, setPlanElegido] = useState(plan);
   const [vence, setVence] = useState(planHasta);
@@ -376,6 +379,10 @@ export function EditorProfesional({
         </section>
       ))}
 
+      {/* El plan y el acceso son del administrador. Mostrárselos al
+          médico era ofrecerle dos formularios que el servidor le iba a
+          rechazar: el plan se contrata, no se elige uno mismo. */}
+      {esAdministrador ? (
       <section className="ficha formulario">
         <h2>Plan</h2>
         <p className="meta">
@@ -426,7 +433,9 @@ export function EditorProfesional({
           Guardar plan
         </button>
       </section>
+      ) : null}
 
+      {esAdministrador ? (
       <section className="ficha formulario">
         <h2>Acceso del profesional</h2>
         <p className="meta">
@@ -469,6 +478,7 @@ export function EditorProfesional({
           </p>
         ) : null}
       </section>
+      ) : null}
 
       <button
         type="button"

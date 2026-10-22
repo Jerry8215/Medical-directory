@@ -94,6 +94,20 @@ export function HorasApartadas({
     );
   }
 
+  // Un consultorio sin franjas no genera ningún día. Dejaba un
+  // desplegable vacío y un mensaje que echaba la culpa al día elegido,
+  // cuando lo que falta es el horario.
+  const sinHorario = consultorios.every((c) => c.dias.length === 0);
+  if (sinHorario) {
+    return (
+      <div className="nota-umbral">
+        Todavía no hay horarios cargados, así que no hay huecos que apartar.
+        Capture sus días y horas de atención en <b>Mi perfil</b>, dentro del
+        consultorio, y esta sección se llena sola.
+      </div>
+    );
+  }
+
   return (
     <div>
       {aviso ? <p className="aviso-accion">{aviso}</p> : null}

@@ -509,16 +509,27 @@ export default async function PaginaProfesional({ params }: Props) {
                     </p>
                   ) : null}
 
-                  <div className="horario-tabla" style={{ marginTop: 12 }}>
-                    {horario?.semana.map((d) => (
-                      <div className="horario-fila" key={d.nombre}>
-                        <span>{d.nombre}</span>
-                        <span className={d.texto === "Cerrado" ? "cerrado" : "num"}>
-                          {d.texto}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
+                  {/* Siete renglones diciendo «Cerrado» no es un horario:
+                      es un consultorio que parece clausurado. Mientras el
+                      médico no capture sus días, se dice lo que de verdad
+                      pasa y se le ofrece al paciente la vía que sí sirve. */}
+                  {horario?.semana.some((d) => d.texto !== "Cerrado") ? (
+                    <div className="horario-tabla" style={{ marginTop: 12 }}>
+                      {horario.semana.map((d) => (
+                        <div className="horario-fila" key={d.nombre}>
+                          <span>{d.nombre}</span>
+                          <span className={d.texto === "Cerrado" ? "cerrado" : "num"}>
+                            {d.texto}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="meta" style={{ marginTop: 12 }}>
+                      Horario no publicado todavía. Llame al consultorio para
+                      conocer sus días y horas de atención.
+                    </p>
+                  )}
 
                   <p style={{ marginTop: 12 }}>
                     <a className="boton-suave" href={mapa} target="_blank" rel="noreferrer">

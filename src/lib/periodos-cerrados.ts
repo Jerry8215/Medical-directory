@@ -58,6 +58,17 @@ export async function cerrarPeriodo(
     },
   });
 
+  // Cerrar dos veces el mismo tramo no es una decisión nueva, es un doble
+  // clic. La lista se llenaba de filas idénticas que había que reabrir una
+  // por una.
+  const repetido = await prisma.periodoCerrado.findFirst({
+    where: { profesionalId, desde, hasta },
+    select: { id: true },
+  });
+  if (repetido) {
+    return { ok: true, mensaje: "Esos días ya estaban cerrados." };
+  }
+
   await prisma.periodoCerrado.create({
     data: { profesionalId, desde, hasta, motivo: motivo.trim() || null },
   });

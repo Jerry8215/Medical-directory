@@ -99,6 +99,7 @@ export default async function EditarProfesional({ params }: Props) {
       <section className="envoltura seccion">
         <EditorProfesional
           slug={slug}
+          esAdministrador={sesion?.rol === "ADMINISTRADOR"}
           perfil={{
             nombre: profesional.nombre,
             semblanza: profesional.semblanza ?? "",
