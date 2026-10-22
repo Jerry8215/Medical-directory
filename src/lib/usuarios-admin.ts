@@ -11,12 +11,14 @@
 
 import { revalidatePath } from "next/cache";
 
+import { sitio, urlAbsoluta } from "@/config/sitio";
 import { altaDeAcceso } from "@/lib/accesos";
+import { enviarCorreo } from "@/lib/avisos";
 import { prisma } from "@/lib/prisma";
 import { sesionActual } from "@/lib/sesion-actual";
 
 export type Resultado =
-  | { ok: true; mensaje: string; clave?: string }
+  | { ok: true; mensaje: string; clave?: string; porCorreo?: boolean }
   | { ok: false; mensaje: string };
 
 export async function crearAccesoProfesional(
@@ -44,11 +46,40 @@ export async function crearAccesoProfesional(
     },
   });
 
+  // El correo también sale de aquí. Antes solo se enviaba al aprobar el
+  // alta, de modo que si aquel se perdía no había forma de reintentarlo:
+  // el administrador se quedaba con la contraseña en pantalla y el médico
+  // sin nada en su buzón.
+  let salioElCorreo = false;
+  try {
+    await enviarCorreo({
+      para: alta.correo,
+      asunto: `Su acceso a ${sitio.nombre}`,
+      cuerpo: [
+        `Doctor(a) ${profesional.nombre}:`,
+        "",
+        "Estos son sus datos para entrar a administrar su perfil.",
+        "",
+        `Entre aquí: ${urlAbsoluta("/panel/acceso")}`,
+        `Correo: ${alta.correo}`,
+        `Contraseña: ${alta.clave}`,
+        "",
+        "Le recomendamos cambiarla desde «Mi contraseña» en cuanto entre.",
+      ].join("\n"),
+    });
+    salioElCorreo = true;
+  } catch (error) {
+    console.error("[acceso] no se pudo enviar la contraseña", error);
+  }
+
   revalidatePath("/panel");
   return {
     ok: true,
-    mensaje: `Acceso listo para ${alta.correo}. Anote la contraseña: no se vuelve a mostrar.`,
+    mensaje: salioElCorreo
+      ? `Acceso listo y enviado a ${alta.correo}. La contraseña va abajo por si no llega.`
+      : `Acceso listo para ${alta.correo}, pero el correo no salió: entrégesela usted.`,
     clave: alta.clave,
+    porCorreo: salioElCorreo,
   };
 }
 
