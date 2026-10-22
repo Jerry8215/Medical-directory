@@ -3,6 +3,7 @@ import Link from "next/link";
 
 import { PanelCatalogos } from "@/componentes/PanelCatalogos";
 import { umbral } from "@/lib/catalogo";
+import { exigirAdministrador } from "@/lib/guardia-panel";
 import { prisma } from "@/lib/prisma";
 
 export const metadata: Metadata = {
@@ -13,6 +14,7 @@ export const metadata: Metadata = {
 export const dynamic = "force-dynamic";
 
 export default async function Catalogos() {
+  const sesion = await exigirAdministrador();
   const [ciudades, especialidades, profesiones, umbralGeneral] = await Promise.all([
     prisma.ciudad.findMany({
       orderBy: { orden: "asc" },

@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 
 import { FilaSolicitud } from "@/componentes/FilaSolicitud";
 import { ciudades, especialidades } from "@/lib/catalogo";
+import { exigirEquipo } from "@/lib/guardia-panel";
 import { prisma } from "@/lib/prisma";
 import { sesionActual } from "@/lib/sesion-actual";
 
@@ -29,8 +30,7 @@ export const dynamic = "force-dynamic";
  * sobre todo cuando quien pregunta es el propio interesado.
  */
 export default async function Solicitudes() {
-  const sesion = await sesionActual();
-  if (!sesion) redirect("/panel/acceso");
+  const sesion = await exigirEquipo();
   if (sesion.rol !== "ADMINISTRADOR" && sesion.rol !== "RECEPCION") redirect("/panel");
 
   const [pendientes, resueltas, listaCiudades, listaEspecialidades] =

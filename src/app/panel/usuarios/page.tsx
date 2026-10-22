@@ -3,6 +3,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 
 import { PanelUsuarios } from "@/componentes/PanelUsuarios";
+import { exigirAdministrador } from "@/lib/guardia-panel";
 import { prisma } from "@/lib/prisma";
 import { sesionActual } from "@/lib/sesion-actual";
 
@@ -14,8 +15,7 @@ export const metadata: Metadata = {
 export const dynamic = "force-dynamic";
 
 export default async function Usuarios() {
-  const sesion = await sesionActual();
-  if (!sesion) redirect("/panel/acceso");
+  const sesion = await exigirAdministrador();
   if (sesion.rol !== "ADMINISTRADOR") redirect("/panel");
 
   const cuentas = await prisma.usuario.findMany({

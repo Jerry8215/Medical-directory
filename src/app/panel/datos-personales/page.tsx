@@ -3,6 +3,7 @@ import Link from "next/link";
 
 import { AtencionArco } from "@/componentes/AtencionArco";
 import { PLAZO_DIAS_HABILES } from "@/lib/arco";
+import { exigirEquipo } from "@/lib/guardia-panel";
 import { prisma } from "@/lib/prisma";
 import { sesionActual } from "@/lib/sesion-actual";
 
@@ -37,7 +38,7 @@ const NOMBRES: Record<string, string> = {
  * registro de lo que se ha hecho, con fecha y responsable.
  */
 export default async function DatosPersonales() {
-  const sesion = await sesionActual();
+  const sesion = await exigirEquipo();
   if (sesion?.rol !== "ADMINISTRADOR" && sesion?.rol !== "RECEPCION") {
     return (
       <main className="envoltura seccion">

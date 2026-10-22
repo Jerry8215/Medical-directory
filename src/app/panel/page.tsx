@@ -4,6 +4,7 @@ import Link from "next/link";
 import { sitio } from "@/config/sitio";
 import { ListaProfesionales } from "@/componentes/ListaProfesionales";
 import { Novedades } from "@/componentes/Novedades";
+import { exigirEquipo } from "@/lib/guardia-panel";
 import { prisma } from "@/lib/prisma";
 import { PestanasPanel } from "@/componentes/PestanasPanel";
 import { sinLeer } from "@/lib/novedades";
@@ -51,6 +52,7 @@ async function visitantesDeHoy(): Promise<number> {
 }
 
 export default async function Panel() {
+  const sesion = await exigirEquipo();
   const [
     listaCiudades,
     listaEspecialidades,

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 import { FilaOpinion } from "@/componentes/FilaOpinion";
+import { exigirAdministrador } from "@/lib/guardia-panel";
 import { prisma } from "@/lib/prisma";
 
 export const metadata: Metadata = {
@@ -18,6 +19,7 @@ export const dynamic = "force-dynamic";
  * escribió y a un médico que todavía no ve su reseña.
  */
 export default async function Opiniones() {
+  const sesion = await exigirAdministrador();
   const [pendientes, publicadas] = await Promise.all([
     prisma.opinion.findMany({
       where: { publicada: false },

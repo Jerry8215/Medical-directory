@@ -4,6 +4,7 @@ import Link from "next/link";
 import { AjustesCobro } from "@/componentes/AjustesCobro";
 import { TablaCobros, type FilaPago } from "@/componentes/TablaCobros";
 import { datosBancarios, precios } from "@/lib/precios";
+import { exigirAdministrador } from "@/lib/guardia-panel";
 import { prisma } from "@/lib/prisma";
 import { sesionActual } from "@/lib/sesion-actual";
 import {
@@ -33,7 +34,7 @@ const FECHA = new Intl.DateTimeFormat("es-MX", {
  * decisión —un depósito por aprobar— va antes que la historia.
  */
 export default async function Cobros() {
-  const sesion = await sesionActual();
+  const sesion = await exigirAdministrador();
   if (sesion?.rol !== "ADMINISTRADOR" && sesion?.rol !== "RECEPCION") {
     return (
       <main className="envoltura seccion">
