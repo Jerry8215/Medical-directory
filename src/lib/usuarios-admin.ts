@@ -54,7 +54,7 @@ export async function crearAccesoProfesional(
   try {
     await enviarCorreo({
       para: alta.correo,
-      asunto: `Su acceso a ${sitio.nombre}`,
+      asunto: `${profesional.nombre}: su acceso a ${sitio.nombre}`,
       cuerpo: [
         `Doctor(a) ${profesional.nombre}:`,
         "",

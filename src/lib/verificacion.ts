@@ -227,7 +227,7 @@ export async function aprobarSolicitud(id: string): Promise<Resultado> {
   if (acceso.ok) {
     await enviarCorreo({
       para: acceso.correo,
-      asunto: `Su perfil ya está publicado en ${sitio.nombre}`,
+      asunto: `${solicitud.nombre}: su perfil ya está publicado · ${sitio.nombre}`,
       cuerpo: [
         `Doctor(a) ${solicitud.nombre}:`,
         "",

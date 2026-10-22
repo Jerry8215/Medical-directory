@@ -62,6 +62,16 @@ export async function enviarCorreo(correo: Correo): Promise<boolean> {
       to: [correo.para],
       subject: correo.asunto,
       text: correo.cuerpo,
+      // Gmail agrupa en una sola conversación los correos que comparten
+      // asunto y remitente. Con cinco altas seguidas, los cinco avisos
+      // caían apilados dentro de un hilo ya leído: el médico no veía
+      // llegar nada y daba por perdida su contraseña. Esta cabecera le
+      // dice al cliente de correo que cada uno es cosa aparte.
+      headers: {
+        "X-Entity-Ref-ID": `${Date.now().toString(36)}-${Math.random()
+          .toString(36)
+          .slice(2, 10)}`,
+      },
     }),
   });
 
