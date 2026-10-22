@@ -21,6 +21,7 @@ import { enviarCorreo } from "@/lib/avisos";
 import { anotar } from "@/lib/novedades";
 import { precios } from "@/lib/precios";
 import { prisma } from "@/lib/prisma";
+import { refrescarDirectorio } from "@/lib/refrescar";
 import { sesionActual } from "@/lib/sesion-actual";
 import {
   concepto,
@@ -215,6 +216,14 @@ async function acreditar(pagoId: string, porQuien: string): Promise<Resultado> {
 
   revalidatePath("/panel/cobros");
   revalidatePath("/panel");
+  // El plan enciende la fotografía, el WhatsApp y la agenda en el perfil
+  // público. Sin esto, el médico pagaba y seguía viéndose igual hasta que
+  // venciera la copia guardada: media hora de parecer que no sirvió.
+  const suyo = await prisma.profesional.findUnique({
+    where: { id: pago.profesionalId },
+    select: { slug: true },
+  });
+  refrescarDirectorio(suyo?.slug);
   return {
     ok: true,
     mensaje: `Acreditado. El plan ${pago.plan} queda vigente hasta el ${hasta.toLocaleDateString("es-MX")}.`,

@@ -4796,3 +4796,10 @@ a.enlace-peligro {
   border-radius: 8px;
   border: 1px solid #cde6d8;
 }
+
+.plan-hoy {
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: var(--navy);
+  margin-top: 4px;
+}

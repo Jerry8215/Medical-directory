@@ -47,6 +47,7 @@ export function enlacesDelPanel(rol: string | undefined): EnlaceDelPanel[] {
   return [
     { href: "/panel/mi-agenda", texto: "Agenda", icono: "calendario" },
     { href: "/panel/mi-perfil", texto: "Mi perfil", icono: "persona" },
-    { href: "/panel/mi-clave", texto: "Mi contraseña", icono: "engrane" },
+    // Sin esta puerta, mejorar de plan exigía llamar por teléfono.
+    { href: "/panel/mi-plan", texto: "Mi plan", icono: "tarjeta" },
   ];
 }
