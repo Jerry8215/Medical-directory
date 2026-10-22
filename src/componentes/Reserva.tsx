@@ -40,6 +40,8 @@ export function Reserva({
   const [hora, setHora] = useState("");
   const [nombre, setNombre] = useState("");
   const [telefono, setTelefono] = useState("");
+  const [correo, setCorreo] = useState("");
+  const [motivo, setMotivo] = useState("");
   const [resultado, setResultado] = useState<{
     ok: boolean;
     mensaje: string;
@@ -185,6 +187,8 @@ export function Reserva({
                 hora,
                 nombre,
                 telefono,
+                correo,
+                motivo,
               }));
               setResultado({
                 ok: r.ok,
@@ -225,6 +229,33 @@ export function Reserva({
             />
           </div>
 
+          {/* El correo no es un trámite: es por donde le llega el acuse y
+              el enlace con el que cambia o cancela su cita. Sin él, quien
+              cierra la pestaña se queda sin constancia de nada. */}
+          <div className="campo">
+            <label htmlFor="correo-paciente">Su correo</label>
+            <input
+              id="correo-paciente"
+              type="email"
+              inputMode="email"
+              value={correo}
+              onChange={(e) => setCorreo(e.target.value)}
+              placeholder="para mandarle su comprobante"
+              autoComplete="email"
+            />
+          </div>
+
+          <div className="campo">
+            <label htmlFor="motivo-cita">¿Qué lo trae a consulta? (opcional)</label>
+            <input
+              id="motivo-cita"
+              value={motivo}
+              onChange={(e) => setMotivo(e.target.value)}
+              placeholder="Dolor de rodilla desde hace un mes"
+              maxLength={140}
+            />
+          </div>
+
           <button className="boton-lleno" type="submit" disabled={guardando}>
             {guardando ? "Agendando…" : `Agendar ${dia.etiqueta} a las ${hora}`}
           </button>
@@ -242,8 +273,8 @@ export function Reserva({
       ) : null}
 
       <p className="meta" style={{ marginTop: 10, textAlign: "center" }}>
-        Con {profesional} en {consultorio.nombre}. Recibirá la confirmación y el
-        recordatorio por WhatsApp.
+        Con {profesional} en {consultorio.nombre}. Si deja su correo le
+        mandamos el comprobante y le recordamos la cita el día anterior.
       </p>
     </div>
   );

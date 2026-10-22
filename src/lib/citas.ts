@@ -18,6 +18,7 @@
 import { revalidatePath } from "next/cache";
 
 import { aMinutos, disponible } from "@/lib/agenda";
+import { A_PACIENTE } from "@/lib/avisos";
 import { crearEvento } from "@/lib/google-calendar";
 import { anotar } from "@/lib/novedades";
 import { prisma } from "@/lib/prisma";
@@ -167,6 +168,14 @@ export async function agendarCita(peticion: Peticion): Promise<Resultado> {
       // El panel se entera siempre, aunque el profesional no tenga datos de
       // contacto cargados.
       avisos.push({ canal: "PANEL" as never, destino: "panel" });
+
+      // Y el paciente recibe su acuse. Hasta ahora no recibía nada: la
+      // confirmación salía por WhatsApp, que no está conectado, de modo
+      // que quien cerraba la pestaña se quedaba sin el enlace con el que
+      // cambia o cancela su cita, y sin constancia de que existe.
+      if (paciente.correo) {
+        avisos.push({ canal: "CORREO", destino: `${A_PACIENTE}${paciente.correo}` });
+      }
 
       await tx.aviso.createMany({
         data: avisos.map((a) => ({

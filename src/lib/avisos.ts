@@ -81,6 +81,19 @@ export async function enviarCorreo(correo: Correo): Promise<boolean> {
   return true;
 }
 
+/**
+ * El destino de un aviso dirigido al paciente lleva este prefijo.
+ *
+ * El mismo aviso puede ir a un correo o a un WhatsApp, y quien lo entrega
+ * necesita saber a quién le está escribiendo para redactarlo: no es lo
+ * mismo avisarle al médico que le agendaron una consulta que avisarle al
+ * paciente que la suya quedó hecha.
+ */
+export const A_PACIENTE = "paciente:";
+
+/** Marca el aviso de la víspera, para no mandarlo dos veces. */
+export const RECORDATORIO = "Recordatorio";
+
 /** Procesa la cola de avisos pendientes. Devuelve cuántos salieron. */
 export async function procesarAvisos(limite = 50): Promise<{
   enviados: number;
@@ -127,25 +140,65 @@ export async function procesarAvisos(limite = 50): Promise<{
       continue;
     }
 
+    // El aviso al paciente lleva el prefijo en el destino. Hasta ahora el
+    // paciente no recibía absolutamente nada: la confirmación y el
+    // recordatorio salían por WhatsApp, que no está conectado, así que el
+    // sitio prometía dos mensajes que nunca llegaban.
+    const paraPaciente = aviso.destino.startsWith(A_PACIENTE);
+    const destino = paraPaciente
+      ? aviso.destino.slice(A_PACIENTE.length)
+      : aviso.destino;
+
+    if (!destino.includes("@")) {
+      // Un teléfono en un aviso de correo: se queda esperando a que haya
+      // por dónde mandarlo, en lugar de darse por enviado.
+      sinProveedor += 1;
+      continue;
+    }
+
     try {
+      const esRecordatorio = aviso.detalle === RECORDATORIO;
       const salio = await enviarCorreo({
-        para: aviso.destino,
-        asunto: `Nueva cita · ${cita.paciente.nombre ?? "paciente"} · ${cuandoLegible(
-          cita.inicio,
-        )}`,
-        cuerpo: [
-          `Doctor(a) ${cita.profesional.nombre}:`,
-          "",
-          `${cita.paciente.nombre ?? "Un paciente"} solicitó consulta con usted.`,
-          "",
-          `Cuándo: ${cuandoLegible(cita.inicio)}`,
-          `Dónde: ${cita.consultorio.nombre}, ${cita.consultorio.ciudad.nombre}`,
-          `Teléfono del paciente: ${cita.paciente.telefono}`,
-          cita.motivo ? `Motivo: ${cita.motivo}` : "",
-          "",
-          `Puede ver y confirmar sus citas en ${sitio.nombre}.`,
-          `La cita: ${urlAbsoluta(`/cita/${cita.token}`)}`,
-        ]
+        para: destino,
+        asunto: !paraPaciente
+          ? `Nueva cita · ${cita.paciente.nombre ?? "paciente"} · ${cuandoLegible(
+              cita.inicio,
+            )}`
+          : esRecordatorio
+            ? `Recordatorio: su cita de mañana con ${cita.profesional.nombre}`
+            : `Su cita con ${cita.profesional.nombre} · ${cuandoLegible(cita.inicio)}`,
+        cuerpo: (paraPaciente
+          ? [
+              `${cita.paciente.nombre ?? "Hola"}:`,
+              "",
+              esRecordatorio
+                ? `Le recordamos su consulta de mañana con ${cita.profesional.nombre}.`
+                : `Su consulta con ${cita.profesional.nombre} quedó agendada.`,
+              "",
+              `Cuándo: ${cuandoLegible(cita.inicio)}`,
+              `Dónde: ${cita.consultorio.nombre}, ${cita.consultorio.ciudad.nombre}`,
+              `Dirección: ${cita.consultorio.direccion}`,
+              "",
+              "Si no puede asistir, cancélela desde aquí y el horario queda",
+              "libre para otro paciente. Desde ese mismo enlace puede cambiar",
+              "su hora sin llamar al consultorio:",
+              urlAbsoluta(`/cita/${cita.token}`),
+              "",
+              sitio.nombre,
+            ]
+          : [
+              `Doctor(a) ${cita.profesional.nombre}:`,
+              "",
+              `${cita.paciente.nombre ?? "Un paciente"} solicitó consulta con usted.`,
+              "",
+              `Cuándo: ${cuandoLegible(cita.inicio)}`,
+              `Dónde: ${cita.consultorio.nombre}, ${cita.consultorio.ciudad.nombre}`,
+              `Teléfono del paciente: ${cita.paciente.telefono}`,
+              cita.motivo ? `Motivo: ${cita.motivo}` : "",
+              "",
+              `Puede ver y confirmar sus citas en ${sitio.nombre}.`,
+              `La cita: ${urlAbsoluta(`/cita/${cita.token}`)}`,
+            ])
           .filter(Boolean)
           .join("\n"),
       });
@@ -286,7 +339,7 @@ export async function recordarCitasDeManana(
     where: {
       estado: { in: ["AGENDADA", "CONFIRMADA"] },
       inicio: { gte: desde, lt: hasta },
-      avisos: { none: { canal: "WHATSAPP", destino: { contains: "paciente" } } },
+      avisos: { none: { detalle: RECORDATORIO } },
       // Quien ejerció su derecho de oposición deja de recibir avisos. El
       // campo existía desde el principio y nadie lo leía, así que darse de
       // baja no servía de nada.
@@ -296,11 +349,15 @@ export async function recordarCitasDeManana(
   });
 
   for (const cita of citas) {
+    // Por correo si dejó uno; si no, queda encolado para WhatsApp, que es
+    // lo único que le llegaría y todavía no está conectado.
+    const porCorreo = Boolean(cita.paciente.correo);
     await prisma.aviso.create({
       data: {
         citaId: cita.id,
-        canal: "WHATSAPP",
-        destino: `paciente:${cita.paciente.telefono}`,
+        canal: porCorreo ? "CORREO" : "WHATSAPP",
+        destino: `${A_PACIENTE}${porCorreo ? cita.paciente.correo : cita.paciente.telefono}`,
+        detalle: RECORDATORIO,
       },
     });
   }

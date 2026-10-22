@@ -15,7 +15,7 @@ export const revalidate = 1800;
 export const metadata: Metadata = {
   title: "Agendar una cita",
   description:
-    "Elija a su médico y reserve su consulta en línea. Recibirá la confirmación y el recordatorio por WhatsApp.",
+    "Elija a su médico y reserve su consulta en línea, con su comprobante y el recordatorio del día anterior por correo.",
   alternates: { canonical: "/agendar" },
 };
 
@@ -72,8 +72,8 @@ export default async function Agendar() {
         </h1>
         <p className="intro">
           Estos profesionales tienen agenda en línea: usted ve sus horarios
-          libres y reserva sin llamar. Recibirá la confirmación y el
-          recordatorio por WhatsApp.
+          libres y reserva sin llamar. Le mandamos su comprobante por correo
+          y le recordamos la cita el día anterior.
         </p>
       </section>
 
