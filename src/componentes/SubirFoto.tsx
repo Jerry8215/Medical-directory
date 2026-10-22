@@ -4,73 +4,9 @@ import Image from "next/image";
 import { useRef, useState, useTransition } from "react";
 
 import { BotonConfirmar } from "@/componentes/BotonConfirmar";
+import { RecorteFoto } from "@/componentes/RecorteFoto";
 import { intentar } from "@/lib/intentar";
 import { quitarFotografia, subirFotografia } from "@/lib/fotografia";
-
-/** Un retrato de perfil no necesita más que esto, ni en pantalla ni impreso. */
-const ANCHO_MAXIMO = 760;
-/** La tarjeta del directorio muestra el retrato en 1 : 1.2. */
-const PROPORCION = 1.2;
-
-/**
- * Reducir la imagen en el navegador, antes de enviarla.
- *
- * Una fotografía de celular pesa entre tres y ocho megas. Mandarla entera
- * para recortarla después significa que el médico espera medio minuto
- * mirando una barra, y que el almacén guarda treinta veces lo necesario.
- * El recorte cuadrado se hace aquí mismo, por el centro, que es donde
- * está la cara en el noventa por ciento de los retratos.
- */
-function reducir(archivo: File): Promise<Blob> {
-  return new Promise((listo, falla) => {
-    const lector = new FileReader();
-    lector.onerror = () => falla(new Error("No se pudo leer el archivo."));
-    lector.onload = () => {
-      const imagen = new window.Image();
-      imagen.onerror = () => falla(new Error("Ese archivo no es una imagen."));
-      imagen.onload = () => {
-        // Se recorta vertical y no cuadrado: la tarjeta pide un retrato,
-        // y un cuadrado dentro de un retrato deja franjas vacías arriba
-        // y abajo.
-        const anchoCorte = Math.min(imagen.width, imagen.height / PROPORCION);
-        const altoCorte = anchoCorte * PROPORCION;
-        const ancho = Math.min(Math.round(anchoCorte), ANCHO_MAXIMO);
-        const alto = Math.round(ancho * PROPORCION);
-        const lienzo = document.createElement("canvas");
-        lienzo.width = ancho;
-        lienzo.height = alto;
-
-        const pincel = lienzo.getContext("2d");
-        if (!pincel) {
-          falla(new Error("Su navegador no pudo procesar la imagen."));
-          return;
-        }
-        pincel.drawImage(
-          imagen,
-          (imagen.width - anchoCorte) / 2,
-          // Hacia arriba y no por el centro: en un retrato de pie, el
-          // centro cae en la bata y la cara se queda fuera.
-          Math.max(0, (imagen.height - altoCorte) * 0.18),
-          anchoCorte,
-          altoCorte,
-          0,
-          0,
-          ancho,
-          alto,
-        );
-
-        lienzo.toBlob(
-          (resultado) =>
-            resultado ? listo(resultado) : falla(new Error("No se pudo procesar la imagen.")),
-          "image/jpeg",
-          0.85,
-        );
-      };
-      imagen.src = String(lector.result);
-    };
-    lector.readAsDataURL(archivo);
-  });
-}
 
 export function SubirFoto({
   slug,
@@ -86,6 +22,7 @@ export function SubirFoto({
 }) {
   const [actual, setActual] = useState(fotografia);
   const [aviso, setAviso] = useState<{ ok: boolean; texto: string } | null>(null);
+  const [porEncuadrar, setPorEncuadrar] = useState<File | null>(null);
   const [trabajando, iniciar] = useTransition();
   const entrada = useRef<HTMLInputElement>(null);
 
@@ -97,23 +34,25 @@ export function SubirFoto({
     .map((p) => p[0])
     .join("");
 
-  async function elegir(archivo: File) {
-    setAviso(null);
-    let reducida: Blob;
-    try {
-      reducida = await reducir(archivo);
-    } catch (error) {
-      setAviso({ ok: false, texto: (error as Error).message });
-      return;
-    }
-
+  /**
+   * Subir lo que quedó encuadrado.
+   *
+   * La imagen llega ya recortada y reducida por el navegador: una foto de
+   * celular pesa entre tres y ocho megas, y mandarla entera para
+   * recortarla en el servidor significa que el médico espera medio minuto
+   * mirando una barra y que el almacén guarda treinta veces lo necesario.
+   */
+  function subir(recorte: Blob) {
     const datos = new FormData();
-    datos.append("archivo", new File([reducida], "retrato.jpg", { type: "image/jpeg" }));
+    datos.append("archivo", new File([recorte], "retrato.jpg", { type: "image/jpeg" }));
 
     iniciar(async () => {
       const r = await intentar(() => subirFotografia(slug, datos));
       setAviso({ ok: r.ok, texto: r.mensaje });
-      if (r.ok) setActual(r.url);
+      if (r.ok) {
+        setActual(r.url);
+        setPorEncuadrar(null);
+      }
     });
   }
 
@@ -129,8 +68,8 @@ export function SubirFoto({
 
       <div className="subir-foto-acciones">
         <p className="meta">
-          Una foto de frente, con buena luz y sin lentes de sol. El recorte
-          cuadrado lo hace el sistema.
+          Una foto de frente, con buena luz y sin lentes de sol. Al elegirla
+          podrá encuadrarla usted mismo.
         </p>
 
         {/* Sin este aviso, el plan básico subía la fotografía, la guardaba
@@ -151,12 +90,26 @@ export function SubirFoto({
           hidden
           onChange={(e) => {
             const archivo = e.target.files?.[0];
-            if (archivo) elegir(archivo);
+            if (archivo) {
+              setAviso(null);
+              setPorEncuadrar(archivo);
+            }
             e.target.value = "";
           }}
         />
 
-        <div className="subir-foto-botones">
+        {porEncuadrar ? (
+          <RecorteFoto
+            // Cada archivo entra con su propio encuadre, desde cero.
+            key={`${porEncuadrar.name}-${porEncuadrar.lastModified}`}
+            archivo={porEncuadrar}
+            trabajando={trabajando}
+            alConfirmar={subir}
+            alCancelar={() => setPorEncuadrar(null)}
+          />
+        ) : null}
+
+        <div className="subir-foto-botones" hidden={Boolean(porEncuadrar)}>
           <button
             type="button"
             className="boton-suave"

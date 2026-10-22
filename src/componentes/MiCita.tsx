@@ -2,6 +2,8 @@
 
 import { useState, useTransition } from "react";
 
+import { CalendarioMes } from "@/componentes/CalendarioMes";
+import { porFranja } from "@/lib/calendario";
 import { intentar } from "@/lib/intentar";
 import { cancelarPorToken, reprogramarPorToken } from "@/lib/cita-paciente";
 
@@ -75,39 +77,39 @@ export function MiCita({
           {moviendo ? (
             <div style={{ marginTop: 14 }}>
               <p className="meta">Elija el horario nuevo</p>
-              <div className="dias" role="group" aria-label="Días disponibles">
-                {dias.map((d) => {
-                  const [, , numero] = d.fecha.split("-");
-                  return (
-                    <button
-                      key={d.fecha}
-                      type="button"
-                      className="dia"
-                      aria-pressed={d.fecha === dia?.fecha}
-                      onClick={() => {
-                        setDiaElegido(d.fecha);
-                        setHora("");
-                      }}
-                    >
-                      <small>{d.etiqueta.split(" ")[0].slice(0, 3)}</small>
-                      <b className="num">{Number(numero)}</b>
-                    </button>
-                  );
-                })}
-              </div>
-              <div className="horas" role="group" aria-label="Horarios disponibles">
-                {dia?.horas.map((h) => (
-                  <button
-                    key={h}
-                    type="button"
-                    className="hora num"
-                    aria-pressed={h === hora}
-                    onClick={() => setHora(h)}
+              <CalendarioMes
+                dias={dias}
+                elegida={dia?.fecha ?? ""}
+                alElegir={(fecha) => {
+                  setDiaElegido(fecha);
+                  setHora("");
+                }}
+              />
+
+              {dia ? <p className="horas-dia">{dia.etiqueta}</p> : null}
+
+              {porFranja(dia?.horas ?? []).map((grupo) => (
+                <div key={grupo.franja} className="franja-horas">
+                  <p className="franja-horas-nombre">{grupo.franja}</p>
+                  <div
+                    className="horas"
+                    role="group"
+                    aria-label={`Horarios de la ${grupo.franja}`}
                   >
-                    {h}
-                  </button>
-                ))}
-              </div>
+                    {grupo.horas.map((h) => (
+                      <button
+                        key={h}
+                        type="button"
+                        className="hora num"
+                        aria-pressed={h === hora}
+                        onClick={() => setHora(h)}
+                      >
+                        {h}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              ))}
             </div>
           ) : null}
 

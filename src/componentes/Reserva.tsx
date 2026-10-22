@@ -2,6 +2,8 @@
 
 import { useState, useTransition } from "react";
 
+import { CalendarioMes } from "@/componentes/CalendarioMes";
+import { porFranja } from "@/lib/calendario";
 import { intentar } from "@/lib/intentar";
 import { agendarCita } from "@/lib/citas";
 
@@ -136,45 +138,39 @@ export function Reserva({
         </div>
       ) : null}
 
-      <div className="dias" role="group" aria-label="Días disponibles">
-        {consultorio.dias.map((d) => {
-          const [, , numero] = d.fecha.split("-");
-          const nombreDia = d.etiqueta.split(" ")[0].slice(0, 3);
-          return (
-            <button
-              key={d.fecha}
-              type="button"
-              className="dia"
-              aria-pressed={d.fecha === dia.fecha}
-              onClick={() => {
-                setDiaElegido(d.fecha);
-                setHora("");
-                setResultado(null);
-              }}
-            >
-              <small>{nombreDia}</small>
-              <b className="num">{Number(numero)}</b>
-            </button>
-          );
-        })}
-      </div>
+      <CalendarioMes
+        dias={consultorio.dias}
+        elegida={dia.fecha}
+        alElegir={(fecha) => {
+          setDiaElegido(fecha);
+          setHora("");
+          setResultado(null);
+        }}
+      />
 
-      <div className="horas" role="group" aria-label="Horarios disponibles">
-        {dia.horas.map((h) => (
-          <button
-            key={h}
-            type="button"
-            className="hora num"
-            aria-pressed={h === hora}
-            onClick={() => {
-              setHora(h);
-              setResultado(null);
-            }}
-          >
-            {h}
-          </button>
-        ))}
-      </div>
+      <p className="horas-dia">{dia.etiqueta}</p>
+
+      {porFranja(dia.horas).map((grupo) => (
+        <div key={grupo.franja} className="franja-horas">
+          <p className="franja-horas-nombre">{grupo.franja}</p>
+          <div className="horas" role="group" aria-label={`Horarios de la ${grupo.franja}`}>
+            {grupo.horas.map((h) => (
+              <button
+                key={h}
+                type="button"
+                className="hora num"
+                aria-pressed={h === hora}
+                onClick={() => {
+                  setHora(h);
+                  setResultado(null);
+                }}
+              >
+                {h}
+              </button>
+            ))}
+          </div>
+        </div>
+      ))}
 
       {hora ? (
         <form

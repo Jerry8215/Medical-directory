@@ -1339,49 +1339,124 @@ a.chip:hover {
   top: 86px;
 }
 
-.dias {
-  display: flex;
-  gap: 8px;
-  overflow-x: auto;
-  padding-bottom: 4px;
-  margin-block: 12px;
+/* El calendario del mes, en lugar de la tira de sesenta botones que
+   obligaba al paciente a contar días para llegar al martes siguiente. */
+.calendario {
+  margin-block: 14px;
+  border: 1px solid var(--borde);
+  border-radius: var(--radio);
+  background: var(--papel);
+  padding: 12px;
 }
 
-.dia {
-  flex: 0 0 auto;
+.calendario-cabeza {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.calendario-mes {
+  margin: 0;
+  font-size: 0.98rem;
+  font-weight: 650;
+}
+
+/* Solo la inicial: con `capitalize` quedaba "Octubre De 2026". */
+.calendario-mes::first-letter,
+.horas-dia::first-letter {
+  text-transform: uppercase;
+}
+
+.calendario-paso {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
   border: 1px solid var(--borde);
+  border-radius: var(--pastilla);
   background: var(--papel);
   color: var(--tinta);
-  border-radius: 10px;
-  padding: 8px 12px;
-  text-align: center;
-  line-height: 1.25;
-  min-width: 60px;
   cursor: pointer;
-  font: inherit;
 }
 
-.dia small {
-  display: block;
-  font-size: 0.7rem;
-  color: var(--suave);
-  text-transform: uppercase;
+.calendario-paso:hover:not(:disabled) {
+  border-color: var(--azul);
+  color: var(--azul);
+}
+
+.calendario-paso:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+.calendario-semana,
+.calendario-rejilla {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+}
+
+.calendario-semana {
+  margin-bottom: 4px;
+}
+
+.calendario-semana span {
+  text-align: center;
+  font-size: 0.72rem;
   letter-spacing: 0.06em;
+  color: var(--suave);
 }
 
-.dia b {
-  font-size: 1.05rem;
+.calendario-dia {
+  aspect-ratio: 1;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  background: var(--banda-fria);
+  color: var(--tinta);
+  font: inherit;
+  font-size: 0.92rem;
   font-variant-numeric: tabular-nums;
+  cursor: pointer;
 }
 
-.dia[aria-pressed="true"] {
+.calendario-dia:hover:not(:disabled) {
+  border-color: var(--azul);
+  color: var(--azul);
+}
+
+/* Un día sin lugar se ve apagado de lejos: el paciente no tiene que
+   apretarlo para descubrir que no hay nada. */
+.calendario-dia:disabled {
+  background: transparent;
+  color: var(--suave);
+  opacity: 0.4;
+  cursor: default;
+}
+
+.calendario-dia[aria-pressed="true"] {
   background: var(--azul);
   border-color: var(--azul);
   color: #fff;
+  font-weight: 650;
 }
 
-.dia[aria-pressed="true"] small {
-  color: rgba(255, 255, 255, 0.82);
+.horas-dia {
+  margin: 4px 0 10px;
+  font-weight: 600;
+}
+
+.franja-horas + .franja-horas {
+  margin-top: 14px;
+}
+
+.franja-horas-nombre {
+  margin: 0 0 6px;
+  font-size: 0.7rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--suave);
 }
 
 .horas {
@@ -2705,6 +2780,61 @@ a.chip:hover {
   align-items: center;
   gap: 12px;
   margin-top: 10px;
+  flex-wrap: wrap;
+}
+
+/* ---------- encuadre de la fotografía ---------- */
+
+/* El recorte lo decidía el sistema por el centro de la imagen. En una
+   foto de cuerpo entero eso corta la cabeza, y el médico no tenía forma
+   de corregirlo. Lo que se ve en el marco es lo que se sube. */
+.recorte {
+  display: flex;
+  gap: 18px;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  margin-top: 12px;
+}
+
+.recorte-marco {
+  position: relative;
+  overflow: hidden;
+  flex: 0 0 auto;
+  border-radius: 14px;
+  background: var(--banda-fria);
+  box-shadow: inset 0 0 0 1px var(--borde);
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+}
+
+.recorte-marco:active {
+  cursor: grabbing;
+}
+
+.recorte-marco img {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  max-width: none;
+  pointer-events: none;
+}
+
+.recorte-mandos {
+  flex: 1 1 220px;
+  min-width: 200px;
+}
+
+.recorte-mandos input[type="range"] {
+  width: 100%;
+  accent-color: var(--azul);
+}
+
+.recorte-botones {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 12px;
   flex-wrap: wrap;
 }
 
