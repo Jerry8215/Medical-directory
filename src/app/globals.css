@@ -3773,8 +3773,10 @@ a.enlace-peligro {
   padding-block: 26px 48px;
 }
 
+/* La columna reserva el ancho aunque el menú salga del flujo. */
 .panel-lado {
   display: block;
+  width: 236px;
 }
 
 /* El anclaje va en la tarjeta y no en la columna. Con `align-items:
@@ -3786,9 +3788,14 @@ a.enlace-peligro {
    `min-width: 0` por lo otro: dentro de una rejilla una caja no baja de
    su contenido mínimo salvo que se le diga, y con nueve secciones en
    fila ese mínimo es el doble de un teléfono. */
+/* `fixed` y no `sticky`. Con `sticky` el menú depende de que su columna
+   tenga altura sobrante, y en esta rejilla no siempre la tiene: por eso
+   seguía subiendo con la página y metiéndose bajo la barra. Fijo al
+   hueco de la ventana no depende de nada y no puede deslizarse. */
 .rail {
-  position: sticky;
+  position: fixed;
   top: calc(var(--barra-total) + 10px);
+  width: 236px;
   z-index: 10;
   /* Si el menú no cabe a lo alto, se desplaza dentro de sí mismo en
      lugar de empujar el anclaje. */
@@ -4034,7 +4041,14 @@ a.enlace-peligro {
   }
 
   .rail {
+    position: static;
+    width: auto;
+    max-height: none;
     padding: 12px 10px;
+  }
+
+  .panel-lado {
+    width: auto;
   }
 
   .rail-lista {

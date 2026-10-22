@@ -18,6 +18,11 @@ import { revalidatePath } from "next/cache";
  */
 export function refrescarDirectorio(slug?: string): void {
   revalidatePath("/");
+  // El directorio completo y la pantalla de reserva listan a los mismos
+  // médicos que las de ciudad. Se me olvidaron al crearlas, y por eso un
+  // perfil borrado desaparecía de la portada pero seguía en «Médicos».
+  revalidatePath("/medicos");
+  revalidatePath("/agendar");
   revalidatePath("/[ciudad]", "page");
   revalidatePath("/[ciudad]/[especialidad]", "page");
   revalidatePath("/[ciudad]/padecimiento/[padecimiento]", "page");

@@ -12,6 +12,7 @@
 import { del } from "@vercel/blob";
 import { revalidatePath } from "next/cache";
 
+import { avisarCambioDePerfil } from "@/lib/aviso-perfil";
 import { refrescarDirectorio } from "@/lib/refrescar";
 
 import { puedeEditarPerfil } from "@/lib/permiso-perfil";
@@ -71,7 +72,7 @@ export async function guardarPerfil(
     };
   }
 
-  await prisma.profesional.update({
+  const actualizado = await prisma.profesional.update({
     where: { slug },
     data: {
       nombre: datos.nombre.trim(),
@@ -93,6 +94,12 @@ export async function guardarPerfil(
       entidadId: slug,
     },
   });
+
+  // Solo cuando lo edita otro: avisarle al médico de sus propios cambios
+  // sería mandarle un correo cada vez que guarda su semblanza.
+  if (quien.nombre !== actualizado.nombre) {
+    await avisarCambioDePerfil(actualizado.id, "editado", quien.nombre);
+  }
 
   revalidatePath(`/medico/${slug}`);
   revalidatePath("/panel");
@@ -347,6 +354,10 @@ export async function eliminarProfesional(slug: string): Promise<Resultado> {
     };
   }
 
+  // El aviso va antes de borrar, no después: el borrado desliga su cuenta
+  // del perfil, y después ya no hay forma de saber a quién escribirle.
+  await avisarCambioDePerfil(profesional.id, "eliminado", sesion.nombre);
+
   try {
     await prisma.$transaction([
       prisma.usuario.updateMany({
@@ -419,6 +430,12 @@ export async function suspenderProfesional(
       entidadId: slug,
     },
   });
+
+  await avisarCambioDePerfil(
+    p.id,
+    suspender ? "suspendido" : "publicado",
+    sesion.nombre,
+  );
 
   revalidatePath("/panel");
   revalidatePath(`/medico/${slug}`);
