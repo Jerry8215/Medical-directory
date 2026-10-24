@@ -16,6 +16,7 @@ export function FilaOpinion({
   cuando,
   publicada,
   consulta,
+  enLinea,
   invitada,
 }: {
   id: string;
@@ -29,6 +30,8 @@ export function FilaOpinion({
   consulta: string | null;
   /** Quién la invitó, cuando la respalda el consultorio y no una cita. */
   invitada: { por: string; cuando: string | null } | null;
+  /** El día en que cerró la consulta en línea de la que salió. */
+  enLinea: string | null;
 }) {
   const [aviso, setAviso] = useState("");
   const [oculta, setOculta] = useState(false);
@@ -53,10 +56,16 @@ export function FilaOpinion({
               persona del consultorio, y la tercera no la respalda nadie. */}
           <em
             className={`pastilla ${
-              consulta ? "pastilla-bien" : invitada ? "pastilla-aviso" : "pastilla-espera"
+              consulta || enLinea
+                ? "pastilla-bien"
+                : invitada
+                  ? "pastilla-aviso"
+                  : "pastilla-espera"
             }`}
           >
-            {consulta
+            {enLinea
+              ? `Consulta en línea del ${enLinea}`
+              : consulta
               ? `Se atendió el ${consulta}`
               : invitada
                 ? `Invitada por ${invitada.por}${

@@ -29,6 +29,7 @@ export default async function Opiniones() {
         // De dónde viene la opinión: una cita la respalda el sistema,
         // una invitación la respalda quien la emitió.
         invitacion: { select: { emitidaPor: true, atendidoEn: true } },
+        consulta: { select: { cerradaEn: true } },
       },
       take: 40,
     }),
@@ -40,6 +41,7 @@ export default async function Opiniones() {
         // De dónde viene la opinión: una cita la respalda el sistema,
         // una invitación la respalda quien la emitió.
         invitacion: { select: { emitidaPor: true, atendidoEn: true } },
+        consulta: { select: { cerradaEn: true } },
       },
       take: 20,
     }),
@@ -101,6 +103,7 @@ export default async function Opiniones() {
                 cuando={fecha(o.fecha)}
                 publicada={false}
                 consulta={cuandoSeAtendio(o.citaId)}
+                enLinea={o.consulta?.cerradaEn ? fecha(o.consulta.cerradaEn) : null}
                 invitada={
                   o.invitacion
                     ? {
@@ -136,6 +139,7 @@ export default async function Opiniones() {
                 cuando={fecha(o.fecha)}
                 publicada
                 consulta={cuandoSeAtendio(o.citaId)}
+                enLinea={o.consulta?.cerradaEn ? fecha(o.consulta.cerradaEn) : null}
                 invitada={
                   o.invitacion
                     ? {

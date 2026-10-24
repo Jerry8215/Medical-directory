@@ -60,6 +60,10 @@ export type Profesional = {
   opiniones: number;
   /** Perfil de muestra: existe para revisar el diseño, no para publicarse. */
   ejemplo: boolean;
+  /** Si acepta consultas escritas ahora mismo. */
+  enLinea: boolean;
+  /** Lo que cobra por una, en centavos. */
+  precioConsultaLinea?: number;
 };
 
 /**

@@ -38,6 +38,8 @@ export async function dejarOpinion(datos: {
    * la distingue.
    */
   invitacion?: string;
+  /** El enlace de su consulta en línea, una vez cerrada. */
+  consulta?: string;
 }): Promise<Resultado> {
   const revision = nombreDePersona(datos.autor, { minimoPalabras: 1 });
   const texto = datos.texto.trim();
@@ -70,6 +72,7 @@ export async function dejarOpinion(datos: {
   // consultorio para quien se atendió por teléfono o en el mostrador.
   let citaId: string | undefined;
   let invitacionId: string | undefined;
+  let consultaEnLineaId: string | undefined;
 
   if (datos.token) {
     const cita = await prisma.cita.findUnique({ where: { token: datos.token } });
@@ -105,11 +108,32 @@ export async function dejarOpinion(datos: {
       return { ok: false, mensaje: "Esa invitación ya se usó. Gracias por opinar." };
     }
     invitacionId = invitacion.id;
+  } else if (datos.consulta) {
+    // La consulta en línea es la procedencia más firme de todas: el
+    // sistema tiene la conversación entera, no solo el registro de que
+    // hubo una cita.
+    const enLinea = await prisma.consulta.findUnique({
+      where: { token: datos.consulta },
+      include: { opinion: { select: { id: true } } },
+    });
+    if (!enLinea || enLinea.profesionalId !== profesional.id) {
+      return { ok: false, mensaje: "Esa consulta no es de este profesional." };
+    }
+    if (enLinea.estado !== "CERRADA") {
+      return {
+        ok: false,
+        mensaje: "Su consulta todavía no termina. El enlace sirve en cuanto cierre.",
+      };
+    }
+    if (enLinea.opinion) {
+      return { ok: false, mensaje: "Ya dejó su opinión de esa consulta. Gracias." };
+    }
+    consultaEnLineaId = enLinea.id;
   } else {
     return {
       ok: false,
       mensaje:
-        "Las opiniones se dejan desde el enlace de su cita o desde la invitación que le manda el consultorio.",
+        "Las opiniones se dejan desde el enlace de su cita, de su consulta en línea, o desde la invitación que le manda el consultorio.",
     };
   }
 
@@ -121,6 +145,7 @@ export async function dejarOpinion(datos: {
       calificacion: datos.calificacion,
       citaId,
       invitacionId,
+      consultaId: consultaEnLineaId,
     },
   });
 

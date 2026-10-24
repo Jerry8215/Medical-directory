@@ -7,6 +7,7 @@ import {
   procesarAvisos,
   recordarCitasDeManana,
 } from "@/lib/avisos";
+import { cerrarConsultasVencidas } from "@/lib/consultas-vencidas";
 
 /**
  * Tareas programadas.
@@ -28,6 +29,10 @@ export async function GET(peticion: NextRequest) {
   const novedades = await avisarNovedades();
   const vencimientos = await avisarVencimientos();
   const opiniones = await pedirOpiniones();
+  // Las salas que se quedaron sin tiempo y las consultas que nadie
+  // aceptó: sin esto, una sala vencida de madrugada sigue figurando
+  // abierta hasta que alguien entra a mirarla.
+  const consultas = await cerrarConsultasVencidas();
 
   return NextResponse.json({
     ...recordatorios,
@@ -39,6 +44,8 @@ export async function GET(peticion: NextRequest) {
     planesPendientes: vencimientos.pendientes,
     opinionesPedidas: opiniones.pedidas,
     opinionesPendientes: opiniones.pendientes,
+    salasCerradas: consultas.salasCerradas,
+    consultasSinRespuesta: consultas.sinRespuesta,
     remitente: process.env.CORREO_REMITENTE ?? "onboarding@resend.dev",
     cuando: new Date().toISOString(),
   });

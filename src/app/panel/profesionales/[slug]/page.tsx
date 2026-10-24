@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
+import { DisponibleEnLinea } from "@/componentes/DisponibleEnLinea";
 import { EditorProfesional } from "@/componentes/EditorProfesional";
 import { InvitarAOpinar } from "@/componentes/InvitarAOpinar";
 import { MetricasPerfil } from "@/componentes/MetricasPerfil";
@@ -80,6 +81,18 @@ export default async function EditarProfesional({ params }: Props) {
           panorama={panorama}
           puedeWhatsapp={capacidades(profesional.plan, profesional.planHasta).whatsapp}
           tieneFoto={Boolean(profesional.fotografia)}
+        />
+      </section>
+
+      <section className="envoltura seccion">
+        <DisponibleEnLinea
+          slug={slug}
+          enLinea={profesional.enLinea}
+          precio={
+            profesional.precioConsultaLinea
+              ? profesional.precioConsultaLinea / 100
+              : 0
+          }
         />
       </section>
 

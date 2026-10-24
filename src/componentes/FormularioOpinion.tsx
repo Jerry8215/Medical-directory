@@ -17,6 +17,7 @@ export function FormularioOpinion({
   profesional,
   token,
   invitacion,
+  consulta,
   autorSugerido = "",
   abiertoDeInicio = false,
 }: {
@@ -26,6 +27,8 @@ export function FormularioOpinion({
   token?: string;
   /** La invitación del consultorio, si se atendió por otra vía. */
   invitacion?: string;
+  /** El enlace de su consulta en línea, ya cerrada. */
+  consulta?: string;
   /** El nombre con el que agendó, para no pedírselo otra vez. */
   autorSugerido?: string;
   /** Abierto cuando el paciente llegó justamente a opinar. */
@@ -55,7 +58,7 @@ export function FormularioOpinion({
       onSubmit={(e) => {
         e.preventDefault();
         iniciar(async () => {
-          const r = await intentar(() => dejarOpinion({ slug, autor, texto, calificacion, token, invitacion }));
+          const r = await intentar(() => dejarOpinion({ slug, autor, texto, calificacion, token, invitacion, consulta }));
           setAviso(r.mensaje);
           setListo(r.ok);
         });

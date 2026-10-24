@@ -73,6 +73,8 @@ type ProfesionalConTodo = {
   plan: string;
   planHasta: Date | null;
   estado: string;
+  enLinea: boolean;
+  precioConsultaLinea: number | null;
   calificacion: number | null;
   numeroOpiniones: number;
   especialidades: { especialidad: { slug: string } }[];
@@ -138,6 +140,11 @@ function aProfesional(p: ProfesionalConTodo, padecimientosPorEspecialidad: Map<s
     calificacion: p.calificacion ?? undefined,
     opiniones: p.numeroOpiniones,
     ejemplo: p.estado !== "PUBLICADO",
+    // La consulta en línea no depende del plan: depende de que el médico
+    // esté prendido y tenga precio cargado. Es trabajo suyo, no una
+    // herramienta que se le venda.
+    enLinea: p.estado === "PUBLICADO" && p.enLinea,
+    precioConsultaLinea: p.precioConsultaLinea ?? undefined,
   };
 }
 

@@ -140,6 +140,15 @@ model Profesional {
   avisoCorreo   Boolean @default(true)
   avisoWhatsapp Boolean @default(false)
 
+  /// El interruptor con el que se prende y se apaga para la consulta en
+  /// línea. Apagado, no se le ofrece a nadie: un médico que no puede
+  /// contestar en veinte minutos no debería aparecer como disponible.
+  enLinea             Boolean @default(false)
+  /// Lo que cobra por una consulta escrita, en centavos. Sin precio
+  /// cargado no se le ofrece: más vale no aparecer que aparecer con una
+  /// cifra inventada.
+  precioConsultaLinea Int?
+
   /// La suscripción recurrente en el procesador de pagos, si contrató con
   /// tarjeta. Se guarda el identificador porque es lo único con lo que se
   /// puede consultar o cancelar el cobro automático más adelante.
@@ -160,6 +169,7 @@ model Profesional {
   citas          Cita[]
   opiniones      Opinion[]
   invitaciones   InvitacionOpinion[]
+  consultas      Consulta[]
   usuarios       Usuario[]
   creadoEn       DateTime @default(now())
 
@@ -307,6 +317,7 @@ model Paciente {
   bajaEn         DateTime?
   citas          Cita[]
   espera         EnEspera[]
+  consultas      Consulta[]
   creadoEn       DateTime @default(now())
 }
 
@@ -345,6 +356,84 @@ model Aviso {
 // ----------------------------------------------------------------------
 //  Opiniones, usuarios y operación
 // ----------------------------------------------------------------------
+
+enum EstadoConsulta {
+  /// Creada, esperando el cobro.
+  SOLICITADA
+  /// Cobrada; el médico tiene un plazo corto para aceptar.
+  PAGADA
+  /// Aceptada: la sala está abierta y el reloj corre.
+  ACEPTADA
+  /// Terminó, por tiempo o porque alguien la cerró.
+  CERRADA
+  /// El paciente desistió antes de que la aceptaran.
+  CANCELADA
+  /// Nadie aceptó dentro del plazo. El importe se devuelve.
+  VENCIDA
+}
+
+enum AutorMensaje {
+  PACIENTE
+  MEDICO
+  /// Lo que escribe el propio sistema: avisos de tiempo y de cierre.
+  SISTEMA
+}
+
+/// Una consulta escrita entre un paciente y un médico.
+///
+/// El directorio responde una pregunta y se queda callado. Esta es la
+/// otra forma de atender: la que no exige saber a quién buscar antes de
+/// entrar.
+///
+/// `cierraEn` se calcula al aceptar y no al crear, porque el reloj de la
+/// sala arranca cuando hay con quién conversar. `precio` y `comision` se
+/// congelan con la consulta: si mañana sube la tarifa, lo que se cobró
+/// por esta sigue siendo lo que se cobró.
+model Consulta {
+  id            String         @id @default(cuid())
+  /// El enlace del paciente. No hace falta contraseña para entrar a una
+  /// sala propia: el enlace es la llave.
+  token         String         @unique @default(cuid())
+  profesionalId String
+  profesional   Profesional    @relation(fields: [profesionalId], references: [id], onDelete: Cascade)
+  pacienteId    String
+  paciente      Paciente       @relation(fields: [pacienteId], references: [id], onDelete: Cascade)
+  /// Lo que el paciente describe al abrirla.
+  motivo        String
+  estado        EstadoConsulta @default(SOLICITADA)
+  /// En centavos, como todo el dinero del proyecto.
+  precio        Int            @default(0)
+  comision      Int            @default(0)
+  pagoId        String?
+  aceptadaEn    DateTime?
+  cierraEn      DateTime?
+  cerradaEn     DateTime?
+  motivoCierre  String?
+  creadaEn      DateTime       @default(now())
+
+  mensajes      MensajeConsulta[]
+  opinion       Opinion?
+
+  @@index([profesionalId, estado])
+  @@index([pacienteId, creadaEn])
+  @@index([estado, creadaEn])
+}
+
+/// Un mensaje de una sala.
+///
+/// Son expediente clínico, no una conversación que se pueda borrar: se
+/// guardan con su autor y su hora, y nada los edita después.
+model MensajeConsulta {
+  id         String       @id @default(cuid())
+  consultaId String
+  consulta   Consulta     @relation(fields: [consultaId], references: [id], onDelete: Cascade)
+  autor      AutorMensaje
+  texto      String
+  leidoEn    DateTime?
+  creadoEn   DateTime     @default(now())
+
+  @@index([consultaId, creadoEn])
+}
 
 /// Una invitación a opinar, emitida por el consultorio.
 ///
@@ -391,6 +480,9 @@ model Opinion {
   /// por el sitio. Una invitación, una opinión.
   invitacionId  String?     @unique
   invitacion    InvitacionOpinion? @relation(fields: [invitacionId], references: [id], onDelete: SetNull)
+  /// La consulta en línea de la que salió, si fue por ese camino.
+  consultaId    String?     @unique
+  consulta      Consulta?   @relation(fields: [consultaId], references: [id], onDelete: SetNull)
   autor         String
   calificacion  Int
   texto         String

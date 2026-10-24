@@ -11,6 +11,7 @@ import {
   Escudo,
   Estrella,
   Fichas,
+  Globo,
   Persona,
   Personas,
   Tarjeta,
@@ -28,6 +29,7 @@ const ICONOS: Record<string, (p: { size?: number }) => React.JSX.Element> = {
   escudo: Escudo,
   puerta: Personas,
   engrane: Engrane,
+  mensaje: Globo,
 };
 
 /**

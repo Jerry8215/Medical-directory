@@ -13,6 +13,9 @@ import {
   Reloj,
   Whatsapp,
 } from "@/componentes/Iconos";
+import { AbrirConsultaEnLinea } from "@/componentes/AbrirConsultaEnLinea";
+import { pacienteActual } from "@/lib/paciente-acceso";
+import { pesos } from "@/lib/suscripciones";
 import { Reserva } from "@/componentes/Reserva";
 import Image from "next/image";
 
@@ -562,6 +565,17 @@ export default async function PaginaProfesional({ params }: Props) {
         </div>
 
         <aside>
+          {p.enLinea && p.precioConsultaLinea ? (
+            <div style={{ marginBottom: 14 }}>
+              <AbrirConsultaEnLinea
+                slug={slug}
+                profesional={p.nombre}
+                precio={pesos(p.precioConsultaLinea ?? 0)}
+                haySesion={Boolean(await pacienteActual())}
+              />
+            </div>
+          ) : null}
+
           {p.puede.agenda ? (
             <div className="ficha reserva" id="agenda">
               <h2>

@@ -2790,6 +2790,126 @@ a.chip:hover {
   flex-wrap: wrap;
 }
 
+/* ---------- la sala de una consulta en línea ---------- */
+
+.sala {
+  border: 1px solid var(--borde);
+  border-radius: var(--radio);
+  background: var(--papel);
+  overflow: hidden;
+}
+
+.sala-mensajes {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 14px;
+  max-height: 460px;
+  overflow-y: auto;
+  background: var(--banda-fria);
+}
+
+.sala-mensaje {
+  max-width: 78%;
+  padding: 9px 12px;
+  border-radius: 14px;
+  background: var(--papel);
+  border: 1px solid var(--borde);
+}
+
+.sala-mensaje p {
+  margin: 0;
+  white-space: pre-line;
+  font-size: 0.93rem;
+}
+
+.sala-mensaje small {
+  display: block;
+  margin-top: 4px;
+  font-size: 0.68rem;
+  color: var(--suave);
+}
+
+/* Lo propio a la derecha y lo del otro a la izquierda, como en cualquier
+   mensajería: es lo que la gente ya sabe leer sin que se lo expliquen. */
+.sala-mio {
+  align-self: flex-end;
+  background: var(--azul);
+  border-color: var(--azul);
+  color: #fff;
+}
+
+.sala-mio small {
+  color: rgba(255, 255, 255, 0.78);
+}
+
+.sala-suyo {
+  align-self: flex-start;
+}
+
+/* Lo que dice el sistema no es de nadie: ni a un lado ni al otro. */
+.sala-sistema {
+  align-self: center;
+  max-width: 92%;
+  text-align: center;
+  background: transparent;
+  border: 0;
+}
+
+.sala-sistema p {
+  font-size: 0.82rem;
+  color: var(--suave);
+}
+
+.sala-sistema small {
+  display: none;
+}
+
+.sala-escribir {
+  padding: 12px 14px 14px;
+  border-top: 1px solid var(--borde);
+}
+
+.sala-escribir textarea {
+  width: 100%;
+  border: 1px solid var(--borde);
+  border-radius: 12px;
+  padding: 10px 12px;
+  font: inherit;
+  font-size: 0.93rem;
+  resize: vertical;
+  background: var(--papel);
+  color: var(--tinta);
+}
+
+.sala-escribir button {
+  margin-top: 10px;
+}
+
+.sala-aviso {
+  margin: 0 0 8px;
+  font-size: 0.82rem;
+  color: #9a6400;
+}
+
+.consulta-cabeza {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.consulta-fila {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 14px 16px;
+  text-decoration: none;
+  color: inherit;
+}
+
 /* ---------- encuadre de la fotografía ---------- */
 
 /* El recorte lo decidía el sistema por el centro de la imagen. En una

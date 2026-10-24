@@ -24,6 +24,8 @@ export function esEquipo(rol: string | undefined): boolean {
 export function enlacesDelPanel(rol: string | undefined): EnlaceDelPanel[] {
   const inicio: EnlaceDelPanel = { href: "/panel", texto: "Inicio", icono: "casa" };
 
+  const consultas: EnlaceDelPanel = { href: "/panel/consultas", texto: "Consultas en línea", icono: "mensaje" };
+
   const gestion: EnlaceDelPanel[] = [
     { href: "/panel/solicitudes", texto: "Solicitudes", icono: "documento" },
     { href: "/panel/catalogos", texto: "Catálogos", icono: "maletin" },
@@ -33,19 +35,32 @@ export function enlacesDelPanel(rol: string | undefined): EnlaceDelPanel[] {
   ];
 
   if (rol === "ADMINISTRADOR") {
-    return [inicio, ...gestion, { href: "/panel/usuarios", texto: "Accesos", icono: "puerta" }];
+    return [
+      inicio,
+      consultas,
+      ...gestion,
+      { href: "/panel/usuarios", texto: "Accesos", icono: "puerta" },
+    ];
   }
 
   if (rol === "RECEPCION") {
     // Recepción agenda por teléfono: la agenda de todo el consultorio es su
     // herramienta de trabajo, no un ajuste personal.
-    return [inicio, { href: "/panel/mi-agenda", texto: "Agenda", icono: "calendario" }, ...gestion];
+    return [
+      inicio,
+      { href: "/panel/mi-agenda", texto: "Agenda", icono: "calendario" },
+      consultas,
+      ...gestion,
+    ];
   }
 
   // El médico no ve el tablero del directorio: ahí hay datos de todos los
   // perfiles y teléfonos de pacientes ajenos. Su inicio es su agenda.
   return [
     { href: "/panel/mi-agenda", texto: "Agenda", icono: "calendario" },
+    // Primero que «Mi perfil»: una consulta esperando tiene veinte
+    // minutos de plazo y un perfil no tiene ninguno.
+    consultas,
     { href: "/panel/mi-perfil", texto: "Mi perfil", icono: "persona" },
     // Sin esta puerta, mejorar de plan exigía llamar por teléfono.
     { href: "/panel/mi-plan", texto: "Mi plan", icono: "tarjeta" },
