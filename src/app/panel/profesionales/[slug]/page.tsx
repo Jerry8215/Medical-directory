@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { EditorProfesional } from "@/componentes/EditorProfesional";
+import { InvitarAOpinar } from "@/componentes/InvitarAOpinar";
 import { MetricasPerfil } from "@/componentes/MetricasPerfil";
 import { SubirFoto } from "@/componentes/SubirFoto";
 import { capacidades } from "@/lib/planes";
@@ -80,6 +81,10 @@ export default async function EditarProfesional({ params }: Props) {
           puedeWhatsapp={capacidades(profesional.plan, profesional.planHasta).whatsapp}
           tieneFoto={Boolean(profesional.fotografia)}
         />
+      </section>
+
+      <section className="envoltura seccion">
+        <InvitarAOpinar profesionalId={profesional.id} profesional={profesional.nombre} />
       </section>
 
       <section className="envoltura seccion">

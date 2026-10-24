@@ -16,6 +16,7 @@ export function FilaOpinion({
   cuando,
   publicada,
   consulta,
+  invitada,
 }: {
   id: string;
   autor: string;
@@ -26,6 +27,8 @@ export function FilaOpinion({
   publicada: boolean;
   /** La fecha de la consulta, o nada si la opinión no viene de una cita. */
   consulta: string | null;
+  /** Quién la invitó, cuando la respalda el consultorio y no una cita. */
+  invitada: { por: string; cuando: string | null } | null;
 }) {
   const [aviso, setAviso] = useState("");
   const [oculta, setOculta] = useState(false);
@@ -45,8 +48,21 @@ export function FilaOpinion({
             {"★".repeat(calificacion)}
             {"☆".repeat(5 - calificacion)}
           </p>
-          <em className={`pastilla ${consulta ? "pastilla-bien" : "pastilla-espera"}`}>
-            {consulta ? `Se atendió el ${consulta}` : "Sin cita registrada"}
+          {/* Tres procedencias, y la diferencia importa al decidir: la
+              cita la respalda el sistema, la invitación la respalda una
+              persona del consultorio, y la tercera no la respalda nadie. */}
+          <em
+            className={`pastilla ${
+              consulta ? "pastilla-bien" : invitada ? "pastilla-aviso" : "pastilla-espera"
+            }`}
+          >
+            {consulta
+              ? `Se atendió el ${consulta}`
+              : invitada
+                ? `Invitada por ${invitada.por}${
+                    invitada.cuando ? ` · atendido el ${invitada.cuando}` : ""
+                  }`
+                : "Sin cita registrada"}
           </em>
         </div>
         <div>

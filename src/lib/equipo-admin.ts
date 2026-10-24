@@ -8,16 +8,23 @@
  * alguien a dar soporte hace falta poder darle su propia cuenta, verla
  * en una lista y quitársela el día que se vaya.
  *
- * Tres cosas no se negocian aquí. Nadie puede quitarse a sí mismo el
+ * Dos cosas no se negocian aquí. Nadie puede quitarse a sí mismo el
  * permiso ni desactivarse, porque el panel se quedaría sin dueño y la
- * única salida sería entrar a la base de datos. Nunca puede quedar cero
- * administradores activos, por la misma razón. Y los accesos de los
- * médicos no se tocan desde esta pantalla: esos cuelgan de su perfil y
- * mezclarlos sería dejar que soporte se apropie de una cuenta ajena.
+ * única salida sería entrar a la base de datos. Y nunca puede quedar
+ * cero administradores activos, por la misma razón.
+ *
+ * El rol de un médico sí sigue siendo intocable desde esta pantalla:
+ * cambiárselo lo dejaría fuera de su propio perfil. Lo que sí se puede
+ * es emitirle una contraseña nueva, que es lo que el consultorio hace
+ * todas las semanas y antes obligaba a buscar su perfil.
  */
 
+import { revalidatePath } from "next/cache";
+
+import { sitio, urlAbsoluta } from "@/config/sitio";
 import { claveNueva } from "@/lib/accesos";
 import { cifrarClave } from "@/lib/auth";
+import { enviarCorreo } from "@/lib/avisos";
 import { prisma } from "@/lib/prisma";
 import { sesionActual } from "@/lib/sesion-actual";
 
@@ -145,23 +152,62 @@ export async function activarAcceso(id: string, activo: boolean): Promise<Result
   return { ok: true, mensaje: activo ? "Acceso reactivado." : "Acceso desactivado." };
 }
 
+/**
+ * Emitir una contraseña nueva para cualquier cuenta del panel.
+ *
+ * Antes se negaba a tocar la de un médico —«se maneja desde su perfil»—,
+ * de modo que el administrador tenía que acordarse de entrar al perfil
+ * correcto para algo que estaba viendo delante. Ahora vale para todos,
+ * que es como el consultorio espera que funcione una lista de accesos.
+ *
+ * La contraseña sale por correo además de mostrarse en pantalla. Hasta
+ * ahora solo se mostraba, así que si quien la generaba cerraba la
+ * ventana antes de copiarla, había que generar otra.
+ */
 export async function reemitirClaveDeEquipo(id: string): Promise<Alta> {
   const quien = await soloAdministrador();
   if (!quien) return { ok: false, mensaje: "Solo el administrador puede hacer esto." };
 
   const usuario = await prisma.usuario.findUnique({ where: { id } });
   if (!usuario) return { ok: false, mensaje: "No encontramos ese acceso." };
-  if (usuario.profesionalId) {
-    return { ok: false, mensaje: "El acceso de un médico se maneja desde su perfil." };
-  }
 
   const clave = claveNueva();
-  await prisma.usuario.update({ where: { id }, data: { hashClave: cifrarClave(clave) } });
+  await prisma.usuario.update({
+    where: { id },
+    data: { hashClave: cifrarClave(clave), activo: true },
+  });
   await auditar(quien.nombre, "equipo.clave.reemitida", usuario.correo);
 
+  let salioElCorreo = false;
+  try {
+    await enviarCorreo({
+      para: usuario.correo,
+      asunto: `Su contraseña de ${sitio.nombre}`,
+      cuerpo: [
+        `${usuario.nombre}:`,
+        "",
+        "Le generamos una contraseña nueva para entrar al panel.",
+        "",
+        `Entre aquí: ${urlAbsoluta("/panel/acceso")}`,
+        `Correo: ${usuario.correo}`,
+        `Contraseña: ${clave}`,
+        "",
+        "Le recomendamos cambiarla desde «Mi contraseña» en cuanto entre.",
+        "",
+        "Si no pidió este cambio, avísenos: su contraseña anterior ya no sirve.",
+      ].join("\n"),
+    });
+    salioElCorreo = true;
+  } catch (error) {
+    console.error("[equipo] no se pudo enviar la contraseña", error);
+  }
+
+  revalidatePath("/panel/usuarios");
   return {
     ok: true,
-    mensaje: "Contraseña nueva. Anótela: no se vuelve a mostrar.",
+    mensaje: salioElCorreo
+      ? `Contraseña nueva, enviada a ${usuario.correo}. Va abajo por si no llega.`
+      : "Contraseña nueva. El correo no salió: anótela y entréguesela usted.",
     correo: usuario.correo,
     clave,
   };

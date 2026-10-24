@@ -24,13 +24,23 @@ export default async function Opiniones() {
     prisma.opinion.findMany({
       where: { publicada: false },
       orderBy: { fecha: "desc" },
-      include: { profesional: { select: { nombre: true } } },
+      include: {
+        profesional: { select: { nombre: true } },
+        // De dónde viene la opinión: una cita la respalda el sistema,
+        // una invitación la respalda quien la emitió.
+        invitacion: { select: { emitidaPor: true, atendidoEn: true } },
+      },
       take: 40,
     }),
     prisma.opinion.findMany({
       where: { publicada: true },
       orderBy: { fecha: "desc" },
-      include: { profesional: { select: { nombre: true } } },
+      include: {
+        profesional: { select: { nombre: true } },
+        // De dónde viene la opinión: una cita la respalda el sistema,
+        // una invitación la respalda quien la emitió.
+        invitacion: { select: { emitidaPor: true, atendidoEn: true } },
+      },
       take: 20,
     }),
   ]);
@@ -91,6 +101,16 @@ export default async function Opiniones() {
                 cuando={fecha(o.fecha)}
                 publicada={false}
                 consulta={cuandoSeAtendio(o.citaId)}
+                invitada={
+                  o.invitacion
+                    ? {
+                        por: o.invitacion.emitidaPor,
+                        cuando: o.invitacion.atendidoEn
+                          ? fecha(o.invitacion.atendidoEn)
+                          : null,
+                      }
+                    : null
+                }
               />
             ))}
           </div>
@@ -116,6 +136,16 @@ export default async function Opiniones() {
                 cuando={fecha(o.fecha)}
                 publicada
                 consulta={cuandoSeAtendio(o.citaId)}
+                invitada={
+                  o.invitacion
+                    ? {
+                        por: o.invitacion.emitidaPor,
+                        cuando: o.invitacion.atendidoEn
+                          ? fecha(o.invitacion.atendidoEn)
+                          : null,
+                      }
+                    : null
+                }
               />
             ))}
           </div>

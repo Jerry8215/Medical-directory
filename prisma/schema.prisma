@@ -159,6 +159,7 @@ model Profesional {
   espera         EnEspera[]
   citas          Cita[]
   opiniones      Opinion[]
+  invitaciones   InvitacionOpinion[]
   usuarios       Usuario[]
   creadoEn       DateTime @default(now())
 
@@ -345,16 +346,51 @@ model Aviso {
 //  Opiniones, usuarios y operación
 // ----------------------------------------------------------------------
 
+/// Una invitación a opinar, emitida por el consultorio.
+///
+/// Existe para el paciente que se atendió de verdad pero no agendó por el
+/// sitio: por teléfono, por WhatsApp o en el mostrador. Sin esto, atar la
+/// opinión al enlace de la cita dejaba fuera a la mayoría de los
+/// pacientes y el consultorio se quedaba sin forma de pedir su reseña.
+///
+/// `usadaEn` la vuelve de un solo uso y `emitidaPor` deja por escrito
+/// quién la generó, porque una reseña que no respalda una cita registrada
+/// tiene que poder explicarse después.
+model InvitacionOpinion {
+  id            String      @id @default(cuid())
+  profesionalId String
+  profesional   Profesional @relation(fields: [profesionalId], references: [id], onDelete: Cascade)
+  /// El nombre con el que el consultorio conoce al paciente.
+  paciente      String
+  /// Teléfono o correo, para poder mandarle el enlace.
+  contacto      String?
+  atendidoEn    DateTime?
+  nota          String?
+  emitidaPor    String
+  usadaEn       DateTime?
+  creadaEn      DateTime    @default(now())
+  opinion       Opinion?
+
+  @@index([profesionalId, creadaEn])
+}
+
 /// La opinión de un paciente.
 ///
 /// Se publica después de revisarla. `citaId` distingue la opinión de quien
 /// sí tuvo consulta de la de cualquiera que pasó por el sitio, que es lo
-/// que hace creíble la calificación.
+/// que hace creíble la calificación. `invitacionId` cubre al paciente que
+/// se atendió de verdad pero agendó por teléfono: la respalda el
+/// consultorio en lugar de una cita registrada, y la moderación lo
+/// distingue.
 model Opinion {
   id            String      @id @default(cuid())
   profesionalId String
   profesional   Profesional @relation(fields: [profesionalId], references: [id], onDelete: Cascade)
   citaId        String?     @unique
+  /// La invitación que la permitió, cuando no vino de una cita agendada
+  /// por el sitio. Una invitación, una opinión.
+  invitacionId  String?     @unique
+  invitacion    InvitacionOpinion? @relation(fields: [invitacionId], references: [id], onDelete: SetNull)
   autor         String
   calificacion  Int
   texto         String

@@ -28,10 +28,16 @@ export async function dejarOpinion(datos: {
   calificacion: number;
   texto: string;
   /**
-   * El enlace de su cita. Es obligatorio: hace las dos cosas a la vez,
-   * identificar la cita y demostrar que la hubo.
+   * El enlace de su cita, si agendó por el sitio. Identifica la consulta
+   * y demuestra a la vez que la hubo.
    */
-  token: string;
+  token?: string;
+  /**
+   * La invitación que le emitió el consultorio, si se atendió por otra
+   * vía. La respalda una persona y no el sistema, así que la moderación
+   * la distingue.
+   */
+  invitacion?: string;
 }): Promise<Resultado> {
   const revision = nombreDePersona(datos.autor, { minimoPalabras: 1 });
   const texto = datos.texto.trim();
@@ -59,31 +65,53 @@ export async function dejarOpinion(datos: {
   if (!profesional) return { ok: false, mensaje: "Ese perfil ya no existe." };
 
   // El perfil prometía opiniones de pacientes y a la vez dejaba opinar a
-  // cualquiera: el token era opcional y, sin él, la opinión entraba igual
-  // y sin quedar ligada a ninguna consulta.
-  const cita = await prisma.cita.findUnique({ where: { token: datos.token } });
-  if (!cita || cita.profesionalId !== profesional.id) {
+  // cualquiera, sin nada que lo respaldara. Ahora hacen falta una de dos
+  // cosas: el enlace de la cita, o la invitación que emitió el
+  // consultorio para quien se atendió por teléfono o en el mostrador.
+  let citaId: string | undefined;
+  let invitacionId: string | undefined;
+
+  if (datos.token) {
+    const cita = await prisma.cita.findUnique({ where: { token: datos.token } });
+    if (!cita || cita.profesionalId !== profesional.id) {
+      return {
+        ok: false,
+        mensaje:
+          "Ese enlace no corresponde a una consulta con este profesional.",
+      };
+    }
+    if (cita.estado === "CANCELADA") {
+      return { ok: false, mensaje: "Esa consulta quedó cancelada." };
+    }
+    if (cita.inicio > new Date()) {
+      return {
+        ok: false,
+        mensaje: "Su consulta todavía no ocurre. El enlace sigue sirviendo después.",
+      };
+    }
+    const yaOpino = await prisma.opinion.findUnique({ where: { citaId: cita.id } });
+    if (yaOpino) {
+      return { ok: false, mensaje: "Ya dejó su opinión de esa consulta. Gracias." };
+    }
+    citaId = cita.id;
+  } else if (datos.invitacion) {
+    const invitacion = await prisma.invitacionOpinion.findUnique({
+      where: { id: datos.invitacion },
+    });
+    if (!invitacion || invitacion.profesionalId !== profesional.id) {
+      return { ok: false, mensaje: "Esa invitación no es válida." };
+    }
+    if (invitacion.usadaEn) {
+      return { ok: false, mensaje: "Esa invitación ya se usó. Gracias por opinar." };
+    }
+    invitacionId = invitacion.id;
+  } else {
     return {
       ok: false,
       mensaje:
-        "Las opiniones se dejan desde el enlace que recibe con su cita. Ese enlace no corresponde a una consulta con este profesional.",
+        "Las opiniones se dejan desde el enlace de su cita o desde la invitación que le manda el consultorio.",
     };
   }
-  if (cita.estado === "CANCELADA") {
-    return { ok: false, mensaje: "Esa consulta quedó cancelada." };
-  }
-  if (cita.inicio > new Date()) {
-    return {
-      ok: false,
-      mensaje: "Su consulta todavía no ocurre. El enlace sigue sirviendo después.",
-    };
-  }
-
-  const yaOpino = await prisma.opinion.findUnique({ where: { citaId: cita.id } });
-  if (yaOpino) {
-    return { ok: false, mensaje: "Ya dejó su opinión de esa consulta. Gracias." };
-  }
-  const citaId = cita.id;
 
   const opinion = await prisma.opinion.create({
     data: {
@@ -92,8 +120,17 @@ export async function dejarOpinion(datos: {
       texto,
       calificacion: datos.calificacion,
       citaId,
+      invitacionId,
     },
   });
+
+  // La invitación se cierra en cuanto se usa: una invitación, una opinión.
+  if (invitacionId) {
+    await prisma.invitacionOpinion.update({
+      where: { id: invitacionId },
+      data: { usadaEn: new Date() },
+    });
+  }
 
   await anotar({
     tipo: "OPINION_NUEVA",

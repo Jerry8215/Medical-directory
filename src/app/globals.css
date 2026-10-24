@@ -1713,6 +1713,13 @@ a.chip:hover {
   color: #9a6400;
 }
 
+/* Lo que respalda una persona y no el sistema: ni tan firme como una
+   cita registrada ni tan flojo como no tener nada detrás. */
+.pastilla-aviso {
+  background: #e9f1fa;
+  color: var(--azul);
+}
+
 .solicitud {
   background: var(--papel);
   border: 1px solid var(--borde);

@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useState, useTransition } from "react";
 
 import { intentar } from "@/lib/intentar";
@@ -22,6 +23,21 @@ type Cuenta = {
   rol: string;
   activo: boolean;
   esMedico: boolean;
+  /** El perfil al que da acceso, si es el de un médico. */
+  perfil: {
+    nombre: string;
+    slug: string;
+    plan: string;
+    vence: string | null;
+    publicado: boolean;
+  } | null;
+};
+
+/** El plan, dicho como lo lee alguien que no vende software. */
+const PLAN: Record<string, string> = {
+  BASICO: "Básico",
+  GOLD: "Gold",
+  PREMIUM: "Premium",
 };
 
 /** Lo que cada papel puede hacer, dicho sin tecnicismos. */
@@ -42,7 +58,8 @@ export function PanelUsuarios({ cuentas, yo }: { cuentas: Cuenta[]; yo: string }
   );
   const [trabajando, iniciar] = useTransition();
 
-  const deEquipo = cuentas.filter((c) => !c.esMedico);
+  const deEquipo = cuentas.filter((c) => c.rol !== "PROFESIONAL");
+  const medicos = cuentas.filter((c) => c.rol === "PROFESIONAL");
 
   return (
     <div style={{ display: "grid", gap: 18 }}>
@@ -85,6 +102,19 @@ export function PanelUsuarios({ cuentas, yo }: { cuentas: Cuenta[]; yo: string }
                 {c.nombre}
                 <br />
                 <small className="meta">{c.correo}</small>
+                {/* Quien además es médico llega a su ficha desde aquí, que
+                    es donde la estaba buscando. */}
+                {c.perfil ? (
+                  <>
+                    <br />
+                    <Link
+                      href={`/panel/profesionales/${c.perfil.slug}`}
+                      className="meta enlace-acento"
+                    >
+                      Ver y editar su perfil de médico
+                    </Link>
+                  </>
+                ) : null}
               </span>
 
               <span>
@@ -169,6 +199,125 @@ export function PanelUsuarios({ cuentas, yo }: { cuentas: Cuenta[]; yo: string }
           ))}
         </div>
       </section>
+
+      {/* Los médicos, con su plan a la vista. El administrador pedía ver y
+          editar las cuentas de todos desde un solo lugar; tenerlos en otra
+          pantalla obligaba a recordar en cuál estaba cada cosa. */}
+      {medicos.length > 0 ? (
+        <section className="ficha formulario">
+          <h2>Los médicos y sus planes</h2>
+          <p className="meta">
+            El permiso de un médico no se cambia desde aquí: dejaría de
+            entrar a su propio perfil. Lo que sí puede hacer es emitirle una
+            contraseña nueva, quitarle el acceso o abrir su perfil para
+            editarlo y cambiarle el plan.
+          </p>
+
+          <div className="tabla tabla-accesos" style={{ marginTop: 14 }}>
+            <div className="tabla-fila tabla-cabeza">
+              <span>Médico</span>
+              <span>Plan</span>
+              <span className="acciones-tabla">Estado</span>
+            </div>
+
+            {medicos.map((c) => (
+              <div className="tabla-fila" key={c.id}>
+                <span>
+                  {c.perfil ? (
+                    <Link href={`/panel/profesionales/${c.perfil.slug}`}>
+                      {c.perfil.nombre}
+                    </Link>
+                  ) : (
+                    c.nombre
+                  )}
+                  <br />
+                  <small className="meta">{c.correo}</small>
+                </span>
+
+                <span>
+                  {c.perfil ? (
+                    <>
+                      <b>{PLAN[c.perfil.plan] ?? c.perfil.plan}</b>
+                      <br />
+                      <small className="meta">
+                        {c.perfil.plan === "BASICO"
+                          ? "Sin costo, no caduca"
+                          : c.perfil.vence
+                            ? `Vence el ${c.perfil.vence}`
+                            : "Sin fecha de vencimiento"}
+                      </small>
+                    </>
+                  ) : (
+                    <em className="meta">sin perfil</em>
+                  )}
+                </span>
+
+                <span className="acciones-tabla">
+                  <em
+                    className={`pastilla ${
+                      c.activo && c.perfil?.publicado
+                        ? "pastilla-bien"
+                        : "pastilla-espera"
+                    }`}
+                  >
+                    {!c.activo
+                      ? "Sin acceso"
+                      : c.perfil?.publicado
+                        ? "Publicado"
+                        : "Sin publicar"}
+                  </em>
+
+                  {c.activo ? (
+                    <BotonConfirmar
+                      className={claseBotonIcono("peligro")}
+                      icono={<Papelera />}
+                      etiqueta={null}
+                      rotulo={`Quitar el acceso a ${c.nombre}`}
+                      peligro
+                      disabled={trabajando}
+                      titulo={`¿Quitarle el acceso a ${c.nombre}?`}
+                      cuerpo="Deja de poder entrar a administrar su perfil. Su perfil sigue publicado y los pacientes lo siguen encontrando."
+                      confirmar="Sí, quitar el acceso"
+                      alConfirmar={async () => {
+                        const r = await intentar(() => activarAcceso(c.id, false));
+                        setAviso(r.mensaje);
+                      }}
+                    />
+                  ) : (
+                    <BotonIcono
+                      tono="exito"
+                      etiqueta={`Devolver el acceso a ${c.nombre}`}
+                      disabled={trabajando}
+                      onClick={() =>
+                        iniciar(async () => {
+                          const r = await intentar(() => activarAcceso(c.id, true));
+                          setAviso(r.mensaje);
+                        })
+                      }
+                    >
+                      <Visto />
+                    </BotonIcono>
+                  )}
+
+                  <BotonIcono
+                    etiqueta={`Generar una clave nueva para ${c.nombre}`}
+                    disabled={trabajando}
+                    onClick={() =>
+                      iniciar(async () => {
+                        const r = await intentar(() => reemitirClaveDeEquipo(c.id));
+                        setAviso(r.mensaje);
+                        if (r.ok) setCredencial({ correo: r.correo, clave: r.clave });
+                      })
+                    }
+                  >
+                    <Llave />
+                  </BotonIcono>
+                </span>
+              </div>
+            ))}
+          </div>
+        </section>
+      ) : null}
 
       <section className="ficha formulario">
         <h2>Dar acceso a alguien más</h2>
