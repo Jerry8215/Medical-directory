@@ -29,6 +29,7 @@ export function AbrirConsultaEnLinea({
 }) {
   const router = useRouter();
   const [abierto, setAbierto] = useState(false);
+  const [titulo, setTitulo] = useState("");
   const [motivo, setMotivo] = useState("");
   const [error, setError] = useState("");
   const [urgencias, setUrgencias] = useState("");
@@ -75,9 +76,21 @@ export function AbrirConsultaEnLinea({
       </p>
 
       <div className="campo" style={{ marginTop: 12 }}>
-        <label htmlFor="motivo-consulta" className="oculto-visual">
-          Lo que le ocurre
-        </label>
+        <label htmlFor="titulo-consulta">En pocas palabras</label>
+        <input
+          id="titulo-consulta"
+          value={titulo}
+          onChange={(e) => setTitulo(e.target.value)}
+          maxLength={90}
+          placeholder="Dolor de rodilla al subir escaleras"
+        />
+        <small className="meta">
+          Es lo que el médico ve primero en su lista.
+        </small>
+      </div>
+
+      <div className="campo">
+        <label htmlFor="motivo-consulta">Cuéntelo con detalle</label>
         <textarea
           id="motivo-consulta"
           rows={5}
@@ -102,12 +115,12 @@ export function AbrirConsultaEnLinea({
         <button
           type="button"
           className="boton-lleno"
-          disabled={enviando || motivo.trim().length < 15}
+          disabled={enviando || motivo.trim().length < 15 || titulo.trim().length < 4}
           onClick={() =>
             iniciar(async () => {
               setError("");
               const r = await intentar(() =>
-                abrirConsulta({ profesionalSlug: slug, motivo }),
+                abrirConsulta({ profesionalSlug: slug, titulo, motivo }),
               );
               if (r.ok && "token" in r && r.token) {
                 router.push(`/consulta/${r.token}`);

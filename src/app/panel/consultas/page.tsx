@@ -56,6 +56,7 @@ export default async function Consultas() {
       const donde = situacion(c, ahora);
       return {
         id: c.id,
+        titulo: c.titulo ?? c.motivo.split("\n")[0].slice(0, 90),
         paciente: c.paciente.nombre ?? "Un paciente",
         telefono: c.paciente.telefono,
         motivo: c.motivo,

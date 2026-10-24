@@ -398,6 +398,10 @@ model Consulta {
   profesional   Profesional    @relation(fields: [profesionalId], references: [id], onDelete: Cascade)
   pacienteId    String
   paciente      Paciente       @relation(fields: [pacienteId], references: [id], onDelete: Cascade)
+  /// En pocas palabras, para distinguirla en un listado. Las consultas
+  /// anteriores al campo no lo tienen: ahí se usa la primera línea de la
+  /// descripción.
+  titulo        String?
   /// Lo que el paciente describe al abrirla.
   motivo        String
   estado        EstadoConsulta @default(SOLICITADA)

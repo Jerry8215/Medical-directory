@@ -59,11 +59,22 @@ const LARGO_MAXIMO = 4000;
 
 export async function abrirConsulta(datos: {
   profesionalSlug: string;
+  /** En pocas palabras, para distinguirla en un listado. */
+  titulo: string;
   motivo: string;
 }): Promise<Resultado> {
   const paciente = await pacienteActual();
   if (!paciente) {
     return { ok: false, motivo: "permiso", mensaje: "Entre con su correo para abrir una consulta." };
+  }
+
+  const titulo = datos.titulo.trim();
+  if (titulo.length < 4 || titulo.length > 90) {
+    return {
+      ok: false,
+      motivo: "datos",
+      mensaje: "Póngale un título corto: «dolor de rodilla al subir escaleras».",
+    };
   }
 
   const motivo = datos.motivo.trim();
@@ -81,7 +92,7 @@ export async function abrirConsulta(datos: {
   // La barrera clínica, en la entrada. Solo los signos de alarma
   // bloquean: lo que la barrera del asistente deriva «a consulta» es
   // justamente lo que esta pantalla ofrece.
-  const veredicto = evaluar(motivo);
+  const veredicto = evaluar(`${titulo} ${motivo}`);
   if (veredicto.accion === "urgencias") {
     return { ok: false, motivo: "urgencias", mensaje: veredicto.respuesta };
   }
@@ -131,6 +142,7 @@ export async function abrirConsulta(datos: {
     data: {
       profesionalId: profesional.id,
       pacienteId: paciente.id,
+      titulo,
       motivo,
       precio,
       comision: plataforma,

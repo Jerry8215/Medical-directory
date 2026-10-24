@@ -9,6 +9,7 @@ import {
   situacion,
 } from "@/lib/consulta-reglas";
 import { pacienteActual } from "@/lib/paciente-acceso";
+import { sesionActual } from "@/lib/sesion-actual";
 import { prisma } from "@/lib/prisma";
 import { enHoraLocal } from "@/lib/panel-datos";
 import { pesos } from "@/lib/suscripciones";
@@ -52,7 +53,38 @@ export default async function MiConsulta({ params }: Props) {
     );
   }
 
-  const paciente = await pacienteActual();
+  // Hasta ahora el enlace era la llave y bastaba con tenerlo. Para una
+  // conversación médica eso no alcanza: un enlace reenviado por error
+  // abría el expediente de alguien. El enlace sigue diciendo de qué sala
+  // se trata, pero quien entra tiene que ser de ella.
+  const [paciente, sesion] = await Promise.all([pacienteActual(), sesionActual()]);
+
+  const esElPaciente = paciente?.id === consulta.pacienteId;
+  const esElMedico = sesion?.profesionalId === consulta.profesionalId;
+  const esElConsultorio = sesion?.rol === "ADMINISTRADOR" || sesion?.rol === "RECEPCION";
+
+  if (!esElPaciente && !esElMedico && !esElConsultorio) {
+    return (
+      <main className="envoltura seccion" style={{ maxWidth: 560 }}>
+        <h1 style={{ fontSize: "1.6rem", marginBlock: "10px 10px" }}>
+          Esta sala no es suya
+        </h1>
+        <div className="nota-umbral">
+          Una consulta la ven solo el paciente y el médico que participan
+          en ella. Si es suya, entre con el correo con el que la abrió.
+        </div>
+        <div className="acciones" style={{ marginTop: 16 }}>
+          <Link href="/paciente/entrar" className="boton-lleno">
+            Entrar como paciente
+          </Link>
+          <Link href="/panel/acceso" className="boton-suave">
+            Soy médico
+          </Link>
+        </div>
+      </main>
+    );
+  }
+
   const ahora = new Date();
   const donde = situacion(consulta, ahora);
   const quedan = minutosRestantes(consulta.cierraEn, ahora);
@@ -69,8 +101,8 @@ export default async function MiConsulta({ params }: Props) {
           Ver su perfil
         </Link>{" "}
         ·{" "}
-        <Link href="/paciente" className="enlace-acento">
-          Mis citas y consultas
+        <Link href="/consultas" className="enlace-acento">
+          Todas mis consultas
         </Link>
       </p>
 
@@ -108,7 +140,7 @@ export default async function MiConsulta({ params }: Props) {
         <SalaConsulta
           consultaId={consulta.id}
           quienSoy="PACIENTE"
-          abierta={Boolean(paciente) && admiteMensajes(consulta, ahora)}
+          abierta={admiteMensajes(consulta, ahora)}
           minutosRestantes={quedan}
           avisoDeCierre={donde === "por-cerrar"}
           mensajes={consulta.mensajes.map((m) => ({
@@ -119,14 +151,7 @@ export default async function MiConsulta({ params }: Props) {
           }))}
         />
 
-        {!paciente && admiteMensajes(consulta, ahora) ? (
-          <div className="nota-umbral" style={{ marginTop: 12 }}>
-            Para escribir, entre con su correo.{" "}
-            <Link href="/paciente/entrar" className="enlace-acento">
-              Entrar
-            </Link>
-          </div>
-        ) : null}
+
       </section>
 
       {donde === "terminada" && consulta.estado === "CERRADA" ? (

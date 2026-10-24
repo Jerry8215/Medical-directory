@@ -8,6 +8,7 @@ import { intentar } from "@/lib/intentar";
 
 export type ConsultaEnBandeja = {
   id: string;
+  titulo: string;
   paciente: string;
   telefono: string;
   motivo: string;
@@ -65,9 +66,9 @@ export function BandejaConsultas({
           <article key={c.id} className="ficha" style={{ padding: 16 }}>
             <div className="consulta-cabeza">
               <div>
-                <b>{c.paciente}</b>
+                <b>{c.titulo}</b>
                 <p className="meta">
-                  {c.cuando} · {c.telefono} · {c.precio}
+                  {c.paciente} · {c.cuando} · {c.telefono} · {c.precio}
                 </p>
               </div>
               <em

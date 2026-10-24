@@ -2806,6 +2806,41 @@ a.chip:hover {
   white-space: nowrap;
 }
 
+/* ---------- filtros del listado de consultas ---------- */
+
+.filtros-consultas {
+  display: grid;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+.filtro-grupo {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.filtro-grupo a {
+  padding: 5px 12px;
+  border: 1px solid var(--borde);
+  border-radius: var(--pastilla);
+  background: var(--papel);
+  color: var(--suave);
+  font-size: 0.84rem;
+  text-decoration: none;
+}
+
+.filtro-grupo a:hover {
+  border-color: var(--azul);
+  color: var(--azul);
+}
+
+.filtro-grupo a[data-activo="true"] {
+  background: var(--azul);
+  border-color: var(--azul);
+  color: #fff;
+}
+
 /* ---------- teléfono con lada ---------- */
 
 /* La bandera delante, porque es lo que se reconoce sin leer. El select
