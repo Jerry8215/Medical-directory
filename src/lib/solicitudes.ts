@@ -87,16 +87,17 @@ export async function registrarSolicitud(datos: Solicitud): Promise<Resultado> {
     };
   }
 
+  const laCedula = cedula.ok ? cedula.valor : datos.cedula.trim();
+  const elCorreo = correo.ok ? correo.valor : datos.correo.trim();
+  const elTelefono = telefono.ok ? telefono.valor : datos.telefono.replace(/\D/g, "");
+
   // Una misma persona registrándose cuatro veces en tres minutos no está
   // insistiendo: está comprobando si funcionó, porque la pantalla no se
   // lo dejó claro. El panel no tiene por qué llenarse de copias por eso.
   const yaEstaba = await prisma.solicitudAlta.findFirst({
     where: {
       estado: { in: ["RECIBIDA", "EN_VERIFICACION"] },
-      OR: [
-        { cedula: cedula.ok ? cedula.valor : datos.cedula.trim() },
-        { correo: correo.ok ? correo.valor : datos.correo.trim() },
-      ],
+      OR: [{ cedula: laCedula }, { correo: elCorreo }],
     },
     select: { id: true },
   });
@@ -108,15 +109,68 @@ export async function registrarSolicitud(datos: Solicitud): Promise<Resultado> {
     };
   }
 
+  // Y contra lo que ya está publicado. El formulario no comprobaba nada de
+  // esto: se podían crear varios perfiles con el mismo correo, el mismo
+  // teléfono y hasta la misma cédula, y el problema no aparecía hasta el
+  // momento de publicar, cuando el acceso del médico no se podía crear
+  // porque su correo ya pertenecía a otro perfil. El médico se quedaba sin
+  // su contraseña y nadie entendía por qué.
+  const [porCedula, porCorreo, porTelefono, cuenta] = await Promise.all([
+    prisma.verificacion.findFirst({
+      where: { tipo: "CEDULA_PROFESIONAL", numero: laCedula },
+      select: { profesional: { select: { nombre: true, slug: true } } },
+    }),
+    prisma.profesional.findFirst({
+      where: { correo: elCorreo },
+      select: { nombre: true },
+    }),
+    prisma.profesional.findFirst({
+      where: { telefono: elTelefono },
+      select: { nombre: true },
+    }),
+    prisma.usuario.findUnique({
+      where: { correo: elCorreo },
+      select: { profesionalId: true },
+    }),
+  ]);
+
+  if (porCedula) {
+    return {
+      ok: false,
+      errores: {
+        cedula: `Esa cédula ya está registrada a nombre de ${porCedula.profesional.nombre}. Si es usted, escríbanos y le devolvemos el acceso a su perfil.`,
+      },
+    };
+  }
+
+  if (porCorreo || cuenta?.profesionalId) {
+    return {
+      ok: false,
+      errores: {
+        correo:
+          "Ese correo ya pertenece a un perfil del directorio. Use otro, o escríbanos si perdió el acceso al suyo.",
+      },
+    };
+  }
+
+  if (porTelefono) {
+    return {
+      ok: false,
+      errores: {
+        telefono: `Ese teléfono ya está registrado a nombre de ${porTelefono.nombre}. Cada perfil necesita un número propio para que el paciente llegue a quien corresponde.`,
+      },
+    };
+  }
+
   const solicitud = await prisma.solicitudAlta.create({
     data: {
       nombre: nombre.ok ? nombre.valor : datos.nombre.trim(),
-      correo: correo.ok ? correo.valor : datos.correo.trim(),
-      telefono: telefono.ok ? telefono.valor : datos.telefono.replace(/\D/g, ""),
+      correo: elCorreo,
+      telefono: elTelefono,
       profesionSlug: especialidad.profesion.slug,
       especialidad: datos.especialidad,
       ciudadSlug: datos.ciudad,
-      cedula: cedula.ok ? cedula.valor : datos.cedula.trim(),
+      cedula: laCedula,
       cedulaEspecialidad: datos.cedulaEspecialidad?.trim() || null,
       consejo: datos.consejo?.trim() || null,
       consultorio: datos.consultorio?.trim() || null,

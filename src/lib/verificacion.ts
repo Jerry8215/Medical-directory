@@ -17,11 +17,16 @@ import { revalidatePath } from "next/cache";
 import { refrescarDirectorio } from "@/lib/refrescar";
 
 import { altaDeAcceso } from "@/lib/accesos";
-import { resolver } from "@/lib/novedades";
+import { anotar, resolver } from "@/lib/novedades";
 import { enviarCorreo } from "@/lib/avisos";
+import { precios } from "@/lib/precios";
 import { prisma } from "@/lib/prisma";
 import { sesionActual } from "@/lib/sesion-actual";
+import { importe, mesesDe, pesos } from "@/lib/suscripciones";
 import { sitio, urlAbsoluta } from "@/config/sitio";
+
+import type { Plan } from "@/lib/planes";
+import type { Periodicidad } from "@/lib/suscripciones";
 
 export type Resultado =
   | {
@@ -233,6 +238,45 @@ export async function aprobarSolicitud(id: string): Promise<Resultado> {
   } catch (error) {
     console.error("[verificacion] no se pudo publicar", error);
     return { ok: false, mensaje: "No se pudo publicar el perfil. Intente de nuevo." };
+  }
+
+  // El plan que eligió al registrarse se convierte en un cobro. Antes se
+  // guardaba en la solicitud y ahí se quedaba: el perfil nacía en básico
+  // aunque hubiera pedido Gold, no aparecía en el panel de cobros y nadie
+  // sabía hasta cuándo estaba vigente. El plan no se activa acá, lo
+  // activa el pago acreditado, que es lo que evita estrenar herramientas
+  // con un depósito que nunca llegó.
+  const planPedido = (solicitud.plan ?? "BASICO") as Plan;
+  if (planPedido !== "BASICO") {
+    const periodicidad: Periodicidad =
+      solicitud.periodicidad === "ANUAL" ? "ANUAL" : "MENSUAL";
+    const tarifa = await precios();
+    const aCobrar = importe(planPedido, periodicidad, tarifa);
+
+    const pago = await prisma.pago.create({
+      data: {
+        profesionalId: creado,
+        plan: planPedido,
+        meses: mesesDe(periodicidad),
+        importe: aCobrar,
+        medio: "TRANSFERENCIA",
+        // Si ya reportó su referencia al registrarse, entra directo a
+        // revisión: volver a pedírsela sería no haber leído lo que puso.
+        estado: solicitud.referenciaPago ? "EN_REVISION" : "PENDIENTE",
+        referencia: solicitud.referenciaPago,
+      },
+    });
+
+    await anotar({
+      tipo: "SOLICITUD_ALTA",
+      titulo: `${solicitud.nombre} eligió el plan ${planPedido} al registrarse`,
+      detalle: solicitud.referenciaPago
+        ? `${pesos(aCobrar)} · referencia ${solicitud.referenciaPago} · falta acreditarlo`
+        : `${pesos(aCobrar)} · falta que deposite y reporte su referencia`,
+      enlace: "/panel/cobros",
+      profesionalId: creado,
+      referencia: pago.id,
+    });
   }
 
   // Verificada la cédula, el acceso del médico nace solo. Hasta ahora
