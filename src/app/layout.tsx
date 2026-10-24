@@ -60,8 +60,14 @@ export default async function RootLayout({
               enlaces={[
                 { href: "/", texto: "Inicio", icono: "casa" },
                 { href: "/medicos", texto: "Médicos", icono: "medicos" },
-                { href: "/planes", texto: "Registro", icono: "medico" },
-                { href: "/panel", texto: "Entrar", icono: "acceso" },
+                { href: "/paciente", texto: "Mis citas", icono: "paciente" },
+                {
+                  href: "/planes",
+                  texto: "Registro",
+                  icono: "medico",
+                  soloEscritorio: true,
+                },
+                { href: "/panel", texto: "Soy médico", icono: "acceso" },
               ]}
             />
           </div>

@@ -67,6 +67,10 @@ export default async function MiConsulta({ params }: Props) {
         Abierta el {enHoraLocal(consulta.creadaEn)} ·{" "}
         <Link href={`/medico/${consulta.profesional.slug}`} className="enlace-acento">
           Ver su perfil
+        </Link>{" "}
+        ·{" "}
+        <Link href="/paciente" className="enlace-acento">
+          Mis citas y consultas
         </Link>
       </p>
 

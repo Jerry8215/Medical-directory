@@ -3,16 +3,34 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-import { Calendario, Casa, Estetoscopio, Maletin, Puerta } from "@/componentes/Iconos";
+import {
+  Calendario,
+  Casa,
+  Estetoscopio,
+  Globo,
+  Maletin,
+  Puerta,
+} from "@/componentes/Iconos";
 
 const ICONOS = {
   casa: Casa,
   medicos: Estetoscopio,
   medico: Maletin,
   acceso: Puerta,
+  paciente: Globo,
 } as const;
 
-type Enlace = { href: string; texto: string; icono: keyof typeof ICONOS };
+type Enlace = {
+  href: string;
+  texto: string;
+  icono: keyof typeof ICONOS;
+  /**
+   * Se esconde en celular. Con cinco íconos y el botón de cita no cabe
+   * nada junto al logotipo, así que cae lo que se hace una sola vez en
+   * la vida y vive también en el pie.
+   */
+  soloEscritorio?: boolean;
+};
 
 /**
  * Los enlaces de la barra.
@@ -36,7 +54,7 @@ export function BarraNavegacion({ enlaces }: { enlaces: Enlace[] }) {
           <Link
             key={e.href + e.texto}
             href={e.href}
-            className="enlace-barra"
+            className={`enlace-barra${e.soloEscritorio ? " solo-escritorio" : ""}`}
             aria-current={activo(e.href) ? "page" : undefined}
             title={e.texto}
           >

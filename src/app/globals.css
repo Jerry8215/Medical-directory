@@ -300,12 +300,17 @@ img {
     height: 38px;
   }
   .barra nav {
-    gap: 4px;
+    gap: 3px;
+  }
+  /* Lo que se hace una sola vez en la vida no ocupa un lugar en la barra
+     de un celular: el alta de un médico vive también en el pie. */
+  .enlace-barra.solo-escritorio {
+    display: none;
   }
   /* Acá se invierte: manda el ícono y el nombre se guarda. */
   .enlace-barra {
-    width: 42px;
-    height: 42px;
+    width: 38px;
+    height: 38px;
     padding-inline: 0;
     display: inline-grid;
     place-items: center;
