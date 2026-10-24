@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from "react";
 
+import { TelefonoConLada } from "@/componentes/TelefonoConLada";
 import { intentar } from "@/lib/intentar";
 import { pedirEntrada } from "@/lib/paciente-acceso";
 
@@ -73,13 +74,10 @@ export function EntrarPaciente({ volverA }: { volverA?: string }) {
 
       <div className="campo">
         <label htmlFor="pac-telefono">Su WhatsApp</label>
-        <input
+        <TelefonoConLada
           id="pac-telefono"
-          inputMode="tel"
-          value={telefono}
-          onChange={(e) => setTelefono(e.target.value)}
-          placeholder="10 dígitos"
-          autoComplete="tel"
+          valor={telefono}
+          alCambiar={(e164) => setTelefono(e164)}
         />
       </div>
 

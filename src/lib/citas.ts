@@ -22,7 +22,8 @@ import { A_PACIENTE } from "@/lib/avisos";
 import { crearEvento } from "@/lib/google-calendar";
 import { anotar } from "@/lib/novedades";
 import { prisma } from "@/lib/prisma";
-import { nombreDePersona, telefonoMexicano } from "@/lib/validacion";
+import { telefonoInternacional } from "@/lib/telefono";
+import { nombreDePersona } from "@/lib/validacion";
 
 export type Peticion = {
   consultorioId: string;
@@ -55,7 +56,7 @@ export async function agendarCita(peticion: Peticion): Promise<Resultado> {
     return { ok: false, motivo: "datos", mensaje: nombre.motivo };
   }
 
-  const revision = telefonoMexicano(peticion.telefono);
+  const revision = telefonoInternacional(peticion.telefono);
   if (!revision.ok) {
     return { ok: false, motivo: "datos", mensaje: revision.motivo };
   }

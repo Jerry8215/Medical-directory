@@ -20,7 +20,7 @@ import { enviarCorreo } from "@/lib/avisos";
 import { anotar, resolver } from "@/lib/novedades";
 import { prisma } from "@/lib/prisma";
 import { sesionActual } from "@/lib/sesion-actual";
-import { telefonoMexicano } from "@/lib/validacion";
+import { telefonoInternacional } from "@/lib/telefono";
 import { sitio, urlAbsoluta } from "@/config/sitio";
 
 export type Resultado =
@@ -40,7 +40,7 @@ export async function anotarseEnEspera(datos: {
   telefono: string;
   nota?: string;
 }): Promise<Resultado> {
-  const tel = telefonoMexicano(datos.telefono);
+  const tel = telefonoInternacional(datos.telefono);
   if (!tel.ok) return { ok: false, mensaje: tel.motivo };
 
   const profesional = await prisma.profesional.findUnique({

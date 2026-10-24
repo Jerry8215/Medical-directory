@@ -2795,6 +2795,76 @@ a.chip:hover {
   flex-wrap: wrap;
 }
 
+/* Se esconde a la vista, no del lector de pantalla: con `display: none`
+   el campo se quedaría sin nombre. */
+.oculto-visual {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+/* ---------- teléfono con lada ---------- */
+
+/* La bandera delante, porque es lo que se reconoce sin leer. El select
+   va encima e invisible: así se abre la lista nativa del teléfono, que
+   es la que la gente sabe usar, y lo que se ve es solo la bandera. */
+.telefono-lada {
+  display: flex;
+  align-items: stretch;
+  gap: 8px;
+}
+
+.telefono-lada > span,
+.telefono-lada > select {
+  grid-area: lada;
+}
+
+.telefono-lada select {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  cursor: pointer;
+  font: inherit;
+}
+
+.telefono-lada-marca {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex: 0 0 auto;
+  padding: 0 11px;
+  border: 1px solid var(--borde);
+  border-radius: 10px;
+  background: var(--banda-fria);
+  font-size: 0.92rem;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+/* El select ocupa toda la pastilla de la bandera, no el campo entero. */
+.telefono-lada {
+  position: relative;
+}
+
+.telefono-lada select {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 92px;
+}
+
+.telefono-lada input {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
 /* ---------- la sala de una consulta en línea ---------- */
 
 .sala {

@@ -4,6 +4,7 @@ import { useState, useTransition } from "react";
 
 import { CalendarioMes } from "@/componentes/CalendarioMes";
 import { porFranja } from "@/lib/calendario";
+import { TelefonoConLada } from "@/componentes/TelefonoConLada";
 import { intentar } from "@/lib/intentar";
 import { agendarCita } from "@/lib/citas";
 
@@ -219,13 +220,10 @@ export function Reserva({
           </div>
           <div className="campo">
             <label htmlFor="telefono-paciente">Su WhatsApp</label>
-            <input
+            <TelefonoConLada
               id="telefono-paciente"
-              inputMode="tel"
-              value={telefono}
-              onChange={(e) => setTelefono(e.target.value)}
-              placeholder="10 dígitos"
-              autoComplete="tel"
+              valor={telefono}
+              alCambiar={(e164) => setTelefono(e164)}
             />
           </div>
 

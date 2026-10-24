@@ -15,11 +15,11 @@ import { sitio, urlAbsoluta } from "@/config/sitio";
 import { enviarCorreo } from "@/lib/avisos";
 import { anotar } from "@/lib/novedades";
 import { prisma } from "@/lib/prisma";
+import { telefonoInternacional } from "@/lib/telefono";
 import {
   cedulaProfesional,
   correoElectronico,
   nombreDePersona,
-  telefonoMexicano,
 } from "@/lib/validacion";
 
 export type Solicitud = {
@@ -58,7 +58,7 @@ export async function registrarSolicitud(datos: Solicitud): Promise<Resultado> {
   const correo = correoElectronico(datos.correo);
   if (!correo.ok) errores.correo = "Revise el correo: ahí le avisamos del resultado.";
 
-  const telefono = telefonoMexicano(datos.telefono);
+  const telefono = telefonoInternacional(datos.telefono);
   if (!telefono.ok) errores.telefono = telefono.motivo;
 
   const cedula = cedulaProfesional(datos.cedula);
@@ -89,7 +89,7 @@ export async function registrarSolicitud(datos: Solicitud): Promise<Resultado> {
 
   const laCedula = cedula.ok ? cedula.valor : datos.cedula.trim();
   const elCorreo = correo.ok ? correo.valor : datos.correo.trim();
-  const elTelefono = telefono.ok ? telefono.valor : datos.telefono.replace(/\D/g, "");
+  const elTelefono = telefono.ok ? telefono.valor : datos.telefono.trim();
 
   // Una misma persona registrándose cuatro veces en tres minutos no está
   // insistiendo: está comprobando si funcionó, porque la pantalla no se

@@ -15,6 +15,7 @@ import {
 } from "@/componentes/Iconos";
 import { AbrirConsultaEnLinea } from "@/componentes/AbrirConsultaEnLinea";
 import { pacienteActual } from "@/lib/paciente-acceso";
+import { paraWhatsapp } from "@/lib/telefono";
 import { pesos } from "@/lib/suscripciones";
 import { Reserva } from "@/componentes/Reserva";
 import Image from "next/image";
@@ -351,7 +352,7 @@ export default async function PaginaProfesional({ params }: Props) {
                     <a
                       className="boton-whatsapp"
                       data-metrica="whatsapp"
-                      href={`https://wa.me/52${telefono}?text=${encodeURIComponent(
+                      href={`https://wa.me/${paraWhatsapp(telefono)}?text=${encodeURIComponent(
                         `Hola, lo contacto desde ${sitio.nombre} para agendar una consulta.`,
                       )}`}
                       target="_blank"
@@ -630,7 +631,7 @@ export default async function PaginaProfesional({ params }: Props) {
                       className="boton-lleno"
                       data-metrica="whatsapp"
                       style={{ width: "100%", marginTop: 12 }}
-                      href={`https://wa.me/52${telefono}?text=${encodeURIComponent(
+                      href={`https://wa.me/${paraWhatsapp(telefono)}?text=${encodeURIComponent(
                         `Hola, lo contacto desde ${sitio.nombre} para agendar una consulta.`,
                       )}`}
                       target="_blank"

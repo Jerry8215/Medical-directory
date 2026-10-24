@@ -30,7 +30,8 @@ import {
   leerSesionPaciente,
   type SesionPaciente,
 } from "@/lib/sesion-paciente";
-import { correoElectronico, nombreDePersona, telefonoMexicano } from "@/lib/validacion";
+import { telefonoInternacional } from "@/lib/telefono";
+import { correoElectronico, nombreDePersona } from "@/lib/validacion";
 
 export type Resultado = { ok: boolean; mensaje: string };
 
@@ -73,7 +74,7 @@ export async function pedirEntrada(datos: {
     return { ok: false, mensaje: "Revise su correo: ahí le llega el enlace para entrar." };
   }
 
-  const telefono = telefonoMexicano(datos.telefono);
+  const telefono = telefonoInternacional(datos.telefono);
   if (!telefono.ok) return { ok: false, mensaje: telefono.motivo };
 
   // El paciente existe una sola vez, identificado por su teléfono, para
