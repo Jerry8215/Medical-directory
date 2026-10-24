@@ -6,16 +6,25 @@ import { pacienteActual } from "@/lib/paciente-acceso";
 import { enHoraLocal } from "@/lib/panel-datos";
 import { prisma } from "@/lib/prisma";
 import { sesionActual } from "@/lib/sesion-actual";
+import {
+  apareceEnElListado,
+  esSuya,
+  puedeEntrar,
+  veAlPaciente,
+  type QuienMira,
+} from "@/lib/visibilidad-consulta";
+import { sitio } from "@/config/sitio";
 
 export const metadata: Metadata = {
-  title: "Consultas",
-  robots: { index: false, follow: false },
+  title: "Consultas en línea",
+  description:
+    "Casos que los médicos del directorio están respondiendo en línea, por especialidad.",
 };
 
 export const dynamic = "force-dynamic";
 
 const COMO_VA: Record<string, string> = {
-  "por-pagar": "Falta el pago",
+  "por-pagar": "Por empezar",
   "esperando-medico": "Esperando al médico",
   "sin-respuesta": "Sin respuesta",
   abierta: "Abierta",
@@ -27,60 +36,55 @@ const COMO_VA: Record<string, string> = {
 const ABIERTAS = new Set(["abierta", "por-cerrar", "esperando-medico"]);
 
 type Props = {
-  searchParams: Promise<{ categoria?: string; estado?: string }>;
+  searchParams: Promise<{ categoria?: string; estado?: string; mias?: string }>;
 };
 
 /**
- * Las salas de consulta.
+ * El directorio de salas.
  *
- * Cada quien ve las suyas: el paciente las que abrió, el médico las que
- * atiende, y el equipo del consultorio todas, porque le toca responder
- * por ellas. No existe un listado abierto al público, y no es una
- * omisión: el título de un caso lleva el padecimiento de una persona con
- * nombre, y eso es un dato de salud, que la ley trata como sensible.
+ * Cualquiera puede recorrerlo y ordenarlo por especialidad: ver que hay
+ * médicos respondiendo casos reales es lo que convence al siguiente
+ * paciente de abrir el suyo, y cada caso con su título es contenido por
+ * el que la gente busca.
  *
- * Se ordena y se filtra por especialidad, que es la categoría que de
- * verdad distingue a una consulta de otra, y por si está abierta o ya
- * terminó, que es lo primero que uno busca al entrar.
+ * Lo que nunca sale de la sala es quién es el paciente. Un padecimiento
+ * atado a un nombre es un dato de salud, que la ley trata como sensible,
+ * así que el listado publica el título, la especialidad, el médico y el
+ * estado, y nada más. El nombre, el teléfono y el correo se quedan
+ * adentro; la conversación también, porque entrar sigue exigiendo ser de
+ * la sala.
+ *
+ * Quien ha entrado ve además las suyas, marcadas y con el enlace puesto.
+ * El consultorio ve todas, incluidas las que el paciente pidió no
+ * publicar, porque le toca responder por ellas.
  */
 export default async function Consultas({ searchParams }: Props) {
-  const { categoria, estado } = await searchParams;
+  const { categoria, estado, mias } = await searchParams;
   const [paciente, sesion] = await Promise.all([pacienteActual(), sesionActual()]);
 
-  if (!paciente && !sesion) {
-    return (
-      <main className="envoltura seccion" style={{ maxWidth: 560 }}>
-        <p className="eyebrow">Consultas</p>
-        <h1 style={{ fontSize: "clamp(1.6rem, 4vw, 2rem)", marginBlock: "10px 10px" }}>
-          Sus consultas en línea
-        </h1>
-        <div className="nota-umbral">
-          Entre para ver sus salas. Cada conversación la ven solo el
-          paciente y el médico que participan en ella.
-        </div>
-        <div className="acciones" style={{ marginTop: 16 }}>
-          <Link href="/paciente/entrar" className="boton-lleno">
-            Entrar como paciente
-          </Link>
-          <Link href="/panel/acceso" className="boton-suave">
-            Soy médico
-          </Link>
-        </div>
-      </main>
-    );
-  }
+  const quien: QuienMira = {
+    esEquipo: sesion?.rol === "ADMINISTRADOR" || sesion?.rol === "RECEPCION",
+    pacienteId: paciente?.id ?? null,
+    profesionalId: sesion?.profesionalId ?? null,
+  };
+  const esEquipo = quien.esEquipo;
+  const miPerfil = quien.profesionalId;
 
-  const esEquipo = sesion?.rol === "ADMINISTRADOR" || sesion?.rol === "RECEPCION";
-
-  // Cada quien ve lo suyo. El equipo ve todo porque le toca responder.
-  const deQuien = esEquipo
+  // El equipo ve todo. Los demás ven lo publicado, más lo suyo aunque no
+  // esté publicado: nadie debería perder de vista su propia consulta por
+  // haber decidido no publicarla.
+  const alcance = esEquipo
     ? {}
-    : sesion?.profesionalId
-      ? { profesionalId: sesion.profesionalId }
-      : { pacienteId: paciente?.id ?? "" };
+    : {
+        OR: [
+          { publica: true },
+          ...(paciente ? [{ pacienteId: paciente.id }] : []),
+          ...(miPerfil ? [{ profesionalId: miPerfil }] : []),
+        ],
+      };
 
   const consultas = await prisma.consulta.findMany({
-    where: deQuien,
+    where: alcance,
     orderBy: { creadaEn: "desc" },
     include: {
       paciente: { select: { nombre: true } },
@@ -95,24 +99,29 @@ export default async function Consultas({ searchParams }: Props) {
         },
       },
     },
-    take: 100,
+    take: 120,
   });
 
   const ahora = new Date();
 
   const salas = consultas.map((c) => {
     const esp = c.profesional.especialidades[0]?.especialidad;
-    const donde = situacion(c, ahora);
     return {
       id: c.id,
       token: c.token,
       titulo: c.titulo ?? c.motivo.split("\n")[0].slice(0, 90),
       medico: c.profesional.nombre,
-      paciente: c.paciente.nombre ?? "Un paciente",
+      medicoSlug: c.profesional.slug,
       categoriaSlug: esp?.slug ?? "sin-especialidad",
       categoria: esp?.nombre ?? "Sin especialidad",
       cuando: enHoraLocal(c.creadaEn),
-      donde,
+      donde: situacion(c, ahora),
+      esMia: esSuya(quien, c),
+      // El nombre del paciente solo lo ve quien ya está adentro de esa
+      // sala, o el consultorio. Para todos los demás no existe.
+      paciente: veAlPaciente(quien, c) ? (c.paciente.nombre ?? "Un paciente") : null,
+      puedeEntrar: puedeEntrar(quien, c),
+      enElListado: apareceEnElListado(quien, c),
     };
   });
 
@@ -122,63 +131,73 @@ export default async function Consultas({ searchParams }: Props) {
     .map(([slug, nombre]) => ({ slug, nombre }))
     .sort((a, b) => a.nombre.localeCompare(b.nombre, "es"));
 
+  const soloMias = mias === "si";
   const visibles = salas.filter(
     (s) =>
+      // La consulta trae ya solo lo que corresponde, pero la regla se
+      // vuelve a aplicar acá: es la que no puede fallar, y comprobarla
+      // dos veces cuesta nada.
+      s.enElListado &&
       (!categoria || s.categoriaSlug === categoria) &&
       (!estado ||
-        (estado === "abiertas" ? ABIERTAS.has(s.donde) : !ABIERTAS.has(s.donde))),
+        (estado === "abiertas" ? ABIERTAS.has(s.donde) : !ABIERTAS.has(s.donde))) &&
+      (!soloMias || s.esMia),
   );
 
-  const conFiltro = (clave: string, valor?: string) => {
+  const cuantasMias = salas.filter((s) => s.esMia).length;
+
+  /** Conserva los demás filtros al cambiar uno. */
+  const con = (clave: "categoria" | "estado" | "mias", valor?: string) => {
+    const actual: Record<string, string | undefined> = { categoria, estado, mias };
+    actual[clave] = valor;
     const p = new URLSearchParams();
-    if (clave === "categoria" ? valor : categoria) {
-      p.set("categoria", clave === "categoria" ? valor! : categoria!);
-    }
-    if (clave === "estado" ? valor : estado) {
-      p.set("estado", clave === "estado" ? valor! : estado!);
-    }
+    for (const [k, v] of Object.entries(actual)) if (v) p.set(k, v);
     const q = p.toString();
     return q ? `/consultas?${q}` : "/consultas";
   };
 
   return (
-    <main className="envoltura seccion" style={{ maxWidth: 760 }}>
-      <p className="eyebrow">Consultas</p>
-      <h1 style={{ fontSize: "clamp(1.6rem, 4vw, 2rem)", marginBlock: "10px 8px" }}>
-        {esEquipo ? "Todas las consultas" : "Sus consultas en línea"}
+    <main className="envoltura seccion" style={{ maxWidth: 820 }}>
+      <p className="eyebrow">Consultas en línea</p>
+      <h1 style={{ fontSize: "clamp(1.6rem, 4vw, 2.1rem)", marginBlock: "10px 8px" }}>
+        {esEquipo ? "Todas las consultas" : "Casos que se están respondiendo"}
       </h1>
       <p className="intro">
-        {esEquipo
-          ? "Las salas de todo el directorio. Cada conversación la ven solo el paciente y el médico que participan en ella."
-          : "Cada sala la ven solo usted y el médico que participa en ella."}
+        Los médicos de {sitio.nombre} responden por escrito, con su cédula
+        verificada a la vista. Aquí se ve qué se está atendiendo y de qué
+        especialidad.{" "}
+        <b>Lo que cada paciente escribe se queda en su sala</b>: de los casos
+        ajenos solo se publica el título, nunca quién lo abrió.
       </p>
 
       {salas.length > 0 ? (
         <div className="filtros-consultas">
           <div className="filtro-grupo">
-            <Link href={conFiltro("estado", undefined)} data-activo={!estado}>
+            <Link href={con("estado", undefined)} data-activo={!estado}>
               Todas
             </Link>
-            <Link href={conFiltro("estado", "abiertas")} data-activo={estado === "abiertas"}>
+            <Link href={con("estado", "abiertas")} data-activo={estado === "abiertas"}>
               Abiertas
             </Link>
-            <Link
-              href={conFiltro("estado", "terminadas")}
-              data-activo={estado === "terminadas"}
-            >
+            <Link href={con("estado", "terminadas")} data-activo={estado === "terminadas"}>
               Terminadas
             </Link>
+            {cuantasMias > 0 ? (
+              <Link href={con("mias", soloMias ? undefined : "si")} data-activo={soloMias}>
+                Las mías ({cuantasMias})
+              </Link>
+            ) : null}
           </div>
 
           {categorias.length > 1 ? (
             <div className="filtro-grupo">
-              <Link href={conFiltro("categoria", undefined)} data-activo={!categoria}>
+              <Link href={con("categoria", undefined)} data-activo={!categoria}>
                 Toda especialidad
               </Link>
               {categorias.map((c) => (
                 <Link
                   key={c.slug}
-                  href={conFiltro("categoria", c.slug)}
+                  href={con("categoria", c.slug)}
                   data-activo={categoria === c.slug}
                 >
                   {c.nombre}
@@ -193,11 +212,11 @@ export default async function Consultas({ searchParams }: Props) {
         <div className="nota-umbral" style={{ marginTop: 16 }}>
           {salas.length === 0 ? (
             <>
-              Todavía no tiene salas.{" "}
+              Todavía no hay consultas en línea.{" "}
               <Link href="/medicos" className="enlace-acento">
                 Busque un médico
               </Link>{" "}
-              y ábrale una consulta.
+              y ábrale la primera.
             </>
           ) : (
             "Ninguna sala coincide con ese filtro."
@@ -205,35 +224,60 @@ export default async function Consultas({ searchParams }: Props) {
         </div>
       ) : (
         <div style={{ display: "grid", gap: 12, marginTop: 16 }}>
-          {visibles.map((s) => (
-            <Link key={s.id} href={`/consulta/${s.token}`} className="ficha consulta-fila">
-              <div>
-                <b>{s.titulo}</b>
-                <p className="meta" style={{ marginTop: 4 }}>
-                  {/* El médico que participa, que es lo que distingue una
-                      sala de otra cuando los títulos se parecen. */}
-                  {s.medico} · {s.categoria}
-                  {esEquipo ? ` · ${s.paciente}` : ""}
-                </p>
-                <p className="meta">{s.cuando}</p>
-              </div>
-              <em
-                className={`pastilla ${
-                  s.donde === "abierta" || s.donde === "por-cerrar"
-                    ? "pastilla-bien"
-                    : s.donde === "terminada"
-                      ? "pastilla-espera"
-                      : "pastilla-aviso"
-                }`}
-              >
-                {COMO_VA[s.donde] ?? s.donde}
-              </em>
-            </Link>
-          ))}
+          {visibles.map((s) => {
+            const fila = (
+              <>
+                <div>
+                  <b>{s.titulo}</b>
+                  <p className="meta" style={{ marginTop: 4 }}>
+                    {s.medico} · {s.categoria}
+                    {s.paciente ? ` · ${s.paciente}` : ""}
+                  </p>
+                  <p className="meta">{s.cuando}</p>
+                </div>
+                <span className="consulta-marcas">
+                  {s.esMia ? <em className="pastilla pastilla-aviso">Suya</em> : null}
+                  <em
+                    className={`pastilla ${
+                      s.donde === "abierta" || s.donde === "por-cerrar"
+                        ? "pastilla-bien"
+                        : s.donde === "terminada"
+                          ? "pastilla-espera"
+                          : "pastilla-aviso"
+                    }`}
+                  >
+                    {COMO_VA[s.donde] ?? s.donde}
+                  </em>
+                </span>
+              </>
+            );
+
+            // Solo se enlaza lo que se puede abrir. Un enlace que lleva a
+            // «esta sala no es suya» es una puerta pintada en la pared.
+            return s.puedeEntrar ? (
+              <Link key={s.id} href={`/consulta/${s.token}`} className="ficha consulta-fila">
+                {fila}
+              </Link>
+            ) : (
+              <article key={s.id} className="ficha consulta-fila">
+                {fila}
+              </article>
+            );
+          })}
         </div>
       )}
 
-      {!esEquipo ? (
+      {!paciente && !sesion ? (
+        <div className="nota-umbral" style={{ marginTop: 20 }}>
+          ¿Tiene algo que preguntar? Entre con su correo y su WhatsApp, elija
+          un médico disponible y ábrale su consulta.{" "}
+          <Link href="/paciente/entrar" className="enlace-acento">
+            Entrar
+          </Link>
+        </div>
+      ) : null}
+
+      {paciente ? (
         <p className="meta" style={{ marginTop: 22 }}>
           <Link href="/paciente" className="enlace-acento">
             Ver también mis citas en consultorio →

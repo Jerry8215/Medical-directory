@@ -10,6 +10,7 @@ import {
 } from "@/lib/consulta-reglas";
 import { pacienteActual } from "@/lib/paciente-acceso";
 import { sesionActual } from "@/lib/sesion-actual";
+import { puedeEntrar } from "@/lib/visibilidad-consulta";
 import { prisma } from "@/lib/prisma";
 import { enHoraLocal } from "@/lib/panel-datos";
 import { pesos } from "@/lib/suscripciones";
@@ -59,11 +60,16 @@ export default async function MiConsulta({ params }: Props) {
   // se trata, pero quien entra tiene que ser de ella.
   const [paciente, sesion] = await Promise.all([pacienteActual(), sesionActual()]);
 
-  const esElPaciente = paciente?.id === consulta.pacienteId;
-  const esElMedico = sesion?.profesionalId === consulta.profesionalId;
-  const esElConsultorio = sesion?.rol === "ADMINISTRADOR" || sesion?.rol === "RECEPCION";
+  const deLaSala = puedeEntrar(
+    {
+      esEquipo: sesion?.rol === "ADMINISTRADOR" || sesion?.rol === "RECEPCION",
+      pacienteId: paciente?.id ?? null,
+      profesionalId: sesion?.profesionalId ?? null,
+    },
+    consulta,
+  );
 
-  if (!esElPaciente && !esElMedico && !esElConsultorio) {
+  if (!deLaSala) {
     return (
       <main className="envoltura seccion" style={{ maxWidth: 560 }}>
         <h1 style={{ fontSize: "1.6rem", marginBlock: "10px 10px" }}>

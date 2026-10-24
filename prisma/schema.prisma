@@ -402,8 +402,11 @@ model Consulta {
   /// anteriores al campo no lo tienen: ahí se usa la primera línea de la
   /// descripción.
   titulo        String?
-  /// Lo que el paciente describe al abrirla.
+  /// Lo que el paciente describe al abrirla. No sale nunca de la sala.
   motivo        String
+  /// Si el caso aparece en el listado público, siempre sin el nombre de
+  /// quien lo abrió. El paciente lo decide al abrirla.
+  publica       Boolean        @default(true)
   estado        EstadoConsulta @default(SOLICITADA)
   /// En centavos, como todo el dinero del proyecto.
   precio        Int            @default(0)
@@ -421,6 +424,7 @@ model Consulta {
   @@index([profesionalId, estado])
   @@index([pacienteId, creadaEn])
   @@index([estado, creadaEn])
+  @@index([publica, creadaEn])
 }
 
 /// Un mensaje de una sala.

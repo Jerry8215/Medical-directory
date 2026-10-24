@@ -62,6 +62,12 @@ export async function abrirConsulta(datos: {
   /** En pocas palabras, para distinguirla en un listado. */
   titulo: string;
   motivo: string;
+  /**
+   * Si el título puede verse en el listado público. Nunca se publica
+   * quién la abrió ni lo que escribió dentro: solo el título, la
+   * especialidad y el médico.
+   */
+  publica?: boolean;
 }): Promise<Resultado> {
   const paciente = await pacienteActual();
   if (!paciente) {
@@ -144,6 +150,7 @@ export async function abrirConsulta(datos: {
       pacienteId: paciente.id,
       titulo,
       motivo,
+      publica: datos.publica !== false,
       precio,
       comision: plataforma,
       estado: "SOLICITADA",

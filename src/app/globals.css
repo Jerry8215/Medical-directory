@@ -2806,6 +2806,32 @@ a.chip:hover {
   white-space: nowrap;
 }
 
+/* La casilla y su texto, alineados por arriba: el texto es largo y
+   centrarlo contra la casilla lo deja flotando. */
+.campo-marca {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  margin-top: 14px;
+  font-size: 0.88rem;
+  color: var(--suave);
+  cursor: pointer;
+}
+
+.campo-marca input {
+  margin-top: 2px;
+  accent-color: var(--azul);
+  flex: 0 0 auto;
+}
+
+.consulta-marcas {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
 /* ---------- filtros del listado de consultas ---------- */
 
 .filtros-consultas {

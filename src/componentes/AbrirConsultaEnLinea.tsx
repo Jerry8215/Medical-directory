@@ -31,6 +31,7 @@ export function AbrirConsultaEnLinea({
   const [abierto, setAbierto] = useState(false);
   const [titulo, setTitulo] = useState("");
   const [motivo, setMotivo] = useState("");
+  const [publica, setPublica] = useState(true);
   const [error, setError] = useState("");
   const [urgencias, setUrgencias] = useState("");
   const [enviando, iniciar] = useTransition();
@@ -109,6 +110,20 @@ export function AbrirConsultaEnLinea({
         />
       </div>
 
+      {/* Lo que se publica es el título, y el paciente lo sabe mientras
+          lo escribe. Su nombre no sale nunca, se marque o no. */}
+      <label className="campo-marca">
+        <input
+          type="checkbox"
+          checked={publica}
+          onChange={(e) => setPublica(e.target.checked)}
+        />
+        <span>
+          Mostrar el título de mi caso en el listado de consultas, sin mi
+          nombre. Ayuda a que otros pacientes encuentren al médico.
+        </span>
+      </label>
+
       {error ? <p className="error">{error}</p> : null}
 
       {haySesion ? (
@@ -120,7 +135,7 @@ export function AbrirConsultaEnLinea({
             iniciar(async () => {
               setError("");
               const r = await intentar(() =>
-                abrirConsulta({ profesionalSlug: slug, titulo, motivo }),
+                abrirConsulta({ profesionalSlug: slug, titulo, motivo, publica }),
               );
               if (r.ok && "token" in r && r.token) {
                 router.push(`/consulta/${r.token}`);
