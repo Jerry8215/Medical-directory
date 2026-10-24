@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 
@@ -54,6 +55,15 @@ export function FormularioAcceso() {
       <button className="boton-lleno" type="submit" disabled={entrando}>
         {entrando ? "Entrando…" : "Entrar"}
       </button>
+
+      {/* Hasta ahora, quien olvidaba su contraseña no tenía adónde ir: la
+          única salida era que el administrador se la reemitiera, y si el
+          que la olvidaba era el administrador no quedaba nadie dentro. */}
+      <p className="meta" style={{ marginTop: 14, textAlign: "center" }}>
+        <Link href="/panel/recuperar" className="enlace-acento">
+          Olvidé mi contraseña
+        </Link>
+      </p>
     </form>
   );
 }

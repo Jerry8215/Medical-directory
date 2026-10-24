@@ -11,7 +11,15 @@ import { COOKIE, leerSesion } from "@/lib/auth";
 export function middleware(peticion: NextRequest) {
   const { pathname } = peticion.nextUrl;
 
-  if (pathname.startsWith("/panel/acceso")) return NextResponse.next();
+  // Las dos pantallas que existen precisamente para quien no tiene
+  // sesión. Mandar a «entrar» a quien olvidó su contraseña lo devuelve al
+  // problema del que venía huyendo.
+  if (
+    pathname.startsWith("/panel/acceso") ||
+    pathname.startsWith("/panel/recuperar")
+  ) {
+    return NextResponse.next();
+  }
 
   if (!leerSesion(peticion.cookies.get(COOKIE)?.value)) {
     const destino = new URL("/panel/acceso", peticion.url);
